@@ -1,0 +1,5 @@
+RCON> dominion admin selftest => Self-test started at 4000, 4000. Results in the log in two minutes.
+
+waited 160
+RCON> dominion list => Testland  1 members, 5 citizens, 9 chunks
+
