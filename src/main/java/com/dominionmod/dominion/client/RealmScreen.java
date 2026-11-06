@@ -52,6 +52,11 @@ public class RealmScreen extends Screen {
         ClientPacketDistributor.sendToServer(new Payloads.RealmAction(action, arg));
     }
 
+    /** Debug (automated screenshots). */
+    public void debugTab(int t) {
+        setTab(t);
+    }
+
     private void setTab(int t) {
         tab = t;
         scroll = 0;

@@ -37,6 +37,22 @@ public final class FlagTextures {
         return CACHE.computeIfAbsent(key.toString(), k -> paint(b, p, DyeColor.byId(secondaryDye)));
     }
 
+    private static final Map<String, Identifier> PREVIEWS = new HashMap<>();
+
+    /** A 20x40 picture of the flag itself, for big previews in screens. */
+    public static Identifier preview(DyeColor base, BannerPatternLayers patterns) {
+        StringBuilder key = new StringBuilder().append(base.getId());
+        for (var l : patterns.layers()) key.append('/').append(l.pattern().value().assetId()).append('=').append(l.color().getId());
+        return PREVIEWS.computeIfAbsent(key.toString(), k -> {
+            int[] flag = composite(base, patterns);
+            NativeImage img = new NativeImage(20, 40, true);
+            for (int y = 0; y < 40; y++) for (int x = 0; x < 20; x++) img.setPixel(x, y, flag[y * 20 + x]);
+            Identifier id = DominionMod.id("dynamic/flag_" + (next++));
+            Minecraft.getInstance().getTextureManager().register(id, new DynamicTexture(() -> "dominion flag preview", img));
+            return id;
+        });
+    }
+
     private static Identifier paint(DyeColor base, BannerPatternLayers patterns, DyeColor trimDye) {
         int[] flag = composite(base, patterns);
         NativeImage img = new NativeImage(TW, TH, true);

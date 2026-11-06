@@ -189,9 +189,11 @@ public class FlagScreen extends Screen {
         }
 
         // Preview, drawn on a backing so it reads at a glance.
-        g.fill(l + 14, t + 40, l + 62, t + 140, 0xFF2A2622);
-        if (flagModel != null) g.bannerPattern(flagModel, DyeColor.byId(base), preview(), l + 28, t + 60, l + 48, t + 100);
-        g.text(this.font, "Preview", l + 20, t + 144, 0xFF888888, false);
+        g.fill(l + 8, t + 30, l + 72, t + 162, 0xFF2A2622);
+        g.fill(l + 10, t + 34, l + 70, t + 36, 0xFF6B4A2B); // the pole
+        var tex = com.dominionmod.dominion.client.render.FlagTextures.preview(DyeColor.byId(base), preview());
+        g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex, l + 10, t + 38, 0, 0, 60, 120, 20, 40, 20, 40);
+        g.text(this.font, "Preview", l + 22, t + 164, 0xFF888888, false);
 
         this.renderables.forEach(r -> r.extractRenderState(g, mouseX, mouseY, partialTick));
 

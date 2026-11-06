@@ -30,7 +30,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 public final class Showcase {
     private Showcase() {}
 
-    public static final String FLAG = "14;minecraft:chevron#4,minecraft:straight_cross#15,minecraft:circle#4";
+    public static final String FLAG = "14;minecraft:triangle_bottom#4,minecraft:straight_cross#15,minecraft:circle#4,minecraft:border#15";
 
     public static void run(ServerPlayer p) {
         ServerLevel level = (ServerLevel) p.level();
