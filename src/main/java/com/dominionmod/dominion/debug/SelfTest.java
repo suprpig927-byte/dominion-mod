@@ -132,6 +132,11 @@ public final class SelfTest {
         cottage = new com.dominionmod.dominion.build.Site(UUID.randomUUID(), k.id, "cottage", KingdomData.dim(level), center.offset(10, -1, -10),
                 center.offset(10, -1, -10), 0, List.of(), 0);
         d.addSite(cottage);
+        var st = Storehouse.containers(level, k);
+        ItemStack white = new ItemStack(Items.BED.pick(net.minecraft.world.item.DyeColor.WHITE));
+        log("bed check: white beds in store=" + Storehouse.count(st, x -> x.is(white.getItem())) + " any beds=" + Storehouse.count(st, x -> x.is(net.minecraft.tags.ItemTags.BEDS))
+                + " satisfies=" + com.dominionmod.dominion.build.Plans.satisfies(Items.BED.pick(net.minecraft.world.item.DyeColor.BLUE), white)
+                + " whiteIsBed=" + white.is(net.minecraft.tags.ItemTags.BEDS));
         log("cottage steps=" + com.dominionmod.dominion.build.Plans.steps(level, cottage, k).size());
 
         Zombie z = EntityTypes.ZOMBIE.create(level, EntitySpawnReason.COMMAND);
