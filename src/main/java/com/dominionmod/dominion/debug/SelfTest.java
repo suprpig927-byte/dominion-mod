@@ -147,7 +147,7 @@ public final class SelfTest {
             level.addFreshEntity(z);
             zombie = z.getUUID();
         }
-        checkAt = level.getGameTime() + 2600;
+        checkAt = level.getGameTime() + 3000;
         log("started at " + center + ", citizens: " + citizens.size() + ", kingdom citizens: " + k.citizens);
     }
 

@@ -171,11 +171,14 @@ public class BuildGoal extends Goal {
         }
         if (s.isClear()) return;
         if (s.cost() != null && !useMaterial(s.cost())) return;
-        BlockState state = Block.updateFromNeighbourShapes(s.state(), level, s.pos());
-        level.setBlock(s.pos(), state, Block.UPDATE_ALL);
+        // Two-block things (doors, beds) go in as a pair; for everything else, connect to the neighbors (fences, panes).
+        BlockState state = s.companion() != null ? s.state() : Block.updateFromNeighbourShapes(s.state(), level, s.pos());
+        if (state.isAir()) state = s.state();
+        level.setBlock(s.pos(), state, s.companion() != null ? Block.UPDATE_CLIENTS : Block.UPDATE_ALL);
         if (s.companion() != null && s.companionPos() != null) {
             if (!level.getBlockState(s.companionPos()).isAir()) level.destroyBlock(s.companionPos(), true);
             level.setBlock(s.companionPos(), s.companion(), Block.UPDATE_ALL);
+            if (!level.getBlockState(s.pos()).is(state.getBlock())) level.setBlock(s.pos(), state, Block.UPDATE_ALL);
         }
         if (s.flag()) {
             var be = level.getBlockEntity(s.pos());
