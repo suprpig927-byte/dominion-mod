@@ -93,8 +93,7 @@ public final class Realm {
     }
 
     public static ItemStack plainBanner(int dye) {
-        Identifier id = Identifier.withDefaultNamespace(DyeColor.byId(dye).getName() + "_banner");
-        return new ItemStack(BuiltInRegistries.ITEM.getValue(id));
+        return new ItemStack(net.minecraft.world.item.Items.BANNER.pick(DyeColor.byId(dye)));
     }
 
     /** Plants the kingdom's flag on top of the Town Hall. */

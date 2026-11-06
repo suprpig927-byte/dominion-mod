@@ -45,11 +45,11 @@ public class MarketBlock extends Block {
         PER_COIN.put(Items.IRON_INGOT, 1);
         PER_COIN.put(Items.COPPER_INGOT, 4);
         PER_COIN.put(Items.LEATHER, 4);
-        PER_COIN.put(Items.WHITE_WOOL, 8);
         PER_COIN.put(Items.EMERALD, 1);
         PER_COIN.put(Items.GOLD_INGOT, 1);
         TAG_PER_COIN.put(ItemTags.LOGS, 8);
         TAG_PER_COIN.put(ItemTags.PLANKS, 32);
+        TAG_PER_COIN.put(ItemTags.WOOL, 8);
     }
 
     /** Emeralds and gold ingots are worth more than one coin each. */
@@ -105,7 +105,7 @@ public class MarketBlock extends Block {
             int b = bonus(item);
             sb.append(new ItemStack(item).getHoverName().getString()).append(' ').append(b > 1 ? "1 = " + b + " coins" : String.valueOf(n));
         });
-        sb.append(", any logs 8, any planks 32");
+        sb.append(", any logs 8, any planks 32, any wool 8");
         player.sendSystemMessage(Component.literal(sb.toString()).withStyle(ChatFormatting.GRAY));
         player.sendSystemMessage(Component.literal("Right-click with a stack to sell all of it.").withStyle(ChatFormatting.DARK_GRAY));
         return InteractionResult.SUCCESS_SERVER;
