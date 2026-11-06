@@ -8,5 +8,9 @@
   "key.category.dominion.dominion": "Dominion",
   "key.dominion.open_realm": "Open Realm",
   "item.dominion.builders_hammer": "Builder's Hammer",
-  "item.dominion.blueprint": "Blueprint"
+  "item.dominion.blueprint": "Blueprint",
+  "block.dominion.research_table": "Research Table",
+  "block.dominion.training_desk": "Training Desk",
+  "item.dominion.blacksmith_tongs": "Blacksmith's Tongs",
+  "item.dominion.storage_label": "Storage Label"
 }

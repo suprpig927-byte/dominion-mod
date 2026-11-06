@@ -54,7 +54,7 @@ public class BuildGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (c.job() != Job.BUILDER || c.order() != Order.DUTY || c.getTarget() != null || !c.level().isBrightOutside()) return false;
+        if (!c.job().builds() || c.order() != Order.DUTY || c.getTarget() != null || !c.level().isBrightOutside()) return false;
         if (c.inventoryFull() || !(c.level() instanceof ServerLevel level)) return false;
         if (--cooldown > 0) return false;
         cooldown = 40;
@@ -71,6 +71,7 @@ public class BuildGoal extends Goal {
                 best = s;
             }
         }
+        if (best == null && c.job() == Job.ENGINEER) best = findRepair(level, d, k);
         site = best;
         return site != null;
     }
@@ -86,7 +87,7 @@ public class BuildGoal extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return site != null && c.job() == Job.BUILDER && c.order() == Order.DUTY && c.getTarget() == null && !c.inventoryFull()
+        return site != null && c.job().builds() && c.order() == Order.DUTY && c.getTarget() == null && !c.inventoryFull()
                 && c.level().isBrightOutside() && ticks < 6000;
     }
 
@@ -139,7 +140,7 @@ public class BuildGoal extends Goal {
             if (stuck < 6) return;
         }
         c.getLookControl().setLookAt(Vec3.atCenterOf(next.pos()));
-        if (++placeTimer < 6) return;
+        if (++placeTimer < (c.job() == Job.ENGINEER ? 3 : 6)) return;
         placeTimer = 0;
         stuck = 0;
         perform(level, k, next);
@@ -147,9 +148,35 @@ public class BuildGoal extends Goal {
         d.markChanged();
     }
 
+    private static final Map<UUID, Long> LAST_REPAIR_CHECK = new HashMap<>();
+
+    /** Engineers look over finished buildings now and then, and mark any damage for repair. */
+    private Site findRepair(ServerLevel level, KingdomData d, Kingdom k) {
+        long now = level.getGameTime();
+        Long last = LAST_REPAIR_CHECK.get(k.id);
+        if (last != null && now - last < 1200) return null;
+        LAST_REPAIR_CHECK.put(k.id, now);
+        for (var b : d.progress(k).buildings) {
+            if (!b.dim.equals(KingdomData.dim(level)) || c.distanceToSqr(Vec3.atCenterOf(b.origin)) > 160 * 160) continue;
+            boolean busy = false;
+            for (Site s : d.sites(k)) if (b.id.equals(s.building)) busy = true;
+            if (busy) continue;
+            Site repair = com.dominionmod.dominion.build.Buildings.repairSite(level, k, b);
+            if (repair != null) {
+                d.addSite(repair);
+                Citizen.tellKingdom(level, k, Component.literal(c.baseName() + " the Engineer is repairing the " + b.name() + ".")
+                        .withStyle(ChatFormatting.GRAY));
+                return repair;
+            }
+        }
+        return null;
+    }
+
     private void skipDone(ServerLevel level, List<Plans.Step> steps) {
         int guard = 0;
-        while (site.cursor < steps.size() && guard++ < 64 && done(level, steps.get(site.cursor))) site.cursor++;
+        // Upgrades and repairs leave the inside alone: they only replace the building's own blocks.
+        while (site.cursor < steps.size() && guard++ < 64
+                && (done(level, steps.get(site.cursor)) || site.building != null && steps.get(site.cursor).isClear())) site.cursor++;
     }
 
     private static boolean done(ServerLevel level, Plans.Step s) {
@@ -278,9 +305,13 @@ public class BuildGoal extends Goal {
 
     private void finish(ServerLevel level, KingdomData d, Kingdom k) {
         d.removeSite(site);
-        if (site.structure.equals("storehouse")) k.storehouses.add(site.origin.above().asLong());
-        Citizen.tellKingdom(level, k, Component.literal("The " + site.name() + " is finished!"
-                + (site.structure.equals("storehouse") ? " Its chests are part of your storehouse now." : "")).withStyle(ChatFormatting.GREEN));
+        boolean isNew = site.building == null;
+        if (isNew && site.structure.equals("storehouse")) k.storehouses.add(site.origin.above().asLong());
+        com.dominionmod.dominion.build.Buildings.finished(level, k, site);
+        String what = isNew ? "The " + site.name() + " is finished!" : "The " + site.name() + " now stands in "
+                + com.dominionmod.dominion.build.Palette.tierName(site.tier) + ".";
+        Citizen.tellKingdom(level, k, Component.literal(what + (isNew && site.structure.equals("storehouse")
+                ? " Its chests are part of your storehouse now." : "")).withStyle(ChatFormatting.GREEN));
         // Leftover materials go back to the storehouse.
         var store = Storehouse.containers(level, k);
         for (ItemStack s : c.materials().removeAllItems()) {

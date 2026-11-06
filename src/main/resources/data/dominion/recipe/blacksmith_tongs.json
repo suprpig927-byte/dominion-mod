@@ -1,0 +1,4 @@
+{ "type": "minecraft:crafting_shaped", "category": "equipment",
+  "key": { "I": "minecraft:iron_ingot", "S": "minecraft:stick" },
+  "pattern": [ "I I", " I ", "S S" ],
+  "result": { "id": "dominion:blacksmith_tongs" } }

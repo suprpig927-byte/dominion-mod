@@ -30,6 +30,12 @@ public final class CitizenLayers {
             case FARMER -> "farmer";
             case LUMBERJACK -> "toolsmith";
             case BUILDER -> "mason";
+            case SCHOLAR -> "librarian";
+            case BLACKSMITH -> "weaponsmith";
+            case WIZARD -> "cleric";
+            case MONK -> "nitwit";
+            case ENGINEER -> "armorer";
+            case BARBARIAN -> "leatherworker";
             default -> null;
         };
     }
@@ -62,7 +68,7 @@ public final class CitizenLayers {
 
         @Override
         public void submit(PoseStack pose, SubmitNodeCollector collector, int light, CitizenRenderState s, float yRot, float xRot) {
-            if (s.isInvisible || !s.job.soldier) return;
+            if (s.isInvisible || !CitizenModel.armored(s.job)) return;
             Identifier texture = FlagTextures.tabard(s.flagBase, s.flagPatterns, s.primaryDye, s.secondaryDye);
             renderColoredCutoutModel(model, texture, pose, collector, light, s, 0xFFFFFFFF, 6);
         }

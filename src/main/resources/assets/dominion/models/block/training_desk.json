@@ -1,0 +1,1 @@
+{ "parent": "minecraft:block/cube_bottom_top", "textures": { "top": "dominion:block/training_desk_top", "bottom": "minecraft:block/dark_oak_planks", "side": "dominion:block/training_desk_side" } }

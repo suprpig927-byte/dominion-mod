@@ -23,6 +23,10 @@ public final class Site {
     public final List<Integer> columns;
     public int cursor;
     public String status = "";
+    /** Building tier (see {@link Palette}). */
+    public int tier;
+    /** For an upgrade or repair: the finished building this works on (null for new buildings). */
+    public @org.jspecify.annotations.Nullable UUID building;
 
     public static final Codec<Site> CODEC = RecordCodecBuilder.create(i -> i.group(
             UUIDUtil.STRING_CODEC.fieldOf("id").forGetter(s -> s.id),
@@ -33,8 +37,15 @@ public final class Site {
             BlockPos.CODEC.fieldOf("end").forGetter(s -> s.end),
             Codec.INT.optionalFieldOf("rotation", 0).forGetter(s -> s.rotation),
             Codec.INT.listOf().optionalFieldOf("columns", List.of()).forGetter(s -> s.columns),
-            Codec.INT.optionalFieldOf("cursor", 0).forGetter(s -> s.cursor)
-    ).apply(i, Site::new));
+            Codec.INT.optionalFieldOf("cursor", 0).forGetter(s -> s.cursor),
+            Codec.INT.optionalFieldOf("tier", 1).forGetter(s -> s.tier),
+            UUIDUtil.STRING_CODEC.optionalFieldOf("building").forGetter(s -> java.util.Optional.ofNullable(s.building))
+    ).apply(i, (id, k, st, dim, o, e, r, cols, cur, tier, b) -> {
+        Site site = new Site(id, k, st, dim, o, e, r, cols, cur);
+        site.tier = tier;
+        site.building = b.orElse(null);
+        return site;
+    }));
 
     public Site(UUID id, UUID kingdom, String structure, String dim, BlockPos origin, BlockPos end, int rotation, List<Integer> columns, int cursor) {
         this.id = id;

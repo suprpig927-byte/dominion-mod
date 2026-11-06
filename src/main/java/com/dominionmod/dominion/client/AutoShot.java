@@ -64,24 +64,38 @@ public final class AutoShot {
         if (t == 264) look(mc, bx + 1, by, bz - 1, 0f, 10f); // turn around to see their backs
         if (t == 266) look(mc, bx, by, bz - 13, 0f, 10f);
         if (t == 306) shot(mc, "citizens_back");
-        if (t == 308) look(mc, bx, by + 6, bz - 6, 180f, 15f);
-        if (t == 360) shot(mc, "buildings");
-        if (t == 362) look(mc, bx - 12, by + 1, bz - 12, 180f, 0f);
-        if (t == 410) shot(mc, "storehouse");
-        if (t == 412) {
+        if (t == 307) look(mc, bx, by, bz - 7.5, 180f, 5f);
+        if (t == 340) shot(mc, "classes");
+        if (t == 342) look(mc, bx, by + 5, bz - 2, 180f, 12f);
+        if (t == 370) shot(mc, "tiers");
+        if (t == 362) look(mc, bx - 24, by + 1, bz - 13, 180f, 5f);
+        if (t == 400) shot(mc, "tier_thatch");
+        if (t == 402) look(mc, bx + 24, by + 1, bz - 13, 180f, 5f);
+        if (t == 440) shot(mc, "tier_royal");
+        if (t == 442) look(mc, bx, by + 9, bz - 22, 180f, 18f);
+        if (t == 490) shot(mc, "buildings");
+        if (t == 492) look(mc, bx - 26, by + 1, bz - 31, 180f, 5f);
+        if (t == 530) shot(mc, "storehouse");
+        if (t == 532) look(mc, bx + 26, by + 2, bz - 30, 180f, 5f);
+        if (t == 580) shot(mc, "university");
+        if (t == 582) look(mc, bx - 12, by + 6, bz - 44, 180f, 25f);
+        if (t == 620) shot(mc, "farm_tower");
+        if (t == 642) {
             look(mc, bx, by, bz, 180f, 10f);
             if (mc.gui.hud.isHidden()) mc.gui.hud.toggle();
         }
-        if (t == 440) ClientPacketDistributor.sendToServer(new Payloads.RealmAction(Payloads.RealmAction.OPEN));
-        if (t == 500) shot(mc, "realm");
-        if (t == 501 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(1);
-        if (t == 520) shot(mc, "realm_citizens");
-        if (t == 521 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(2);
-        if (t == 540) shot(mc, "realm_build");
-        if (t == 541 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(0);
-        if (t == 545) mc.gui.setScreen(new FlagScreen(null, Showcase.FLAG, s -> {}, "Done"));
-        if (t == 580) shot(mc, "flag");
-        if (t == 600) {
+        if (t == 670) ClientPacketDistributor.sendToServer(new Payloads.RealmAction(Payloads.RealmAction.OPEN));
+        if (t == 730) shot(mc, "realm");
+        if (t == 731 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(1);
+        if (t == 750) shot(mc, "realm_citizens");
+        if (t == 751 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(2);
+        if (t == 770) shot(mc, "realm_build");
+        if (t == 771 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(3);
+        if (t == 790) shot(mc, "realm_research");
+        if (t == 791 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(0);
+        if (t == 795) mc.gui.setScreen(new FlagScreen(null, Showcase.FLAG, s -> {}, "Done"));
+        if (t == 830) shot(mc, "flag");
+        if (t == 850) {
             mc.gui.setScreen(null);
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();

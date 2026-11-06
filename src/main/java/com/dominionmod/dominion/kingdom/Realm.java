@@ -277,6 +277,41 @@ public final class Realm {
         d.markChanged();
     }
 
+    /**
+     * Now and then, if there's a free bed and food to spare, two citizens near the Town Hall have a child,
+     * who joins the kingdom and grows up in a day.
+     */
+    public static void birthTick(ServerLevel level) {
+        KingdomData d = data(level);
+        for (Kingdom k : d.all()) {
+            if (k.hall.isEmpty() || !k.hallDim.equals(KingdomData.dim(level)) || !level.isLoaded(k.hall.get())) continue;
+            if (level.getRandom().nextFloat() > 0.25f) continue;
+            int beds = beds(level, k);
+            if (k.citizens.size() >= beds) continue;
+            var store = Storehouse.containers(level, k);
+            int food = Storehouse.count(store, s -> s.has(net.minecraft.core.component.DataComponents.FOOD));
+            if (food < k.citizens.size() * 2 + 4) continue;
+            java.util.List<Citizen> adults = level.getEntitiesOfClass(Citizen.class, new net.minecraft.world.phys.AABB(k.hall.get()).inflate(64),
+                    c -> c.sameKingdom(k.id) && !c.isChild() && c.isAlive());
+            if (adults.size() < 2) continue;
+            Citizen a = adults.get(level.getRandom().nextInt(adults.size()));
+            Citizen mate = null;
+            for (Citizen b : adults) if (b != a && b.distanceToSqr(a) < 16 * 16) mate = b;
+            if (mate == null) continue;
+            for (int i = 0; i < 3; i++) Storehouse.take(store, s -> s.has(net.minecraft.core.component.DataComponents.FOOD), 1);
+            Citizen baby = com.dominionmod.dominion.registry.ModContent.CITIZEN.get().create(level, net.minecraft.world.entity.EntitySpawnReason.BREEDING);
+            if (baby == null) continue;
+            baby.snapTo((a.getX() + mate.getX()) / 2, a.getY(), (a.getZ() + mate.getZ()) / 2, a.getYRot(), 0);
+            baby.setVillagerTypeForDebug(level.getRandom().nextBoolean() ? a.getVillagerType() : mate.getVillagerType());
+            baby.makeChild();
+            baby.joinKingdom(k, level);
+            level.addFreshEntity(baby);
+            level.sendParticles(net.minecraft.core.particles.ParticleTypes.HEART, baby.getX(), baby.getY() + 1, baby.getZ(), 8, 0.5, 0.5, 0.5, 0);
+            Citizen.tellKingdom(level, k, Component.literal("A child, " + baby.baseName() + ", was born to " + a.baseName() + " and "
+                    + mate.baseName() + "!").withStyle(ChatFormatting.LIGHT_PURPLE));
+        }
+    }
+
     /** Find a loaded citizen by UUID anywhere. */
     public static @Nullable Citizen findCitizen(ServerLevel any, UUID id) {
         for (ServerLevel level : any.getServer().getAllLevels()) {

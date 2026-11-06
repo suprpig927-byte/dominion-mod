@@ -132,18 +132,20 @@ public final class SelfTest {
 
         cottage = new com.dominionmod.dominion.build.Site(UUID.randomUUID(), k.id, "cottage", KingdomData.dim(level), center.offset(10, -1, -10),
                 center.offset(10, -1, -10), 0, List.of(), 0);
+        cottage.tier = 1;
         d.addSite(cottage);
         var st = Storehouse.containers(level, k);
         ItemStack white = new ItemStack(Items.BED.pick(net.minecraft.world.item.DyeColor.WHITE));
         log("bed check: white beds in store=" + Storehouse.count(st, x -> x.is(white.getItem())) + " any beds=" + Storehouse.count(st, x -> x.is(net.minecraft.tags.ItemTags.BEDS))
                 + " satisfies=" + com.dominionmod.dominion.build.Plans.satisfies(Items.BED.pick(net.minecraft.world.item.DyeColor.BLUE), white)
                 + " whiteIsBed=" + white.is(net.minecraft.tags.ItemTags.BEDS));
-        for (String w : new String[]{"stone_wall", "palisade", "watchtower", "barracks", "farm", "storehouse", "market_stall", "wall_gate"}) {
+        for (String w : new String[]{"stone_wall", "palisade", "watchtower", "barracks", "farm", "storehouse", "market_stall", "wall_gate", "library", "smithy", "university", "cottage"}) {
             BlockPos a = center.offset(-15, -1, -15), b = center.offset(-5, -1, -9);
             var cols = com.dominionmod.dominion.build.Plans.line(a, b);
             var tmp = new com.dominionmod.dominion.build.Site(UUID.randomUUID(), k.id, w, KingdomData.dim(level), a, b, 1, com.dominionmod.dominion.build.Plans.groundHeights(level, cols), 0);
+            tmp.tier = 1;
             log(w + " plan: " + com.dominionmod.dominion.build.Plans.steps(level, tmp, k).size() + " steps, line " + cols.size()
-                    + ", materials " + com.dominionmod.dominion.build.Plans.materials(com.dominionmod.dominion.build.Structures.get(w)));
+                    + ", materials " + com.dominionmod.dominion.build.Plans.materials(com.dominionmod.dominion.build.Structures.get(w), 1));
             com.dominionmod.dominion.build.Plans.forget(tmp.id);
         }
         log("cottage steps=" + com.dominionmod.dominion.build.Plans.steps(level, cottage, k).size());

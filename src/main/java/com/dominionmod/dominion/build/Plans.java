@@ -116,6 +116,7 @@ public final class Plans {
         var costStack = new net.minecraft.world.item.ItemStack(cost);
         if (costStack.is(net.minecraft.tags.ItemTags.WOOL)) return stack.is(net.minecraft.tags.ItemTags.WOOL);
         if (costStack.is(net.minecraft.tags.ItemTags.BEDS)) return stack.is(net.minecraft.tags.ItemTags.BEDS);
+        if (costStack.is(net.minecraft.tags.ItemTags.WOOL_CARPETS)) return stack.is(net.minecraft.tags.ItemTags.WOOL_CARPETS);
         return false;
     }
 
@@ -139,7 +140,7 @@ public final class Plans {
                 for (int y = 0; y < s.height(); y++) {
                     char c = s.layers().get(y)[0].charAt(i % 2);
                     BlockPos p = new BlockPos(cols.get(i).getX(), ground + y, cols.get(i).getZ());
-                    add(level, k, c, p, rot, clears, places);
+                    add(level, k, site.tier, c, p, rot, clears, places);
                 }
             }
         } else {
@@ -150,7 +151,7 @@ public final class Plans {
                         char c = rows[z].charAt(x);
                         BlockPos p = cell(s, site.origin, site.rotation, x, layer, z);
                         if (layer == 0 && s.sink() > 0 && c != ' ') supportBelow(level, p, places);
-                        add(level, k, c, p, rot, clears, places);
+                        add(level, k, site.tier, c, p, rot, clears, places);
                     }
                 }
             }
@@ -172,48 +173,25 @@ public final class Plans {
         places.addAll(fill);
     }
 
-    private static void add(Level level, Kingdom k, char c, BlockPos p, Rotation rot, List<Step> clears, List<Step> places) {
+    private static void add(Level level, Kingdom k, int tier, char c, BlockPos p, Rotation rot, List<Step> clears, List<Step> places) {
+        if (c == ' ' || c == 'u' || c == 'h') return; // untouched, or placed together with their partner
+        if (c == '.') {
+            clears.add(new Step(p.immutable(), null, null, null, null, false));
+            return;
+        }
         BlockState state;
-        Item cost = null;
         BlockPos compPos = null;
         BlockState comp = null;
         boolean flag = false;
         switch (c) {
-            case ' ', 'u', 'h' -> { return; } // untouched, or placed together with their partner
-            case '.' -> {
-                clears.add(new Step(p.immutable(), null, null, null, null, false));
-                return;
-            }
-            case 'C' -> state = Blocks.COBBLESTONE.defaultBlockState();
-            case 'M' -> state = Blocks.STONE_BRICKS.defaultBlockState();
-            case 'P' -> state = Blocks.OAK_PLANKS.defaultBlockState();
-            case 'L' -> state = Blocks.OAK_LOG.defaultBlockState();
-            case 'O' -> state = Blocks.SPRUCE_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, Direction.Axis.Y);
-            case 'o' -> state = Blocks.SPRUCE_FENCE.defaultBlockState();
-            case 's' -> state = Blocks.OAK_SLAB.defaultBlockState();
-            case 'G' -> state = Blocks.GLASS_PANE.defaultBlockState();
-            case 'F' -> state = Blocks.OAK_FENCE.defaultBlockState();
-            case 'g' -> state = Blocks.OAK_FENCE_GATE.defaultBlockState().setValue(FenceGateBlock.FACING, Direction.SOUTH);
-            case 'K' -> state = Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, Direction.SOUTH);
-            case 'R' -> state = Blocks.BARREL.defaultBlockState();
-            case 'Q' -> state = Blocks.CRAFTING_TABLE.defaultBlockState();
-            case 'l' -> state = Blocks.LANTERN.defaultBlockState();
-            case '>' -> state = Blocks.SPRUCE_STAIRS.defaultBlockState().setValue(net.minecraft.world.level.block.StairBlock.FACING, Direction.EAST);
-            case '<' -> state = Blocks.SPRUCE_STAIRS.defaultBlockState().setValue(net.minecraft.world.level.block.StairBlock.FACING, Direction.WEST);
-            case 'A' -> state = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.SOUTH);
-            case 'T' -> state = ModContent.MARKET.get().defaultBlockState();
-            case 'X' -> state = Blocks.WOOL.pick(DyeColor.byId(k.primary)).defaultBlockState();
-            case 'Z' -> state = Blocks.WOOL.pick(DyeColor.byId(k.secondary)).defaultBlockState();
-            case 'f' -> state = Blocks.FARMLAND.defaultBlockState();
-            case 'W' -> state = Blocks.WATER.defaultBlockState();
-            case 'w' -> state = ((CropBlock) Blocks.WHEAT).getStateForAge(0);
             case 'N' -> {
                 state = Blocks.BANNER.pick(DyeColor.byId(com.dominionmod.dominion.kingdom.Flags.base(
                         com.dominionmod.dominion.kingdom.Flags.fromBanner(k.flag)))).defaultBlockState();
                 flag = true;
             }
             case 'D' -> {
-                state = Blocks.OAK_DOOR.defaultBlockState().setValue(DoorBlock.FACING, Direction.SOUTH).setValue(DoorBlock.HALF, DoubleBlockHalf.LOWER);
+                Block door = tier <= Palette.TIMBER ? Blocks.OAK_DOOR : tier == Palette.STONE ? Blocks.SPRUCE_DOOR : Blocks.DARK_OAK_DOOR;
+                state = door.defaultBlockState().setValue(DoorBlock.FACING, Direction.SOUTH).setValue(DoorBlock.HALF, DoubleBlockHalf.LOWER);
                 compPos = p.above();
                 comp = state.setValue(DoorBlock.HALF, DoubleBlockHalf.UPPER).rotate(rot);
             }
@@ -223,21 +201,29 @@ public final class Plans {
                 compPos = p.relative(rot.rotate(Direction.NORTH));
                 comp = state.setValue(BedBlock.PART, BedPart.HEAD).rotate(rot);
             }
-            default -> { return; }
+            default -> {
+                state = Palette.state(c, tier, k.primary, k.secondary);
+                if (state == null) return;
+            }
         }
         state = state.rotate(rot);
-        boolean free = c == 'f' || c == 'W' || c == 'N';
-        if (!free) cost = c == 'w' ? Items.WHEAT_SEEDS : state.getBlock().asItem();
+        if (state.isAir()) {
+            clears.add(new Step(p.immutable(), null, null, null, null, false));
+            return;
+        }
+        Item cost = null;
+        if (!Palette.free(c)) cost = c == 'y' ? Items.WHEAT_SEEDS : state.getBlock().asItem();
+        if (cost == Items.AIR) cost = null;
         places.add(new Step(p.immutable(), state, cost, compPos == null ? null : compPos.immutable(), comp, flag));
     }
 
-    /** Items a structure needs (for walls: per column). */
-    public static Map<Item, Integer> materials(Structures.Structure s) {
+    /** Items a structure needs at a tier (for walls: per column). */
+    public static Map<Item, Integer> materials(Structures.Structure s, int tier) {
         Map<Item, Integer> out = new LinkedHashMap<>();
         for (String[] rows : s.layers()) {
             for (String row : rows) {
                 for (int i = 0; i < row.length(); i++) {
-                    Item item = itemFor(row.charAt(i));
+                    Item item = itemFor(row.charAt(i), tier);
                     if (item != null) out.merge(item, 1, Integer::sum);
                 }
             }
@@ -246,30 +232,19 @@ public final class Plans {
         return out;
     }
 
-    private static @Nullable Item itemFor(char c) {
-        return switch (c) {
-            case 'C' -> Items.COBBLESTONE;
-            case 'M' -> Items.STONE_BRICKS;
-            case 'P' -> Items.OAK_PLANKS;
-            case 'L' -> Items.OAK_LOG;
-            case 'O' -> Items.SPRUCE_LOG;
-            case 'o' -> Items.SPRUCE_FENCE;
-            case 's' -> Items.OAK_SLAB;
-            case 'G' -> Items.GLASS_PANE;
-            case 'F' -> Items.OAK_FENCE;
-            case 'g' -> Items.OAK_FENCE_GATE;
-            case 'K' -> Items.CHEST;
-            case 'R' -> Items.BARREL;
-            case 'Q' -> Items.CRAFTING_TABLE;
-            case 'l' -> Items.LANTERN;
-            case '>', '<' -> Items.SPRUCE_STAIRS;
-            case 'A' -> Items.LADDER;
-            case 'T' -> ModContent.MARKET_ITEM.get();
-            case 'X', 'Z' -> Items.WOOL.pick(DyeColor.WHITE);
-            case 'w' -> Items.WHEAT_SEEDS;
-            case 'D' -> Items.OAK_DOOR;
-            case 'b' -> Items.BED.pick(DyeColor.WHITE);
-            default -> null;
-        };
+    private static @Nullable Item itemFor(char c, int tier) {
+        if (Palette.free(c)) return null;
+        switch (c) {
+            case 'D': return tier <= Palette.TIMBER ? Items.OAK_DOOR : tier == Palette.STONE ? Items.SPRUCE_DOOR : Items.DARK_OAK_DOOR;
+            case 'b': return Items.BED.pick(DyeColor.WHITE);
+            case 'y': return Items.WHEAT_SEEDS;
+            case 'X': case 'Z': return Items.WOOL.pick(DyeColor.WHITE);
+            case 'k': return tier >= Palette.BRICK ? Items.CARPET.pick(DyeColor.WHITE) : null;
+            default:
+                BlockState st = Palette.state(c, tier, 0, 0);
+                if (st == null || st.isAir()) return null;
+                Item it = st.getBlock().asItem();
+                return it == Items.AIR ? null : it;
+        }
     }
 }

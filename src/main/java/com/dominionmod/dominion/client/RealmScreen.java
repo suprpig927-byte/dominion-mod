@@ -19,11 +19,12 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /** Your kingdom at a glance (Overview), your people and their beds (Citizens), and construction (Build). */
 public class RealmScreen extends Screen {
-    private static final int W = 400, H = 262, MAP = 176, ROWS = 14;
+    private static final int W = 400, H = 290, MAP = 176, ROWS = 16;
     private int refreshTicks;
     private static int tab = 0;
     private static int scroll = 0;
     private static int pickedStructure = 0;
+    private static int pickedTier = -1;
     private Payloads.RealmInfo info;
 
     public RealmScreen(Payloads.RealmInfo info) {
@@ -33,6 +34,7 @@ public class RealmScreen extends Screen {
 
     public static void receive(Payloads.RealmInfo info) {
         Minecraft mc = Minecraft.getInstance();
+        if (info.openTab() >= 0) tab = info.openTab();
         if (mc.gui.screen() instanceof RealmScreen open) {
             open.info = info;
             open.rebuildWidgets();
@@ -67,7 +69,7 @@ public class RealmScreen extends Screen {
     protected void init() {
         int l = left(), t = top();
         if (info.has()) {
-            String[] names = {"Overview", "Citizens", "Build"};
+            String[] names = {"Overview", "Citizens", "Build", "Research"};
             for (int i = 0; i < names.length; i++) {
                 final int idx = i;
                 Button b = Button.builder(Component.literal(names[i]), x -> setTab(idx)).bounds(l + 10 + i * 74, t - 18, 72, 18).build();
@@ -80,6 +82,7 @@ public class RealmScreen extends Screen {
         switch (tab) {
             case 1 -> initCitizens(l, t);
             case 2 -> initBuild(l, t);
+            case 3 -> initResearch(l, t);
             default -> initOverview(l, t);
         }
         addRenderableWidget(Button.builder(Component.literal("Close"), b -> onClose()).bounds(l + W - 70, t + H - 26, 60, 20).build());
@@ -113,24 +116,143 @@ public class RealmScreen extends Screen {
         }
     }
 
+    // ------------------------------------------------------------------ research state (from the server)
+
+    private boolean researched(String id) {
+        if (id == null) return true;
+        for (String r : info.research()) {
+            String[] f = r.split("\\|", -1);
+            if (f[0].equals(id)) return f.length > 1 && f[1].equals("done");
+        }
+        return false;
+    }
+
+    private int maxTier() {
+        int t = 0;
+        for (int i = 1; i < com.dominionmod.dominion.build.Palette.TIER_RESEARCH.length; i++)
+            if (researched(com.dominionmod.dominion.build.Palette.TIER_RESEARCH[i])) t = i;
+        return t;
+    }
+
+    private int tierFor(Structures.Structure s) {
+        int t = pickedTier < 0 ? maxTier() : pickedTier;
+        return Math.max(t, s.minTier());
+    }
+
+    /** Why the picked structure/tier can't be built yet (null = it can). */
+    private String lockedReason(Structures.Structure s, int tier) {
+        if (s.requires() != null && !researched(s.requires())) {
+            var t = com.dominionmod.dominion.kingdom.Research.get(s.requires());
+            return "Needs research: " + (t == null ? s.requires() : t.name());
+        }
+        if (tier > maxTier()) {
+            var t = com.dominionmod.dominion.kingdom.Research.get(com.dominionmod.dominion.build.Palette.TIER_RESEARCH[tier]);
+            return "Needs research: " + (t == null ? "" : t.name());
+        }
+        return null;
+    }
+
     private void initBuild(int l, int t) {
         List<Structures.Structure> all = new ArrayList<>(Structures.all());
         for (int i = 0; i < all.size(); i++) {
             final int idx = i;
             Button b = Button.builder(Component.literal(all.get(i).name()), x -> { pickedStructure = idx; rebuildWidgets(); })
-                    .bounds(l + 10, t + 24 + i * 14, 100, 13).build();
+                    .bounds(l + 10, t + 24 + i * 13, 100, 12).build();
             b.active = pickedStructure != i;
             addRenderableWidget(b);
         }
         Structures.Structure s = all.get(Math.min(pickedStructure, all.size() - 1));
-        addRenderableWidget(Button.builder(Component.literal("Take blueprint"), b -> send(Payloads.RealmAction.BLUEPRINT, s.id()))
-                .bounds(l + W - 176, t + H - 26, 100, 20).build());
+        int tier = tierFor(s);
+        boolean walls = s.kind() == Structures.Kind.WALL;
+        if (!walls || s.id().equals("stone_wall")) {
+            for (int i = 0; i < com.dominionmod.dominion.build.Palette.TIER_NAMES.length; i++) {
+                final int ti = i;
+                Button b = Button.builder(Component.literal(com.dominionmod.dominion.build.Palette.TIER_NAMES[i]), x -> { pickedTier = ti; rebuildWidgets(); })
+                        .bounds(l + 120 + i * 54, t + 72, 52, 14).build();
+                b.active = i != tier && i >= s.minTier() && i <= maxTier();
+                addRenderableWidget(b);
+            }
+        }
+        Button take = Button.builder(Component.literal("Take blueprint"), b -> send(Payloads.RealmAction.BLUEPRINT, s.id() + ":" + tier))
+                .bounds(l + W - 176, t + H - 26, 100, 20).build();
+        take.active = lockedReason(s, tier) == null;
+        addRenderableWidget(take);
         List<String> sites = info.sites();
         for (int i = 0; i < sites.size() && i < 3; i++) {
             String id = sites.get(i).split("\\|", -1)[0];
             addRenderableWidget(Button.builder(Component.literal("Cancel"), b -> send(Payloads.RealmAction.CANCEL_SITE, id))
-                    .bounds(l + W - 62, t + 170 + i * 14, 52, 13).build());
+                    .bounds(l + W - 62, t + 208 + i * 14, 52, 13).build());
         }
+    }
+
+    private void initResearch(int l, int t) {
+        if (!info.ruler()) return;
+        int i = 0;
+        boolean busy = info.research().stream().anyMatch(r -> r.contains("|current|"));
+        for (var tech : com.dominionmod.dominion.kingdom.Research.all()) {
+            String status = statusOf(tech.id());
+            if (status.equals("open") && !busy) {
+                addRenderableWidget(Button.builder(Component.literal("Research"), b -> send(Payloads.RealmAction.START_RESEARCH, tech.id()))
+                        .bounds(l + W - 80, t + 38 + i * 34, 70, 16).build());
+            }
+            i++;
+        }
+    }
+
+    private String statusOf(String id) {
+        for (String r : info.research()) {
+            String[] f = r.split("\\|", -1);
+            if (f[0].equals(id) && f.length > 1) return f[1];
+        }
+        return "locked";
+    }
+
+    private int pctOf(String id) {
+        for (String r : info.research()) {
+            String[] f = r.split("\\|", -1);
+            if (f[0].equals(id) && f.length > 2) return parse(f[2]);
+        }
+        return 0;
+    }
+
+    private void drawResearch(GuiGraphicsExtractor g, int l, int t, int p) {
+        g.text(this.font, "Research", l + 10, t + 10, p, true);
+        String sch = info.scholars() == 0 ? "No Scholars at work: research goes slowly. Give a citizen a book and build a Library."
+                : info.scholars() + " Scholar" + (info.scholars() == 1 ? "" : "s") + " at work: research is " + (1 + 2 * info.scholars()) + "x faster.";
+        g.text(this.font, sch, l + 10, t + 22, info.scholars() == 0 ? 0xFFFFB070 : 0xFFA0D890, false);
+        int i = 0;
+        for (var tech : com.dominionmod.dominion.kingdom.Research.all()) {
+            int y = t + 38 + i * 34;
+            String status = statusOf(tech.id());
+            int color = switch (status) {
+                case "done" -> 0xFF8BE07A;
+                case "current" -> 0xFFFFD86B;
+                case "open" -> 0xFFEEEEEE;
+                default -> 0xFF777777;
+            };
+            g.fill(l + 8, y - 2, l + W - 8, y + 30, 0x30FFFFFF);
+            g.text(this.font, tech.name(), l + 12, y, color, false);
+            String cost = tech.coins() + " coins, " + tech.lapis() + " lapis";
+            String right = switch (status) {
+                case "done" -> "Researched";
+                case "current" -> "Researching... " + pctOf(tech.id()) + "%";
+                case "open" -> cost;
+                default -> "Needs " + tech.requires().stream().map(r -> {
+                    var rt = com.dominionmod.dominion.kingdom.Research.get(r);
+                    return rt == null ? r : rt.name();
+                }).reduce((a, b) -> a + ", " + b).orElse("");
+            };
+            g.text(this.font, right, l + 150, y, status.equals("locked") ? 0xFF777777 : 0xFFBBBBBB, false);
+            g.text(this.font, tech.unlocks(), l + 12, y + 12, 0xFF999999, false);
+            if (status.equals("current")) {
+                int w = W - 24, done = w * pctOf(tech.id()) / 100;
+                g.fill(l + 12, y + 24, l + 12 + w, y + 27, 0xFF333333);
+                g.fill(l + 12, y + 24, l + 12 + done, y + 27, 0xFFFFD86B);
+            }
+            i++;
+        }
+        if (!info.ruler()) g.text(this.font, "Only the ruler can start research.", l + 10, t + H - 20, 0xFF888888, false);
+        else g.text(this.font, "Research is paid from the storehouse.", l + 10, t + H - 20, 0xFF888888, false);
     }
 
     @Override
@@ -153,6 +275,7 @@ public class RealmScreen extends Screen {
         switch (tab) {
             case 1 -> drawCitizens(g, l, t, p);
             case 2 -> drawBuild(g, l, t, p);
+            case 3 -> drawResearch(g, l, t, p);
             default -> drawOverview(g, l, t, p, s);
         }
         if (!info.message().isEmpty()) {
@@ -278,6 +401,7 @@ public class RealmScreen extends Screen {
         List<Structures.Structure> all = new ArrayList<>(Structures.all());
         Structures.Structure s = all.get(Math.min(pickedStructure, all.size() - 1));
         int x = l + 120, y = t + 24;
+        int tier = tierFor(s);
         g.text(this.font, s.name() + (s.kind() == Structures.Kind.WALL ? "" : "  (" + s.width() + " x " + s.depth() + ", " + (s.height() - s.sink()) + " tall)"),
                 x, y, 0xFFFFD86B, false);
         y += 12;
@@ -285,14 +409,21 @@ public class RealmScreen extends Screen {
             g.text(this.font, line, x, y, 0xFFCCCCCC, false);
             y += 10;
         }
-        y += 2;
-        g.text(this.font, s.kind() == Structures.Kind.WALL ? "Materials per block of wall:" : "Materials:", x, y, 0xFF888888, false);
+        y = t + 92;
+        String why = lockedReason(s, tier);
+        if (why != null) {
+            g.text(this.font, why, x, y, 0xFFFF7070, false);
+            y += 12;
+        }
+        g.text(this.font, (s.kind() == Structures.Kind.WALL ? "Materials per block of wall" : "Materials")
+                + (s.id().equals("palisade") ? ":" : " (" + com.dominionmod.dominion.build.Palette.tierName(tier) + "):"), x, y, 0xFF888888, false);
         y += 10;
         int col = 0;
-        for (Map.Entry<Item, Integer> e : Plans.materials(s).entrySet()) {
+        for (Map.Entry<Item, Integer> e : Plans.materials(s, tier).entrySet()) {
             String name = new ItemStack(e.getKey()).getHoverName().getString();
             if (name.endsWith(" Wool")) name = "Wool (any)";
             if (name.endsWith(" Bed")) name = "Bed (any)";
+            if (name.endsWith(" Carpet")) name = "Carpet (any)";
             g.text(this.font, e.getValue() + " " + name, x + col * 118, y, 0xFFDDDDDD, false);
             col++;
             if (col == 2) {
@@ -300,10 +431,11 @@ public class RealmScreen extends Screen {
                 y += 10;
             }
         }
-        g.text(this.font, "Builders take materials from the storehouse.", l + 120, y + 14, 0xFF777777, false);
+        g.text(this.font, "To upgrade a finished building, sneak + right-click the sign by its door.",
+                l + 10, t + 186, 0xFF777777, false);
 
         List<String> sites = info.sites();
-        int sy = t + 170;
+        int sy = t + 208;
         g.text(this.font, sites.isEmpty() ? "No construction sites. Mark one with a blueprint." : "Construction sites:", l + 10, sy - 10, 0xFF888888, false);
         for (int i = 0; i < sites.size() && i < 3; i++) {
             String[] r = sites.get(i).split("\\|", -1);

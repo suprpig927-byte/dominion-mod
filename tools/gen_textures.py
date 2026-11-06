@@ -454,7 +454,83 @@ def sash():
     belt.save(os.path.join(ENT, "belt.png"))
 
 
+def new_items_and_blocks():
+    rnd = random.Random(61)
+    # Blacksmith's tongs
+    t = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for i in range(3, 13):
+        t.putpixel((i, 15 - i), (60, 60, 66, 255))
+        t.putpixel((i - 2 if i > 4 else i, 15 - i), (60, 60, 66, 255))
+    for i in range(3, 9):
+        t.putpixel((i, 15 - i + 1), (150, 150, 160, 255))
+    for (x, y) in ((11, 2), (12, 2), (13, 3), (12, 4), (9, 2), (10, 3)):
+        t.putpixel((x, y), (170, 170, 180, 255))
+    for (x, y) in ((2, 13), (3, 14), (2, 14), (3, 13)):
+        t.putpixel((x, y), (110, 70, 40, 255))
+    t.save(os.path.join(ROOT, "item", "blacksmith_tongs.png"))
+    # Storage label: a paper tag on a string
+    lab = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for y in range(5, 13):
+        for x in range(3, 13):
+            if (x - 3) + (y - 5) < 1 or (12 - x) + (y - 5) < 1:
+                continue
+            lab.putpixel((x, y), jitter((232, 220, 190), 6, rnd))
+    for x in range(4, 12):
+        lab.putpixel((x, 12), (180, 160, 120, 255))
+    for (x, y) in ((5, 8), (6, 8), (7, 8), (8, 8), (9, 8), (10, 8), (5, 10), (6, 10), (7, 10), (8, 10)):
+        lab.putpixel((x, y), (90, 70, 50, 255))
+    lab.putpixel((8, 6), (60, 50, 40, 255))
+    for (x, y) in ((8, 5), (9, 4), (10, 3), (11, 2), (12, 2)):
+        lab.putpixel((x, y), (200, 40, 40, 255))
+    lab.save(os.path.join(ROOT, "item", "storage_label.png"))
+
+    oak, doak = (162, 130, 78), (120, 94, 56)
+    # Research table: a book and a lapis-blue cloth on top, bookshelf sides
+    top = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            c = (38, 66, 160) if 1 <= x <= 14 and 1 <= y <= 14 else doak
+            if 4 <= x <= 11 and 5 <= y <= 10:
+                c = (235, 228, 210) if x != 7 and x != 8 else (150, 120, 90)
+            if (x, y) in ((12, 3), (13, 3), (12, 4)):
+                c = (30, 30, 30)
+            top.putpixel((x, y), jitter(c, 5, rnd))
+    top.save(os.path.join(ROOT, "block", "research_table_top.png"))
+    side = Image.new("RGBA", (16, 16))
+    books = [(150, 40, 40), (40, 80, 150), (60, 120, 60), (140, 110, 40), (90, 50, 120)]
+    for y in range(16):
+        for x in range(16):
+            if y in (0, 7, 8, 15) or x in (0, 15):
+                c = doak
+            else:
+                c = books[(x // 2 + (y // 8) * 2) % len(books)] if x % 2 == 1 or y % 8 == 2 else dark(books[(x // 2) % len(books)], 0.8)
+            side.putpixel((x, y), jitter(c, 6, rnd))
+    side.save(os.path.join(ROOT, "block", "research_table_side.png"))
+    # Training desk: purple cloth, gold trim
+    top = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            edge = x in (0, 15) or y in (0, 15)
+            c = (230, 190, 60) if edge else (96, 52, 140)
+            if 5 <= x <= 10 and 5 <= y <= 10 and abs(x - 7.5) + abs(y - 7.5) <= 3.5:
+                c = (230, 190, 60)
+            top.putpixel((x, y), jitter(c, 5, rnd))
+    top.save(os.path.join(ROOT, "block", "training_desk_top.png"))
+    side = Image.new("RGBA", (16, 16))
+    for y in range(16):
+        for x in range(16):
+            if y < 3:
+                c = (96, 52, 140) if y < 2 else (230, 190, 60)
+            else:
+                c = doak if x in (0, 1, 14, 15) or y == 15 else oak
+                if 4 <= x <= 11 and 6 <= y <= 11:
+                    c = (70, 40, 110) if (x + y) % 3 else (110, 70, 160)
+            side.putpixel((x, y), jitter(c, 5, rnd))
+    side.save(os.path.join(ROOT, "block", "training_desk_side.png"))
+
+
 if __name__ == "__main__":
+    new_items_and_blocks()
     sash()
     items()
     blocks()

@@ -2,6 +2,8 @@ package com.dominionmod.dominion.build;
 
 import com.dominionmod.dominion.kingdom.Kingdom;
 import com.dominionmod.dominion.kingdom.KingdomData;
+import com.dominionmod.dominion.kingdom.Progress;
+import com.dominionmod.dominion.kingdom.Research;
 import com.dominionmod.dominion.kingdom.Realm;
 import com.dominionmod.dominion.registry.ModContent;
 import java.util.List;
@@ -41,23 +43,53 @@ public final class Construction {
         return Structures.get(tag(stack).getStringOr("Structure", ""));
     }
 
-    public static ItemStack blueprint(Structures.Structure s) {
+    public static ItemStack blueprint(Structures.Structure s, int tier) {
         ItemStack stack = new ItemStack(ModContent.BLUEPRINT.get());
         CompoundTag t = new CompoundTag();
         t.putString("Structure", s.id());
+        t.putInt("Tier", tier);
         save(stack, t);
-        stack.set(DataComponents.CUSTOM_NAME, Component.literal("Blueprint: " + s.name()).withStyle(s2 -> s2.withItalic(false)));
+        String tierName = s.kind() == Structures.Kind.WALL && s.id().equals("palisade") ? "" : " (" + Palette.tierName(tier) + ")";
+        stack.set(DataComponents.CUSTOM_NAME, Component.literal("Blueprint: " + s.name() + tierName).withStyle(s2 -> s2.withItalic(false)));
         return stack;
     }
 
-    public static Component giveBlueprint(ServerPlayer p, String id) {
+    /** Why this kingdom can't build this structure at this tier, or null if it can. */
+    public static @Nullable String locked(Progress pr, Structures.Structure s, int tier) {
+        if (s.requires() != null && !pr.has(s.requires())) {
+            Research.Tech t = Research.get(s.requires());
+            return "Research " + (t == null ? s.requires() : t.name()) + " first.";
+        }
+        if (tier < s.minTier()) return "The " + s.name() + " can't be built in " + Palette.tierName(tier) + ".";
+        if (tier > pr.maxTier()) {
+            Research.Tech t = Research.get(Palette.TIER_RESEARCH[tier]);
+            return "Research " + (t == null ? Palette.tierName(tier) : t.name()) + " to build in " + Palette.tierName(tier) + ".";
+        }
+        return null;
+    }
+
+    public static Component giveBlueprint(ServerPlayer p, String arg) {
         Kingdom k = Realm.of(p);
         if (k == null) return Realm.err("You need a kingdom first.");
-        Structures.Structure s = Structures.get(id);
+        String[] parts = arg.split(":");
+        Structures.Structure s = Structures.get(parts[0]);
         if (s == null) return Realm.err("Unknown structure.");
-        Realm.give(p, blueprint(s));
+        Progress pr = Realm.data((ServerLevel) p.level()).progress(k);
+        int tier = parts.length > 1 ? parseInt(parts[1], pr.maxTier()) : pr.maxTier();
+        tier = Math.max(tier, s.minTier());
+        String why = locked(pr, s, tier);
+        if (why != null) return Realm.err(why);
+        Realm.give(p, blueprint(s, tier));
         return Component.literal("You take the blueprint for a " + s.name() + ". Right-click the ground with it to place it.")
                 .withStyle(ChatFormatting.GREEN);
+    }
+
+    private static int parseInt(String s, int def) {
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return def;
+        }
     }
 
     public static Component cancel(ServerPlayer p, String siteId) {
@@ -144,18 +176,25 @@ public final class Construction {
     }
 
     private static Component mark(ServerPlayer p, ItemStack stack, Structures.Structure s, Site site) {
+        site.tier = tag(stack).getIntOr("Tier", s.minTier());
+        Kingdom k = Realm.of(p);
+        if (k != null) {
+            String why = locked(Realm.data((ServerLevel) p.level()).progress(k), s, site.tier);
+            if (why != null) return Realm.err(why);
+        }
         Realm.data((ServerLevel) p.level()).addSite(site);
         if (!p.isCreative()) stack.shrink(1);
-        else save(stack, structureOnly(s));
+        else {
+            CompoundTag t2 = new CompoundTag();
+            t2.putString("Structure", s.id());
+            t2.putInt("Tier", site.tier);
+            save(stack, t2);
+        }
         return Component.literal("Construction site marked for a " + s.name()
                 + ". Builders will start as soon as the storehouse has the materials.").withStyle(ChatFormatting.GREEN);
     }
 
-    private static CompoundTag structureOnly(Structures.Structure s) {
-        CompoundTag t = new CompoundTag();
-        t.putString("Structure", s.id());
-        return t;
-    }
+
 
     /** Is every chunk between the two corners ours, with no Town Hall inside? */
     private static @Nullable String checkLand(ServerLevel level, Kingdom k, BlockPos a, BlockPos b) {

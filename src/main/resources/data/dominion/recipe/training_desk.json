@@ -1,0 +1,4 @@
+{ "type": "minecraft:crafting_shaped", "category": "misc",
+  "key": { "G": "minecraft:gold_ingot", "B": "minecraft:book", "P": "#minecraft:planks", "L": "minecraft:lapis_lazuli" },
+  "pattern": [ "GBG", "PLP", "P P" ],
+  "result": { "id": "dominion:training_desk" } }

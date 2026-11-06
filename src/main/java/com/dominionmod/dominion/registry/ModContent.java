@@ -49,6 +49,15 @@ public final class ModContent {
     public static final DeferredItem<Item> GOLD_COIN = ITEMS.registerSimpleItem("gold_coin", p -> p.stacksTo(99));
     public static final DeferredItem<CommandBatonItem> COMMAND_BATON = ITEMS.registerItem("command_baton", CommandBatonItem::new,
             p -> p.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredBlock<com.dominionmod.dominion.block.ResearchTableBlock> RESEARCH_TABLE = BLOCKS.registerBlock("research_table",
+            com.dominionmod.dominion.block.ResearchTableBlock::new, p -> p.mapColor(MapColor.WOOD).strength(2.5f).sound(SoundType.WOOD).noOcclusion());
+    public static final DeferredBlock<com.dominionmod.dominion.block.TrainingDeskBlock> TRAINING_DESK = BLOCKS.registerBlock("training_desk",
+            com.dominionmod.dominion.block.TrainingDeskBlock::new, p -> p.mapColor(MapColor.WOOD).strength(2.5f).sound(SoundType.WOOD));
+    public static final DeferredItem<BlockItem> RESEARCH_TABLE_ITEM = ITEMS.registerSimpleBlockItem("research_table", RESEARCH_TABLE);
+    public static final DeferredItem<BlockItem> TRAINING_DESK_ITEM = ITEMS.registerSimpleBlockItem("training_desk", TRAINING_DESK);
+    public static final DeferredItem<Item> BLACKSMITH_TONGS = ITEMS.registerSimpleItem("blacksmith_tongs", p -> p.stacksTo(1));
+    public static final DeferredItem<com.dominionmod.dominion.item.StorageLabelItem> STORAGE_LABEL = ITEMS.registerItem("storage_label",
+            com.dominionmod.dominion.item.StorageLabelItem::new, p -> p.stacksTo(16));
     public static final DeferredItem<Item> BUILDERS_HAMMER = ITEMS.registerSimpleItem("builders_hammer", p -> p.stacksTo(1));
     public static final DeferredItem<com.dominionmod.dominion.item.BlueprintItem> BLUEPRINT = ITEMS.registerItem("blueprint",
             com.dominionmod.dominion.item.BlueprintItem::new, p -> p.stacksTo(1));
@@ -65,6 +74,10 @@ public final class ModContent {
                 out.accept(COMMAND_BATON.get());
                 out.accept(GOLD_COIN.get());
                 out.accept(BUILDERS_HAMMER.get());
+                out.accept(BLACKSMITH_TONGS.get());
+                out.accept(STORAGE_LABEL.get());
+                out.accept(RESEARCH_TABLE_ITEM.get());
+                out.accept(TRAINING_DESK_ITEM.get());
             }).build());
 
     public static void register(IEventBus modBus) {

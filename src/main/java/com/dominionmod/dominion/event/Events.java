@@ -71,6 +71,8 @@ public final class Events {
         long t = level.getGameTime();
         if (level.dimension() == Level.OVERWORLD && t % 1200 == 0) Realm.minuteTick(level);
         if (level.dimension() == Level.OVERWORLD) com.dominionmod.dominion.debug.SelfTest.tick(level);
+        if (level.dimension() == Level.OVERWORLD && t % 20 == 0) com.dominionmod.dominion.kingdom.Scholarship.tick(level);
+        if (t % 2400 == 1200) Realm.birthTick(level);
         if (t % 10 != 0) return;
         KingdomData d = Realm.data(level);
         for (ServerPlayer p : level.players()) {
@@ -150,6 +152,31 @@ public final class Events {
             e.setCanceled(true);
             e.setCancellationResult(InteractionResult.SUCCESS_SERVER);
             return;
+        }
+        // Building signs: show the building and (sneaking) start an upgrade.
+        if (p instanceof ServerPlayer sp2 && level.getBlockState(pos).getBlock() instanceof net.minecraft.world.level.block.SignBlock) {
+            KingdomData d = KingdomData.get(level.getServer());
+            Kingdom owner = d.ownerAt(level, pos);
+            if (owner != null) {
+                var b = d.progress(owner).buildingWithSign(KingdomData.dim(level), pos.asLong());
+                if (b != null) {
+                    e.setCanceled(true);
+                    e.setCancellationResult(InteractionResult.SUCCESS_SERVER);
+                    if (owner.isMember(p.getUUID())) sp2.sendSystemMessage(com.dominionmod.dominion.build.Buildings.clicked(sp2, owner, b));
+                    else sp2.sendOverlayMessage(Component.literal("The " + b.name() + " of ").append(Realm.title(owner)));
+                    return;
+                }
+            }
+        }
+        // Opening a labeled storehouse chest shows what it's for.
+        if (p instanceof ServerPlayer sp3 && !p.getItemInHand(e.getHand()).is(ModContent.STORAGE_LABEL.get())) {
+            KingdomData d = KingdomData.get(level.getServer());
+            Kingdom owner = d.ownerAt(level, pos);
+            if (owner != null && owner.isMember(p.getUUID())) {
+                String label = d.progress(owner).labels.get(pos.asLong());
+                if (label != null) sp3.sendOverlayMessage(Component.literal(com.dominionmod.dominion.kingdom.StorageCategory.byName(label).title + " storage")
+                        .withStyle(ChatFormatting.GOLD));
+            }
         }
         BlockPos placeAt = e.getFace() == null ? pos : pos.relative(e.getFace());
         if (!Realm.mayUse(level, pos, p) || !Realm.mayUse(level, placeAt, p)) {

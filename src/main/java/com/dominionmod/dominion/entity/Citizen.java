@@ -81,6 +81,8 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     private static final EntityDataAccessor<Integer> PRIMARY = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SECONDARY = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LOOK = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Integer> SPEC = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<Boolean> CHILD = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<String> TYPE = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<ItemStack> FLAG = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.ITEM_STACK);
 
@@ -106,6 +108,10 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     private int hungryDays, unpaidDays;
     private Job lastJob = Job.UNASSIGNED;
     private int lastWorkTick;
+    /** Children grow up when this reaches zero. */
+    private int growTicks;
+    public static final int GROW_UP_TICKS = 24000;
+    private int castCooldown;
 
     public Citizen(EntityType<? extends Citizen> type, Level level) {
         super(type, level);
@@ -130,6 +136,8 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         builder.define(LOOK, 0);
         builder.define(FLAG, ItemStack.EMPTY);
         builder.define(TYPE, "plains");
+        builder.define(SPEC, -1);
+        builder.define(CHILD, false);
     }
 
     // ------------------------------------------------------------------ AI
@@ -143,9 +151,12 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             @Override public boolean canContinueToUse() { return job() == Job.ARCHER && super.canContinueToUse(); }
         });
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 0.85, true) {
-            @Override public boolean canUse() { return job() == Job.MILITIA && super.canUse(); }
-            @Override public boolean canContinueToUse() { return job() == Job.MILITIA && super.canContinueToUse(); }
+            @Override public boolean canUse() { return job().melee() && super.canUse(); }
+            @Override public boolean canContinueToUse() { return job().melee() && super.canContinueToUse(); }
         });
+        this.goalSelector.addGoal(2, new com.dominionmod.dominion.entity.goal.WizardGoal(this));
+        this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.ScholarGoal(this));
+        this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.SmithGoal(this));
         this.goalSelector.addGoal(2, new AvoidEntityGoal<>(this, Monster.class, 8.0f, 0.6, 0.8) {
             @Override public boolean canUse() { return !job().soldier && super.canUse(); }
         });
@@ -203,6 +214,12 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (this.tickCount % 100 == 0) refreshFromKingdom(level);
         if (job.worker()) pickUpNearbyItems(level);
         if (job.soldier) commanderBonus(level);
+        if (isChild() && (growTicks -= 20) <= 0) growUp(level);
+        if (job == Job.MONK && this.tickCount % 100 == 0) monkBlessing(level);
+        if (job == Job.BARBARIAN && getHealth() < getMaxHealth() / 2 && getTarget() != null) {
+            addEffect(new MobEffectInstance(MobEffects.STRENGTH, 60, 1, true, true));
+            addEffect(new MobEffectInstance(MobEffects.SPEED, 60, 0, true, true));
+        }
 
         // A rallied soldier doesn't chase things far from their commander.
         if (order == Order.RALLY && getTarget() != null) {
@@ -223,6 +240,71 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (k != null) Realm.addCitizen(k, getUUID(), job, d);
         if (!job.soldier) setTarget(null);
     }
+
+    /** Monks heal and steady their kingdom's people nearby. */
+    private void monkBlessing(ServerLevel level) {
+        for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, getBoundingBox().inflate(8),
+                e -> e.isAlive() && (e instanceof Citizen c && c.sameKingdom(kingdomId) || e instanceof Player p && kingdom() != null && kingdom().isMember(p.getUUID())))) {
+            if (e.getHealth() < e.getMaxHealth()) e.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 100, 0, true, true));
+            if (e instanceof Citizen c && c.getTarget() != null) e.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 100, 0, true, true));
+        }
+        level.sendParticles(net.minecraft.core.particles.ParticleTypes.HAPPY_VILLAGER, getX(), getY() + 1.0, getZ(), 6, 2.5, 0.5, 2.5, 0);
+    }
+
+    // ------------------------------------------------------------------ children and classes
+
+    public boolean isChild() { return this.entityData.get(CHILD); }
+
+    /** Makes this a newborn: small, can't work, grows up in a Minecraft day. */
+    public void makeChild() {
+        this.entityData.set(CHILD, true);
+        this.growTicks = GROW_UP_TICKS;
+        applyStats();
+    }
+
+    private void growUp(ServerLevel level) {
+        this.entityData.set(CHILD, false);
+        applyStats();
+        refreshName();
+        Kingdom k = kingdom();
+        if (k != null) tellKingdom(level, k, Component.literal(baseName + " has grown up and is ready to work.").withStyle(ChatFormatting.GREEN));
+    }
+
+    /** The University class this citizen was trained in, if any. */
+    public @Nullable Job specialization() {
+        int i = this.entityData.get(SPEC);
+        return i < 0 ? null : Job.byId(i);
+    }
+
+    public void train(Job cls) {
+        this.entityData.set(SPEC, cls.ordinal());
+        if (cls == Job.WIZARD) {
+            ItemStack old = getMainHandItem();
+            if (!old.isEmpty() && this.level() instanceof ServerLevel level) spawnAtLocation(level, old.copy());
+            setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BLAZE_ROD));
+        }
+        applyStats();
+        if (this.level() instanceof ServerLevel level) onJobChanged(level, job());
+    }
+
+    /** Health, damage and size for children and classes. */
+    private void applyStats() {
+        Job j = job();
+        setBase(Attributes.SCALE, isChild() ? 0.5 : 1.0);
+        setBase(Attributes.MAX_HEALTH, j == Job.BARBARIAN ? 40 : j == Job.MONK ? 30 : isChild() ? 12 : 24);
+        setBase(Attributes.ATTACK_DAMAGE, j == Job.BARBARIAN ? 5 : j == Job.MONK ? 4 : 1);
+        setBase(Attributes.MOVEMENT_SPEED, j == Job.BARBARIAN ? 0.55 : 0.5);
+        if (getHealth() > getMaxHealth()) setHealth(getMaxHealth());
+    }
+
+    private void setBase(net.minecraft.core.Holder<net.minecraft.world.entity.ai.attributes.Attribute> attr, double v) {
+        var inst = getAttribute(attr);
+        if (inst != null && inst.getBaseValue() != v) inst.setBaseValue(v);
+    }
+
+    public boolean castReady() { return castCooldown <= 0; }
+    public void tickCast() { if (castCooldown > 0) castCooldown--; }
+    public void startCast(int ticks) { castCooldown = ticks; }
 
     private boolean enemyNear(ServerLevel level) {
         return !level.getEntitiesOfClass(Mob.class, getBoundingBox().inflate(10), m -> m instanceof Enemy && m.isAlive()).isEmpty();
@@ -400,6 +482,11 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         }
         if (hand != InteractionHand.MAIN_HAND) return InteractionResult.PASS;
 
+        if (isChild()) {
+            if (held.isEmpty()) player.sendSystemMessage(status());
+            else player.sendOverlayMessage(Component.literal(baseName + " is too young to work. They'll grow up in a day or so."));
+            return InteractionResult.SUCCESS_SERVER;
+        }
         // Armor goes on, a shield goes in the off hand, a tool or weapon becomes their job.
         Equippable eq = held.get(DataComponents.EQUIPPABLE);
         if (!held.isEmpty() && eq != null && eq.slot().getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
@@ -409,6 +496,20 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         }
         if (held.is(Items.SHIELD)) {
             swapInto(player, hand, EquipmentSlot.OFFHAND);
+            return InteractionResult.SUCCESS_SERVER;
+        }
+        if (Job.of(held) == Job.BLACKSMITH && !Realm.data(level).progress(k).has("blacksmithing")) {
+            player.sendSystemMessage(Realm.err("Research Blacksmithing at a Research Table before you can train a Blacksmith."));
+            return InteractionResult.SUCCESS_SERVER;
+        }
+        Job spec = specialization();
+        if (spec != null && Job.of(held) != Job.UNASSIGNED) {
+            // Trained classes keep their calling; they'll still take a better weapon.
+            if (spec == Job.WIZARD || spec == Job.ENGINEER) {
+                player.sendOverlayMessage(Component.literal(baseName + " is a " + spec.title + " and doesn't need that."));
+                return InteractionResult.SUCCESS_SERVER;
+            }
+            swapInto(player, hand, EquipmentSlot.MAINHAND);
             return InteractionResult.SUCCESS_SERVER;
         }
         if (Job.of(held) != Job.UNASSIGNED) {
@@ -447,6 +548,8 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             case LUMBERJACK -> "They'll fell and replant trees around this spot.";
             case MILITIA, ARCHER -> "They'll guard this spot. Use the Command Baton to lead them.";
             case BUILDER -> "They'll build your construction sites. Get blueprints from the Build tab of your Realm screen (K).";
+            case SCHOLAR -> "They'll work at your Research Table, speeding up research.";
+            case BLACKSMITH -> "They'll work at an anvil near here: smelting ore and forging armor for your soldiers.";
             default -> "";
         };
     }
@@ -462,6 +565,10 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     }
 
     public Component status() {
+        if (isChild()) {
+            return Component.literal(baseName + ", a child").withStyle(s -> s.withColor(colorOf(getPrimary())).withBold(true))
+                    .append(Component.literal(String.format("  grows up in about %d minutes", Math.max(1, growTicks / 1200))).withStyle(ChatFormatting.GRAY));
+        }
         String mood = hungryDays > 0 ? "hungry" : "fed";
         if (job().soldier) mood += unpaidDays > 0 ? ", unpaid" : ", paid";
         BlockPos bed = home();
@@ -494,7 +601,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     }
 
     private void refreshName() {
-        setCustomName(Component.literal(baseName + " (" + job().title + ")").withStyle(s -> s.withColor(colorOf(getPrimary()))));
+        setCustomName(Component.literal(baseName + " (" + (isChild() ? "Child" : job().title) + ")").withStyle(s -> s.withColor(colorOf(getPrimary()))));
         setCustomNameVisible(false);
     }
 
@@ -510,7 +617,11 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     public @Nullable UUID kingdomId() { return kingdomId; }
     public boolean sameKingdom(@Nullable UUID other) { return kingdomId != null && kingdomId.equals(other); }
 
-    public Job job() { return Job.of(getMainHandItem()); }
+    public Job job() {
+        if (isChild()) return Job.UNASSIGNED;
+        Job spec = specialization();
+        return spec != null ? spec : Job.of(getMainHandItem());
+    }
     public int getPrimary() { return this.entityData.get(PRIMARY); }
     public int getSecondary() { return this.entityData.get(SECONDARY); }
     public int getLook() { return this.entityData.get(LOOK); }
@@ -616,6 +727,9 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         out.putInt("Secondary", getSecondary());
         out.putInt("Look", getLook());
         out.putString("VillagerType", getVillagerType());
+        out.putInt("Spec", this.entityData.get(SPEC));
+        out.putBoolean("Child", isChild());
+        out.putInt("GrowTicks", growTicks);
         writeInventoryToTag(out);
         materials.storeAsItemList(out.list("Materials", ItemStack.CODEC));
     }
@@ -642,6 +756,10 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.entityData.set(SECONDARY, in.getIntOr("Secondary", 4));
         this.entityData.set(LOOK, in.getIntOr("Look", 0));
         this.entityData.set(TYPE, in.getStringOr("VillagerType", "plains"));
+        this.entityData.set(SPEC, in.getIntOr("Spec", -1));
+        this.entityData.set(CHILD, in.getBooleanOr("Child", false));
+        this.growTicks = in.getIntOr("GrowTicks", 0);
+        applyStats();
         readInventoryFromTag(in);
         in.list("Materials", ItemStack.CODEC).ifPresent(list -> materials.fromItemList(list));
         lastJob = job();

@@ -32,7 +32,8 @@ public final class KingdomData extends SavedData {
     public static final Codec<KingdomData> CODEC = RecordCodecBuilder.create(i -> i.group(
             Kingdom.CODEC.listOf().optionalFieldOf("kingdoms", List.of()).forGetter(d -> new ArrayList<>(d.kingdoms.values())),
             Claim.CODEC.listOf().optionalFieldOf("claims", List.of()).forGetter(KingdomData::claimList),
-            com.dominionmod.dominion.build.Site.CODEC.listOf().optionalFieldOf("sites", List.of()).forGetter(d -> new ArrayList<>(d.sites))
+            com.dominionmod.dominion.build.Site.CODEC.listOf().optionalFieldOf("sites", List.of()).forGetter(d -> new ArrayList<>(d.sites)),
+            Progress.CODEC.listOf().optionalFieldOf("progress", List.of()).forGetter(d -> new ArrayList<>(d.progress.values()))
     ).apply(i, KingdomData::new));
 
     public static final SavedDataType<KingdomData> TYPE = new SavedDataType<>(DominionMod.id("kingdoms"), KingdomData::new, CODEC);
@@ -45,8 +46,11 @@ public final class KingdomData extends SavedData {
 
     private final List<com.dominionmod.dominion.build.Site> sites = new ArrayList<>();
 
-    private KingdomData(List<Kingdom> list, List<Claim> claimList, List<com.dominionmod.dominion.build.Site> siteList) {
+    private final Map<UUID, Progress> progress = new HashMap<>();
+
+    private KingdomData(List<Kingdom> list, List<Claim> claimList, List<com.dominionmod.dominion.build.Site> siteList, List<Progress> progressList) {
         for (var site : siteList) sites.add(site);
+        for (var pr : progressList) progress.put(pr.kingdom, pr);
         for (Kingdom k : list) kingdoms.put(k.id, k);
         for (Claim c : claimList) {
             if (kingdoms.containsKey(c.kingdom())) claims.computeIfAbsent(c.dim(), d -> new HashMap<>()).put(c.chunk(), c.kingdom());
@@ -96,6 +100,7 @@ public final class KingdomData extends SavedData {
         kingdoms.remove(k.id);
         for (Map<Long, UUID> m : claims.values()) m.values().removeIf(k.id::equals);
         sites.removeIf(s -> s.kingdom.equals(k.id));
+        progress.remove(k.id);
         setDirty();
     }
 
@@ -161,6 +166,11 @@ public final class KingdomData extends SavedData {
         sites.remove(s);
         com.dominionmod.dominion.build.Plans.forget(s.id);
         setDirty();
+    }
+
+    /** Research, buildings and storage labels for a kingdom. */
+    public Progress progress(Kingdom k) {
+        return progress.computeIfAbsent(k.id, Progress::new);
     }
 
     public void markChanged() {

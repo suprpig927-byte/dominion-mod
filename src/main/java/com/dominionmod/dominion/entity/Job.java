@@ -11,7 +11,14 @@ public enum Job {
     LUMBERJACK("Lumberjack", 1, false),
     MILITIA("Militia", -1, true),
     ARCHER("Archer", -1, true),
-    BUILDER("Builder", 1, false);
+    BUILDER("Builder", 1, false),
+    SCHOLAR("Scholar", 1, false),
+    BLACKSMITH("Blacksmith", 1, false),
+    // University classes (not from a tool: trained at the Training Desk)
+    WIZARD("Wizard", -2, true),
+    BARBARIAN("Barbarian", -2, true),
+    MONK("Monk", -2, true),
+    ENGINEER("Engineer", -1, false);
 
     public final String title;
     /** Coins paid in daily: positive = tax the citizen pays, negative = wage they're owed. */
@@ -25,12 +32,29 @@ public enum Job {
     }
 
     public boolean worker() {
-        return this == FARMER || this == LUMBERJACK || this == BUILDER;
+        return this == FARMER || this == LUMBERJACK || this == BUILDER || this == ENGINEER || this == BLACKSMITH || this == SCHOLAR;
+    }
+
+    /** Trained at the University rather than given by a tool. */
+    public boolean isClass() {
+        return this == WIZARD || this == BARBARIAN || this == MONK || this == ENGINEER;
+    }
+
+    /** Builds construction sites (Engineers build twice as fast, and repair). */
+    public boolean builds() {
+        return this == BUILDER || this == ENGINEER;
+    }
+
+    /** Fights in melee (with a weapon or bare hands). */
+    public boolean melee() {
+        return this == MILITIA || this == BARBARIAN || this == MONK;
     }
 
     public static Job of(ItemStack held) {
         if (held.isEmpty()) return UNASSIGNED;
         if (held.is(com.dominionmod.dominion.registry.ModContent.BUILDERS_HAMMER.get())) return BUILDER;
+        if (held.is(com.dominionmod.dominion.registry.ModContent.BLACKSMITH_TONGS.get())) return BLACKSMITH;
+        if (held.is(net.minecraft.world.item.Items.BOOK) || held.is(net.minecraft.world.item.Items.WRITABLE_BOOK)) return SCHOLAR;
         if (held.is(ItemTags.HOES)) return FARMER;
         if (held.is(ItemTags.AXES)) return LUMBERJACK;
         if (held.is(ItemTags.SWORDS) || held.is(ItemTags.SPEARS)) return MILITIA;

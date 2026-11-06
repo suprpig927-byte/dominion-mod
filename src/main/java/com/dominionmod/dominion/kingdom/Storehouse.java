@@ -19,20 +19,35 @@ public final class Storehouse {
     public static final int RADIUS = 6;
     public static final int HEIGHT = 3;
 
+    /** A storehouse's containers, remembering which are labeled for what. */
+    public static final class StoreList extends ArrayList<Container> {
+        final java.util.IdentityHashMap<Container, StorageCategory> labels = new java.util.IdentityHashMap<>();
+
+        public StorageCategory label(Container c) {
+            return labels.getOrDefault(c, StorageCategory.ANY);
+        }
+    }
+
     public static List<Container> containers(ServerLevel level, Kingdom k) {
-        List<Container> out = new ArrayList<>();
+        StoreList out = new StoreList();
         if (k.hall.isEmpty() || !KingdomData.dim(level).equals(k.hallDim)) return out;
         java.util.Set<BlockPos> seen = new java.util.HashSet<>();
-        scan(level, k.hall.get(), RADIUS, HEIGHT, out, seen);
-        for (long l : k.storehouses) scan(level, BlockPos.of(l), 6, 4, out, seen);
+        var labels = KingdomData.get(level.getServer()).progress(k).labels;
+        scan(level, k.hall.get(), RADIUS, HEIGHT, out, seen, labels);
+        for (long l : k.storehouses) scan(level, BlockPos.of(l), 6, 4, out, seen, labels);
         return out;
     }
 
-    private static void scan(ServerLevel level, BlockPos center, int r, int h, List<Container> out, java.util.Set<BlockPos> seen) {
+    private static void scan(ServerLevel level, BlockPos center, int r, int h, StoreList out, java.util.Set<BlockPos> seen,
+                             java.util.Map<Long, String> labels) {
         for (BlockPos p : BlockPos.betweenClosed(center.offset(-r, -h, -r), center.offset(r, h, r))) {
             if (!level.isLoaded(p)) continue;
             BlockEntity be = level.getBlockEntity(p);
-            if (be instanceof Container c && isStorage(be) && seen.add(p.immutable())) out.add(c);
+            if (be instanceof Container c && isStorage(be) && seen.add(p.immutable())) {
+                out.add(c);
+                String label = labels.get(p.asLong());
+                if (label != null) out.labels.put(c, StorageCategory.byName(label));
+            }
         }
     }
 
@@ -41,8 +56,24 @@ public final class Storehouse {
                 || be instanceof net.minecraft.world.level.block.entity.BarrelBlockEntity;
     }
 
-    /** Puts as much of the stack as fits; returns what's left over. */
+    /**
+     * Puts as much of the stack as fits; returns what's left over. Labeled chests only take their own
+     * kind of item, and get it first; unlabeled chests take anything.
+     */
     public static ItemStack insert(List<Container> containers, ItemStack stack) {
+        if (!(containers instanceof StoreList sl) || sl.labels.isEmpty()) return insertInto(containers, stack);
+        StorageCategory cat = StorageCategory.of(stack);
+        List<Container> matching = new ArrayList<>(), open = new ArrayList<>();
+        for (Container c : sl) {
+            StorageCategory l = sl.label(c);
+            if (l == StorageCategory.ANY) open.add(c);
+            else if (l == cat) matching.add(c);
+        }
+        ItemStack left = insertInto(matching, stack);
+        return left.isEmpty() ? left : insertInto(open, left);
+    }
+
+    private static ItemStack insertInto(List<Container> containers, ItemStack stack) {
         ItemStack left = stack.copy();
         for (Container c : containers) {
             // First top up matching stacks, then use empty slots.

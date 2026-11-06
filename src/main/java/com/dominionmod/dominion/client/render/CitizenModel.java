@@ -54,9 +54,15 @@ public class CitizenModel extends HumanoidModel<CitizenRenderState> {
     @Override
     public void setupAnim(CitizenRenderState state) {
         super.setupAnim(state);
-        robe.visible = !state.job.soldier;
+        robe.visible = !armored(state.job);
         // The hat rim only shows when there's a profession hat to wear.
         this.hat.visible = true;
+    }
+
+    /** Fighters who take off the robe and wear a tabard over armor. Wizards and Monks keep their robes. */
+    public static boolean armored(com.dominionmod.dominion.entity.Job job) {
+        return job == com.dominionmod.dominion.entity.Job.MILITIA || job == com.dominionmod.dominion.entity.Job.ARCHER
+                || job == com.dominionmod.dominion.entity.Job.BARBARIAN;
     }
 
     /**
