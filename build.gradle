@@ -51,6 +51,11 @@ neoForge {
             client()
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            // Automated visual test (CI): jump straight into a world, take screenshots, quit.
+            if (System.getenv('DOMINION_QUICKPLAY') != null) {
+                programArguments.addAll '--quickPlaySingleplayer', System.getenv('DOMINION_QUICKPLAY'), '--width', '1280', '--height', '720'
+                systemProperty 'dominion.autoshot', 'true'
+            }
         }
 
         server {

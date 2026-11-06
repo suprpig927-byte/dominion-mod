@@ -29,6 +29,7 @@ public class DominionClient {
             e.registerCategory(CATEGORY);
             e.register(OPEN_REALM);
         });
+        AutoShot.init();
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> {
             Minecraft mc = Minecraft.getInstance();
             if (mc.player == null) return;

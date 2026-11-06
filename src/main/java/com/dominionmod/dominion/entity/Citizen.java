@@ -516,6 +516,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     public int getLook() { return this.entityData.get(LOOK); }
     public ItemStack getFlag() { return this.entityData.get(FLAG); }
     public String getVillagerType() { return this.entityData.get(TYPE); }
+    public void setVillagerTypeForDebug(String type) { this.entityData.set(TYPE, type); }
 
     /** Keeps the look of the villager they were: desert villagers stay in desert clothes, and so on. */
     public void copyLookFrom(Villager v) {

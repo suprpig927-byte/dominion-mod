@@ -1,0 +1,66 @@
+name: Client visual test
+
+on:
+  push:
+    branches: [visual]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Install a virtual display and software OpenGL
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl1 mesa-utils x11-utils > /dev/null
+      - name: Generate a world with a dedicated server
+        shell: bash
+        run: |
+          chmod +x gradlew
+          mkdir -p run && echo "eula=true" > run/eula.txt
+          printf "level-seed=dominion\nspawn-protection=0\nlevel-type=minecraft\\\\:flat\npause-when-empty-seconds=0\n" > run/server.properties
+          ./gradlew runServer > server.log 2>&1 &
+          for i in $(seq 1 120); do
+            if grep -q "Done (" server.log; then echo "server up"; break; fi
+            sleep 5
+          done
+          sleep 10
+          pkill -f "net.neoforged" || true
+          sleep 10
+          pkill -9 -f gradle || true
+          sleep 3
+          mkdir -p run/saves && rm -rf run/saves/showcase && mv run/world run/saves/showcase
+          ls run/saves/showcase
+      - name: Run the client and take screenshots
+        shell: bash
+        env:
+          DOMINION_QUICKPLAY: showcase
+          LIBGL_ALWAYS_SOFTWARE: "1"
+          MESA_GL_VERSION_OVERRIDE: "4.5"
+        run: |
+          printf "onboardAccessibility:false\ntutorialStep:none\nnarrator:0\nrenderDistance:5\nsimulationDistance:5\nguiScale:2\npauseOnLostFocus:false\njoinedFirstServer:true\nskipMultiplayerWarning:true\n" > run/options.txt
+          timeout 1500 xvfb-run -a -s "-screen 0 1600x900x24" ./gradlew runClient > client.log 2>&1 || true
+          ls run/screenshots || true
+      - name: Push screenshots and logs to the visual-logs branch
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p /tmp/out && cp run/screenshots/*.png /tmp/out/ 2>/dev/null || true
+          cp client.log server.log /tmp/out/ 2>/dev/null || true
+          cp run/logs/latest.log /tmp/out/ 2>/dev/null || true
+          cp -r run/crash-reports /tmp/out/ 2>/dev/null || true
+          cd /tmp/out
+          git init -q -b visual-logs
+          git add -A
+          git -c user.name=ci -c user.email=ci@example.com commit -q -m "client visual test"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" visual-logs
