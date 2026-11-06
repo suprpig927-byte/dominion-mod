@@ -124,12 +124,12 @@ public class RealmScreen extends Screen {
         }
         Structures.Structure s = all.get(Math.min(pickedStructure, all.size() - 1));
         addRenderableWidget(Button.builder(Component.literal("Take blueprint"), b -> send(Payloads.RealmAction.BLUEPRINT, s.id()))
-                .bounds(l + 120, t + 126, 100, 20).build());
+                .bounds(l + W - 176, t + H - 26, 100, 20).build());
         List<String> sites = info.sites();
         for (int i = 0; i < sites.size() && i < 3; i++) {
             String id = sites.get(i).split("\\|", -1)[0];
             addRenderableWidget(Button.builder(Component.literal("Cancel"), b -> send(Payloads.RealmAction.CANCEL_SITE, id))
-                    .bounds(l + W - 62, t + 168 + i * 14, 52, 13).build());
+                    .bounds(l + W - 62, t + 170 + i * 14, 52, 13).build());
         }
     }
 
@@ -269,8 +269,8 @@ public class RealmScreen extends Screen {
             g.text(this.font, r[2], x + 200, y, r[2].equals("no bed") ? 0xFFFF8080 : 0xFFCCCCCC, false);
             y += 12;
         }
-        g.text(this.font, "To move someone to another bed: select them with the Command Baton,", l + 84, t + H - 34, 0xFF888888, false);
-        g.text(this.font, "then right-click the bed with it. Whoever slept there swaps beds.", l + 84, t + H - 24, 0xFF888888, false);
+        g.text(this.font, "To move someone to another bed: select them with the Command Baton,", l + 10, t + H - 58, 0xFF888888, false);
+        g.text(this.font, "then right-click the bed with it. Whoever slept there swaps beds.", l + 10, t + H - 46, 0xFF888888, false);
     }
 
     private void drawBuild(GuiGraphicsExtractor g, int l, int t, int p) {
@@ -300,10 +300,10 @@ public class RealmScreen extends Screen {
                 y += 10;
             }
         }
-        g.text(this.font, "Builders take materials from the storehouse.", l + 120, t + 152, 0xFF777777, false);
+        g.text(this.font, "Builders take materials from the storehouse.", l + 120, y + 14, 0xFF777777, false);
 
         List<String> sites = info.sites();
-        int sy = t + 168;
+        int sy = t + 170;
         g.text(this.font, sites.isEmpty() ? "No construction sites. Mark one with a blueprint." : "Construction sites:", l + 10, sy - 10, 0xFF888888, false);
         for (int i = 0; i < sites.size() && i < 3; i++) {
             String[] r = sites.get(i).split("\\|", -1);
