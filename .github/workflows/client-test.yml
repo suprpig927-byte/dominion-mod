@@ -22,7 +22,7 @@ jobs:
       - name: Install a virtual display and software OpenGL
         run: |
           sudo apt-get update -q
-          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl1 mesa-utils x11-utils > /dev/null
+          sudo apt-get install -y -q xvfb libgl1-mesa-dri libglx-mesa0 libegl1 libegl-mesa0 libgl1 mesa-utils x11-utils mesa-vulkan-drivers > /dev/null
       - name: Generate a world with a dedicated server
         shell: bash
         run: |
@@ -49,7 +49,8 @@ jobs:
           MESA_GL_VERSION_OVERRIDE: "4.5"
         run: |
           printf "onboardAccessibility:false\ntutorialStep:none\nnarrator:0\nrenderDistance:5\nsimulationDistance:5\nguiScale:2\npauseOnLostFocus:false\njoinedFirstServer:true\nskipMultiplayerWarning:true\n" > run/options.txt
-          timeout 1500 xvfb-run -a -s "-screen 0 1600x900x24" ./gradlew runClient > client.log 2>&1 || true
+          glxinfo -B 2>&1 | head -5 || true
+          timeout 900 xvfb-run -a -s "-screen 0 1600x900x24 +extension GLX +render -noreset" ./gradlew runClient > client.log 2>&1 || true
           ls run/screenshots || true
       - name: Push screenshots and logs to the visual-logs branch
         if: always()
