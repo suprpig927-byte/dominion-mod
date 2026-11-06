@@ -1,0 +1,1 @@
+{ "parent": "minecraft:block/cube_bottom_top", "textures": { "top": "dominion:block/town_hall_top", "bottom": "minecraft:block/spruce_planks", "side": "dominion:block/town_hall_side" } }

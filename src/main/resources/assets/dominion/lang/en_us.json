@@ -1,0 +1,10 @@
+{
+  "itemGroup.dominion": "Dominion",
+  "block.dominion.town_hall": "Town Hall",
+  "block.dominion.market": "Market",
+  "item.dominion.gold_coin": "Gold Coin",
+  "item.dominion.command_baton": "Command Baton",
+  "entity.dominion.citizen": "Citizen",
+  "key.category.dominion.dominion": "Dominion",
+  "key.dominion.open_realm": "Open Realm"
+}

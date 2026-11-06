@@ -1,0 +1,68 @@
+name: Server smoke test
+
+on:
+  workflow_dispatch:
+    inputs:
+      commands:
+        description: "Console commands to run once the server is up (separated by ;)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Start a dedicated server with the mod, let it generate the world, then stop
+        shell: bash
+        run: |
+          chmod +x gradlew
+          mkdir -p run && echo "eula=true" > run/eula.txt
+          printf "level-seed=dominion\nspawn-protection=0\nenable-rcon=true\nrcon.password=test\nrcon.port=25575\npause-when-empty-seconds=0\n" > run/server.properties
+          pip install --quiet mcrcon
+          ./gradlew runServer > server.log 2>&1 &
+          for i in $(seq 1 120); do
+            if grep -q "Done (" server.log; then echo "server up"; break; fi
+            if ! pgrep -f "runServer|net.neoforged" > /dev/null; then echo "server exited"; break; fi
+            sleep 5
+          done
+          sleep 5
+          CMDS="${{ github.event.inputs.commands }}"
+          if [ -n "$CMDS" ]; then
+            python3 - "$CMDS" <<'PY' > rcon.log 2>&1
+          import sys, time
+          from mcrcon import MCRcon
+          with MCRcon("127.0.0.1", "test", port=25575) as m:
+              for c in sys.argv[1].split(";"):
+                  c = c.strip()
+                  if c.startswith("wait "):
+                      time.sleep(float(c[5:])); print("waited", c[5:])
+                  elif c:
+                      print("RCON>", c, "=>", m.command(c)); time.sleep(2)
+          PY
+          fi
+          sleep 15
+          pkill -f "net.neoforged" || true
+          pkill -f gradle || true
+          sleep 5
+      - name: Push the log to the test-logs branch
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p /tmp/logs && cp server.log /tmp/logs/ 2>/dev/null || true
+          cp rcon.log /tmp/logs/ 2>/dev/null || true
+          cp run/logs/latest.log /tmp/logs/ 2>/dev/null || true
+          cp -r run/crash-reports /tmp/logs/ 2>/dev/null || true
+          cd /tmp/logs
+          git init -q -b test-logs
+          git add -A
+          git -c user.name=ci -c user.email=ci@example.com commit -q -m "server smoke test logs"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" test-logs

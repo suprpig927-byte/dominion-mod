@@ -1,0 +1,4 @@
+{ "type": "minecraft:crafting_shaped", "category": "misc",
+  "key": { "G": "minecraft:gold_ingot", "L": "minecraft:lectern", "P": "#minecraft:planks", "S": "minecraft:stone_bricks" },
+  "pattern": [ "PGP", "PLP", "SSS" ],
+  "result": { "id": "dominion:town_hall" } }

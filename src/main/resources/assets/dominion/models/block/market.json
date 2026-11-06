@@ -1,0 +1,1 @@
+{ "parent": "minecraft:block/cube_bottom_top", "textures": { "top": "dominion:block/market_top", "bottom": "minecraft:block/oak_planks", "side": "dominion:block/market_side" } }

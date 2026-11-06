@@ -1,0 +1,4 @@
+{ "type": "minecraft:crafting_shaped", "category": "misc",
+  "key": { "W": "#minecraft:wool", "P": "#minecraft:planks", "C": "minecraft:chest", "E": "minecraft:emerald" },
+  "pattern": [ "WWW", "PEP", "PCP" ],
+  "result": { "id": "dominion:market" } }

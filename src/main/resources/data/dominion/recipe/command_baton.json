@@ -1,0 +1,4 @@
+{ "type": "minecraft:crafting_shaped", "category": "equipment",
+  "key": { "G": "minecraft:gold_ingot", "S": "minecraft:stick" },
+  "pattern": [ " G", "S " ],
+  "result": { "id": "dominion:command_baton" } }

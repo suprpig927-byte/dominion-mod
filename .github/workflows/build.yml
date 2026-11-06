@@ -1,0 +1,39 @@
+name: Build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build the mod
+        shell: bash
+        run: |
+          chmod +x gradlew
+          set -o pipefail
+          ./gradlew build 2>&1 | tee build.log
+
+      # On failure, surface the compiler errors as an annotation (readable from the run summary and the API).
+      - name: Report build errors
+        if: failure()
+        shell: bash
+        run: |
+          set +e +o pipefail
+          msg=$( (grep -iE "error|wrong|exception" -A3 build.log || tail -40 build.log || echo "no build.log") | head -80 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=Build errors::${msg}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dominion-mod
+          path: build/libs/*.jar
