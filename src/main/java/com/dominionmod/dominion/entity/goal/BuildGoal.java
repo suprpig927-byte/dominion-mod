@@ -234,6 +234,15 @@ public class BuildGoal extends Goal {
         }
         var store = Storehouse.containers(level, k);
         Item first = steps.get(site.cursor).cost();
+        // Put back anything this stretch doesn't need, to make room.
+        SimpleContainer mats = c.materials();
+        for (int i = 0; i < mats.getContainerSize(); i++) {
+            ItemStack m = mats.getItem(i);
+            if (m.isEmpty()) continue;
+            boolean needed = false;
+            for (Item it : need.keySet()) if (Plans.satisfies(it, m)) needed = true;
+            if (!needed) mats.setItem(i, Storehouse.insert(store, m));
+        }
         boolean gotFirst = false;
         for (var e : need.entrySet()) {
             int want = Math.min(e.getValue(), 64);
@@ -246,6 +255,9 @@ public class BuildGoal extends Goal {
         walkTo = null;
         if (!gotFirst && first != null && !hasMaterial(first)) {
             String name = new ItemStack(first).getHoverName().getString();
+            com.dominionmod.dominion.DominionMod.LOGGER.info("Builder {} can't find {} for {}; storehouse has {} matching, materials: {}",
+                    c.baseName(), name, site.name(), Storehouse.count(store, x -> Plans.satisfies(first, x)),
+                    mats.getItems().stream().filter(x -> !x.isEmpty()).map(x -> x.getCount() + "x" + x.getItem()).toList());
             site.status = "Waiting for " + name;
             long day = level.getGameTime() / Citizen.DAY;
             if (!Long.valueOf(day).equals(WARNED.get(site.id))) {

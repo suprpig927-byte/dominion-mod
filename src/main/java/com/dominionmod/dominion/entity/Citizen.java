@@ -93,7 +93,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
 
     private final SimpleContainer inventory = new SimpleContainer(12);
     /** A builder's building materials, kept apart from what they haul home. */
-    private final SimpleContainer materials = new SimpleContainer(9);
+    private final SimpleContainer materials = new SimpleContainer(18);
     private @Nullable UUID kingdomId;
     private String baseName = "";
     private @Nullable BlockPos post;
