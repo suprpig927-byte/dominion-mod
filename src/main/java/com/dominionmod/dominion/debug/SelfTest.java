@@ -158,6 +158,7 @@ public final class SelfTest {
                 else young++;
             }
         }
+        log("beds now: " + (k == null ? -1 : Realm.beds(level, k)));
         log("wheat ripe=" + ripe + " replanted=" + young);
         BlockPos tree = center.offset(-8, 0, 8);
         int logs = 0;

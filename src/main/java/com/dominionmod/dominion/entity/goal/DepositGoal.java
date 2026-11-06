@@ -55,6 +55,7 @@ public class DepositGoal extends Goal {
 
     @Override
     public void tick() {
+        if (hall == null) return;
         ticks++;
         if (c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(hall)) > 4.5 * 4.5) {
             if (ticks % 40 == 0) c.getNavigation().moveTo(hall.getX() + 0.5, hall.getY(), hall.getZ() + 0.5, 0.55);

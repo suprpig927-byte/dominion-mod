@@ -110,6 +110,7 @@ public class LumberGoal extends Goal {
 
     @Override
     public void tick() {
+        if (base == null || logs.isEmpty()) return;
         ticks++;
         BlockPos next = logs.get(0);
         c.getLookControl().setLookAt(next.getX() + 0.5, Math.min(next.getY(), base.getY() + 2) + 0.5, next.getZ() + 0.5);

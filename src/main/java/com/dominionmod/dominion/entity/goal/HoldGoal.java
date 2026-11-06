@@ -58,6 +58,7 @@ public class HoldGoal extends Goal {
 
     @Override
     public void tick() {
+        if (target == null) return;
         if (--repath <= 0) {
             repath = 20;
             c.getNavigation().moveTo(target.getX() + 0.5, target.getY(), target.getZ() + 0.5, c.order() == Order.HOLD ? 0.8 : 0.6);

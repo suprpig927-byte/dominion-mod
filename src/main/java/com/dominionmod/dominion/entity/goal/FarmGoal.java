@@ -90,6 +90,7 @@ public class FarmGoal extends Goal {
 
     @Override
     public void tick() {
+        if (target == null) return;
         ticks++;
         c.getLookControl().setLookAt(target.getX() + 0.5, target.getY() + 0.3, target.getZ() + 0.5);
         if (c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(target)) > 2.6 * 2.6) {
