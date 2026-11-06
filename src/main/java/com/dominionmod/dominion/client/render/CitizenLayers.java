@@ -72,7 +72,7 @@ public final class CitizenLayers {
             getParentModel().body.translateAndRotate(pose);
             pose.translate(0.0f, 5.6f / 16.0f, -3.4f / 16.0f);
             pose.scale(0.42f, 0.42f, 0.42f);
-            net.minecraft.client.renderer.blockentity.BannerRenderer.submitPatterns(sprites, pose, collector.order(6), light,
+            net.minecraft.client.renderer.blockentity.BannerRenderer.submitPatterns(sprites, pose, collector, light,
                     net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, emblem, net.minecraft.util.Unit.INSTANCE, false,
                     s.flagBase, s.flagPatterns);
             pose.popPose();

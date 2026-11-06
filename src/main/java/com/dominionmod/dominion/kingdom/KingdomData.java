@@ -147,7 +147,7 @@ public final class KingdomData extends SavedData {
         return sites.stream().filter(s -> s.kingdom.equals(k.id)).toList();
     }
 
-    public @Nullable com.dominionmod.dominion.build.Site site(UUID id) {
+    public com.dominionmod.dominion.build.@Nullable Site site(UUID id) {
         for (var s : sites) if (s.id.equals(id)) return s;
         return null;
     }

@@ -37,7 +37,7 @@ public final class Construction {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
-    public static @Nullable Structures.Structure structureOf(ItemStack stack) {
+    public static Structures.@Nullable Structure structureOf(ItemStack stack) {
         return Structures.get(tag(stack).getStringOr("Structure", ""));
     }
 
