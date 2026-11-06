@@ -217,7 +217,7 @@ public class RealmScreen extends Screen {
 
     private void drawResearch(GuiGraphicsExtractor g, int l, int t, int p) {
         g.text(this.font, "Research", l + 10, t + 10, p, true);
-        String sch = info.scholars() == 0 ? "No Scholars at work: research goes slowly. Give a citizen a book and build a Library."
+        String sch = info.scholars() == 0 ? "No Scholars at work, so research is slow. Give a citizen a book."
                 : info.scholars() + " Scholar" + (info.scholars() == 1 ? "" : "s") + " at work: research is " + (1 + 2 * info.scholars()) + "x faster.";
         g.text(this.font, sch, l + 10, t + 22, info.scholars() == 0 ? 0xFFFFB070 : 0xFFA0D890, false);
         int i = 0;
