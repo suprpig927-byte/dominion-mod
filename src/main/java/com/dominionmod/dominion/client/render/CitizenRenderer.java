@@ -20,7 +20,8 @@ public class CitizenRenderer extends HumanoidMobRenderer<Citizen, CitizenRenderS
         this.addLayer(new HumanoidArmorLayer<>(this,
                 ArmorModelSet.bake(ModelLayers.ZOMBIE_VILLAGER_ARMOR, ctx.getModelSet(), part -> new HumanoidModel<CitizenRenderState>(part)),
                 ctx.getEquipmentRenderer()));
-        this.addLayer(new CitizenLayers.Tabard(this, new HumanoidModel<>(ctx.bakeLayer(CitizenModels.TABARD))));
+        this.addLayer(new CitizenLayers.Tabard(this, new HumanoidModel<>(ctx.bakeLayer(CitizenModels.TABARD)),
+                new CitizenLayers.EmblemModel(ctx.bakeLayer(CitizenModels.EMBLEM)), ctx.getSprites()));
     }
 
     @Override
@@ -36,6 +37,15 @@ public class CitizenRenderer extends HumanoidMobRenderer<Citizen, CitizenRenderS
         s.look = Math.floorMod(c.getLook(), 4);
         s.job = c.job();
         s.isAggressive = c.isAggressive();
+        net.minecraft.world.item.ItemStack flag = c.getFlag();
+        if (flag.getItem() instanceof net.minecraft.world.item.BannerItem banner) {
+            s.flagBase = banner.getColor();
+            s.flagPatterns = flag.getOrDefault(net.minecraft.core.component.DataComponents.BANNER_PATTERNS,
+                    net.minecraft.world.level.block.entity.BannerPatternLayers.EMPTY);
+        } else {
+            s.flagBase = null;
+            s.flagPatterns = net.minecraft.world.level.block.entity.BannerPatternLayers.EMPTY;
+        }
     }
 
     @Override

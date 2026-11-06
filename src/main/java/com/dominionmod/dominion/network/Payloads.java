@@ -37,7 +37,7 @@ public final class Payloads {
     }
 
     /** Client -> server: found the kingdom. Colors are dye ids (0-15). */
-    public record FoundKingdom(BlockPos pos, String name, int primary, int secondary) implements CustomPacketPayload {
+    public record FoundKingdom(BlockPos pos, String name, int primary, int secondary, String flag) implements CustomPacketPayload {
         public static final Type<FoundKingdom> TYPE = new Type<>(DominionMod.id("found_kingdom"));
         public static final StreamCodec<RegistryFriendlyByteBuf, FoundKingdom> CODEC = StreamCodec.of(
                 (RegistryFriendlyByteBuf buf, FoundKingdom p) -> {
@@ -45,19 +45,27 @@ public final class Payloads {
                     buf.writeUtf(p.name, 64);
                     buf.writeVarInt(p.primary);
                     buf.writeVarInt(p.secondary);
+                    buf.writeUtf(p.flag, 2048);
                 },
-                buf -> new FoundKingdom(buf.readBlockPos(), buf.readUtf(64), buf.readVarInt(), buf.readVarInt()));
+                buf -> new FoundKingdom(buf.readBlockPos(), buf.readUtf(64), buf.readVarInt(), buf.readVarInt(), buf.readUtf(2048)));
 
         @Override
         public Type<? extends CustomPacketPayload> type() { return TYPE; }
     }
 
     /** Client -> server: a Realm screen button (or opening the screen, which asks for fresh info). */
-    public record RealmAction(int action) implements CustomPacketPayload {
-        public static final int REFRESH = 0, CLAIM = 1, UNCLAIM = 2, TOGGLE_PEACEFUL = 3, OPEN = 4;
+    public record RealmAction(int action, String arg) implements CustomPacketPayload {
+        public static final int REFRESH = 0, CLAIM = 1, UNCLAIM = 2, TOGGLE_PEACEFUL = 3, OPEN = 4, BLUEPRINT = 5, CANCEL_SITE = 6, SET_FLAG = 7;
+
+        public RealmAction(int action) {
+            this(action, "");
+        }
         public static final Type<RealmAction> TYPE = new Type<>(DominionMod.id("realm_action"));
         public static final StreamCodec<RegistryFriendlyByteBuf, RealmAction> CODEC = StreamCodec.of(
-                (RegistryFriendlyByteBuf buf, RealmAction p) -> buf.writeVarInt(p.action), buf -> new RealmAction(buf.readVarInt()));
+                (RegistryFriendlyByteBuf buf, RealmAction p) -> {
+                    buf.writeVarInt(p.action);
+                    buf.writeUtf(p.arg, 2048);
+                }, buf -> new RealmAction(buf.readVarInt(), buf.readUtf(2048)));
 
         @Override
         public Type<? extends CustomPacketPayload> type() { return TYPE; }
@@ -69,7 +77,8 @@ public final class Payloads {
      */
     public record RealmInfo(boolean open, boolean has, String name, int primary, int secondary, double influence, double daily,
                             int claimCost, int chunks, int beds, List<Integer> jobs, int coins, int food, String here,
-                            boolean peaceful, List<Integer> map, String message) implements CustomPacketPayload {
+                            boolean peaceful, List<Integer> map, String message, boolean ruler, String flag,
+                            List<String> roster, List<String> sites) implements CustomPacketPayload {
         public static final Type<RealmInfo> TYPE = new Type<>(DominionMod.id("realm_info"));
         public static final StreamCodec<RegistryFriendlyByteBuf, RealmInfo> CODEC = StreamCodec.of(
                 (RegistryFriendlyByteBuf buf, RealmInfo p) -> {
@@ -90,10 +99,15 @@ public final class Payloads {
                     buf.writeBoolean(p.peaceful);
                     writeInts(buf, p.map);
                     buf.writeUtf(p.message);
+                    buf.writeBoolean(p.ruler);
+                    buf.writeUtf(p.flag, 2048);
+                    writeStrings(buf, p.roster);
+                    writeStrings(buf, p.sites);
                 },
                 buf -> new RealmInfo(buf.readBoolean(), buf.readBoolean(), buf.readUtf(), buf.readVarInt(), buf.readVarInt(), buf.readDouble(),
                         buf.readDouble(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), readInts(buf), buf.readVarInt(), buf.readVarInt(),
-                        buf.readUtf(), buf.readBoolean(), readInts(buf), buf.readUtf()));
+                        buf.readUtf(), buf.readBoolean(), readInts(buf), buf.readUtf(), buf.readBoolean(), buf.readUtf(2048),
+                        readStrings(buf), readStrings(buf)));
 
         @Override
         public Type<? extends CustomPacketPayload> type() { return TYPE; }
@@ -108,6 +122,18 @@ public final class Payloads {
     private static void writeInts(RegistryFriendlyByteBuf buf, List<Integer> list) {
         buf.writeVarInt(list.size());
         for (int i : list) buf.writeVarInt(i + 1);
+    }
+
+    private static void writeStrings(RegistryFriendlyByteBuf buf, List<String> list) {
+        buf.writeVarInt(list.size());
+        for (String s : list) buf.writeUtf(s, 512);
+    }
+
+    private static List<String> readStrings(RegistryFriendlyByteBuf buf) {
+        int n = buf.readVarInt();
+        List<String> out = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) out.add(buf.readUtf(512));
+        return out;
     }
 
     private static List<Integer> readInts(RegistryFriendlyByteBuf buf) {
@@ -127,7 +153,7 @@ public final class Payloads {
 
         r.playToServer(FoundKingdom.TYPE, FoundKingdom.CODEC, (p, ctx) -> {
             if (!(ctx.player() instanceof ServerPlayer sp)) return;
-            String err = Realm.found(sp, p.pos(), p.name(), p.primary(), p.secondary());
+            String err = Realm.found(sp, p.pos(), p.name(), p.primary(), p.secondary(), p.flag());
             if (err != null) {
                 sp.sendSystemMessage(Realm.err(err));
                 PacketDistributor.sendToPlayer(sp, new OpenFounding(p.pos()));
@@ -152,6 +178,9 @@ public final class Payloads {
                         msg = "Only the ruler can change that.";
                     }
                 }
+                case RealmAction.SET_FLAG -> msg = Realm.setFlag(sp, p.arg()).getString();
+                case RealmAction.BLUEPRINT -> msg = com.dominionmod.dominion.build.Construction.giveBlueprint(sp, p.arg()).getString();
+                case RealmAction.CANCEL_SITE -> msg = com.dominionmod.dominion.build.Construction.cancel(sp, p.arg()).getString();
                 default -> {}
             }
             sendRealm(sp, p.action() == RealmAction.OPEN, msg);
@@ -177,7 +206,8 @@ public final class Payloads {
         Kingdom here = d.ownerAt(level, center);
         String hereName = here == null ? "" : here.name;
         if (k == null) {
-            PacketDistributor.sendToPlayer(p, new RealmInfo(open, false, "", 0, 0, 0, 0, 0, 0, 0, List.of(), 0, 0, hereName, false, map, message));
+            PacketDistributor.sendToPlayer(p, new RealmInfo(open, false, "", 0, 0, 0, 0, 0, 0, 0, List.of(), 0, 0, hereName, false, map, message,
+                    false, "", List.of(), List.of()));
             return;
         }
         List<Integer> jobs = new ArrayList<>();
@@ -185,7 +215,23 @@ public final class Payloads {
         var store = Storehouse.containers(level, k);
         int coins = Storehouse.count(store, s -> s.is(ModContent.GOLD_COIN.get()));
         int food = Storehouse.count(store, s -> s.has(DataComponents.FOOD));
+        // Roster: name|job|bed
+        List<String> roster = new ArrayList<>();
+        for (var e : k.citizens.entrySet()) {
+            var bed = k.bedOf(e.getKey());
+            roster.add(k.names.getOrDefault(e.getKey(), "?") + "|" + Job.byId(e.getValue()).title + "|"
+                    + (bed == null ? "no bed" : bed.getX() + " " + bed.getY() + " " + bed.getZ()));
+        }
+        roster.sort(String::compareToIgnoreCase);
+        // Sites: id|name|done|total|status
+        List<String> sites = new ArrayList<>();
+        for (var site : d.sites(k)) {
+            int total = site.dim.equals(KingdomData.dim(level)) ? com.dominionmod.dominion.build.Plans.steps(level, site, k).size() : 0;
+            sites.add(site.id + "|" + site.name() + "|" + Math.min(site.cursor, total) + "|" + total + "|"
+                    + (site.status.isEmpty() ? "Waiting for a builder" : site.status) + "|" + site.origin.getX() + " " + site.origin.getZ());
+        }
         PacketDistributor.sendToPlayer(p, new RealmInfo(open, true, k.name, k.primary, k.secondary, k.influence, Realm.dailyInfluence(k),
-                Realm.claimCost(d, k), d.claimCount(k), Realm.beds(level, k), jobs, coins, food, hereName, k.peaceful, map, message));
+                Realm.claimCost(d, k), d.claimCount(k), Realm.beds(level, k), jobs, coins, food, hereName, k.peaceful, map, message,
+                k.owner.equals(p.getUUID()), com.dominionmod.dominion.kingdom.Flags.fromBanner(k.flag), roster, sites));
     }
 }

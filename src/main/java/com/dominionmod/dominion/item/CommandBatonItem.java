@@ -20,6 +20,7 @@ import net.minecraft.world.level.Level;
  *   <li>Right-click a citizen: select / deselect them. Sneak: select every soldier within 24 blocks.</li>
  *   <li>Right-click an enemy: selected soldiers charge it.</li>
  *   <li>Right-click a block: soldiers march there and hold; workers make it their work spot.</li>
+ *   <li>Right-click a bed: the selected citizen sleeps there from now on (or see who sleeps there).</li>
  *   <li>Right-click the air: give the current order. Sneak: switch order (Rally / Hold / Return to duty / Clear).</li>
  * </ul>
  */

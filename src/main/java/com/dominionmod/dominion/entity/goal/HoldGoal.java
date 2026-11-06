@@ -37,7 +37,8 @@ public class HoldGoal extends Goal {
 
     @Override
     public boolean canUse() {
-        if (c.getTarget() != null) return false;
+        if (c.getTarget() != null || c.isSleeping()) return false;
+        if (c.order() == Order.DUTY && !c.level().isBrightOutside() && c.home() != null) return false; // bedtime
         target = where();
         if (target == null) return false;
         double r = radius();

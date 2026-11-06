@@ -6,5 +6,7 @@
   "item.dominion.command_baton": "Command Baton",
   "entity.dominion.citizen": "Citizen",
   "key.category.dominion.dominion": "Dominion",
-  "key.dominion.open_realm": "Open Realm"
+  "key.dominion.open_realm": "Open Realm",
+  "item.dominion.builders_hammer": "Builder's Hammer",
+  "item.dominion.blueprint": "Blueprint"
 }

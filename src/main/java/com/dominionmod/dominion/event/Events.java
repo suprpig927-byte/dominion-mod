@@ -75,6 +75,11 @@ public final class Events {
         KingdomData d = Realm.data(level);
         for (ServerPlayer p : level.players()) {
             borderNotice(p, d);
+            if (p.getMainHandItem().is(ModContent.BLUEPRINT.get())) {
+                Kingdom k = d.byPlayer(p.getUUID());
+                int color = k == null ? 0xFFFFFF : DyeColor.byId(k.primary).getTextureDiffuseColor();
+                com.dominionmod.dominion.build.Construction.preview(p, p.getMainHandItem(), color);
+            }
             if (t % 20 == 0 && p.getMainHandItem().is(ModContent.COMMAND_BATON.get())) {
                 Orders.showSelection(p);
                 showBorders(level, p, d);
@@ -138,6 +143,14 @@ public final class Events {
         if (level.isClientSide()) return;
         Player p = e.getEntity();
         BlockPos pos = e.getPos();
+        // The baton on a bed assigns it, instead of trying to sleep in it.
+        if (p instanceof ServerPlayer sp && p.getItemInHand(e.getHand()).is(ModContent.COMMAND_BATON.get())
+                && level.getBlockState(pos).getBlock() instanceof net.minecraft.world.level.block.BedBlock && Realm.mayUse(level, pos, p)) {
+            Orders.assignBed(sp, pos);
+            e.setCanceled(true);
+            e.setCancellationResult(InteractionResult.SUCCESS_SERVER);
+            return;
+        }
         BlockPos placeAt = e.getFace() == null ? pos : pos.relative(e.getFace());
         if (!Realm.mayUse(level, pos, p) || !Realm.mayUse(level, placeAt, p)) {
             e.setCanceled(true);

@@ -35,7 +35,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
  * /dominion admin selftest: builds a tiny kingdom far from spawn (a hall, a storehouse, beds, a
- * wheat field, a tree, four citizens and a zombie), then logs what happened 75 seconds later.
+ * wheat field, a tree, four citizens and a zombie), then logs what happened two minutes later.
  * Used by the automated server test; harmless to run in a creative test world.
  */
 public final class SelfTest {
@@ -46,6 +46,7 @@ public final class SelfTest {
     private static final List<UUID> citizens = new ArrayList<>();
     private static UUID zombie;
     private static UUID kingdom;
+    private static com.dominionmod.dominion.build.Site cottage;
 
     private static void log(String s) {
         DominionMod.LOGGER.info("SELFTEST " + s);
@@ -85,6 +86,16 @@ public final class SelfTest {
             be.setItem(0, new ItemStack(Items.BREAD, 32));
             be.setItem(1, new ItemStack(ModContent.GOLD_COIN.get(), 20));
         }
+        // a second chest full of building materials for the cottage
+        BlockPos chest2 = center.offset(-2, 0, 0);
+        level.setBlock(chest2, Blocks.CHEST.defaultBlockState().setValue(ChestBlock.FACING, Direction.NORTH), Block.UPDATE_ALL);
+        if (level.getBlockEntity(chest2) instanceof ChestBlockEntity be) {
+            ItemStack[] mats = {new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.OAK_PLANKS, 64), new ItemStack(Items.OAK_PLANKS, 64),
+                    new ItemStack(Items.OAK_LOG, 32), new ItemStack(Items.GLASS_PANE, 8), new ItemStack(Items.OAK_DOOR, 2),
+                    new ItemStack(Items.BED.pick(net.minecraft.world.item.DyeColor.WHITE), 2), new ItemStack(Items.CHEST, 2),
+                    new ItemStack(Items.CRAFTING_TABLE, 1), new ItemStack(Items.LANTERN, 2), new ItemStack(Items.OAK_SLAB, 32)};
+            for (int i = 0; i < mats.length; i++) be.setItem(i, mats[i]);
+        }
         // beds
         for (int i = 0; i < 6; i++) {
             BlockPos foot = center.offset(-6, 0, -6 + i * 2);
@@ -116,6 +127,12 @@ public final class SelfTest {
         spawn(level, k, tree.offset(2, 0, 0), new ItemStack(Items.IRON_AXE), null);
         spawn(level, k, center.offset(0, 0, -4), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.IRON_CHESTPLATE));
         spawn(level, k, center.offset(2, 0, -4), new ItemStack(Items.BOW), null);
+        spawn(level, k, center.offset(4, 0, -6), new ItemStack(ModContent.BUILDERS_HAMMER.get()), null);
+
+        cottage = new com.dominionmod.dominion.build.Site(UUID.randomUUID(), k.id, "cottage", KingdomData.dim(level), center.offset(10, -1, -10),
+                center.offset(10, -1, -10), 0, List.of(), 0);
+        d.addSite(cottage);
+        log("cottage steps=" + com.dominionmod.dominion.build.Plans.steps(level, cottage, k).size());
 
         Zombie z = EntityTypes.ZOMBIE.create(level, EntitySpawnReason.COMMAND);
         if (z != null) {
@@ -124,7 +141,7 @@ public final class SelfTest {
             level.addFreshEntity(z);
             zombie = z.getUUID();
         }
-        checkAt = level.getGameTime() + 1500;
+        checkAt = level.getGameTime() + 2600;
         log("started at " + center + ", citizens: " + citizens.size() + ", kingdom citizens: " + k.citizens);
     }
 
@@ -181,6 +198,18 @@ public final class SelfTest {
             for (UUID id : citizens) if (level.getEntity(id) instanceof Citizen c) c.debugUpkeep();
             log("after one upkeep: bread=" + Storehouse.count(store, s -> s.is(Items.BREAD)) + " coins="
                     + Storehouse.count(store, s -> s.is(ModContent.GOLD_COIN.get())));
+            log("beds assigned=" + k.beds.size() + " names=" + k.names.values());
+            var site = d.site(cottage.id);
+            log("cottage " + (site == null ? "FINISHED" : "progress " + site.cursor + "/" + com.dominionmod.dominion.build.Plans.steps(level, cottage, k).size() + " status=" + site.status));
+            BlockPos door = com.dominionmod.dominion.build.Plans.cell(com.dominionmod.dominion.build.Structures.get("cottage"), cottage.origin, 0, 3, 1, 6);
+            log("cottage door block=" + level.getBlockState(door) + " above=" + level.getBlockState(door.above()));
+            if (citizens.size() >= 2 && level.getEntity(citizens.get(0)) instanceof Citizen a && level.getEntity(citizens.get(1)) instanceof Citizen b) {
+                BlockPos bedA = k.bedOf(a.getUUID()), bedB = k.bedOf(b.getUUID());
+                if (bedB != null) {
+                    log("swap: " + Realm.assignBed(level, k, a, bedB).getString());
+                    log("after swap A=" + k.bedOf(a.getUUID()) + " (was " + bedA + ") B=" + k.bedOf(b.getUUID()) + " (was " + bedB + ")");
+                }
+            }
             log("influence=" + k.influence + " daily=" + Realm.dailyInfluence(k) + " claims=" + d.claimCount(k) + " cost=" + Realm.claimCost(d, k));
         }
         log("DONE");

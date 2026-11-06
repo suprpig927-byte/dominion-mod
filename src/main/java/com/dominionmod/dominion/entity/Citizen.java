@@ -81,6 +81,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     private static final EntityDataAccessor<Integer> PRIMARY = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SECONDARY = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LOOK = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<ItemStack> FLAG = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.ITEM_STACK);
 
     public static final long DAY = 24000L;
     public static final int DESERT_AFTER_DAYS = 3;
@@ -91,6 +92,8 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             "Elric", "Freya", "Gunnar", "Hale", "Ingrid", "Jarl", "Kestrel", "Linnea", "Magnus", "Nell", "Osric", "Piety"};
 
     private final SimpleContainer inventory = new SimpleContainer(12);
+    /** A builder's building materials, kept apart from what they haul home. */
+    private final SimpleContainer materials = new SimpleContainer(9);
     private @Nullable UUID kingdomId;
     private String baseName = "";
     private @Nullable BlockPos post;
@@ -124,6 +127,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         builder.define(PRIMARY, 14);
         builder.define(SECONDARY, 4);
         builder.define(LOOK, 0);
+        builder.define(FLAG, ItemStack.EMPTY);
     }
 
     // ------------------------------------------------------------------ AI
@@ -147,6 +151,8 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.goalSelector.addGoal(4, new HoldGoal(this));
         this.goalSelector.addGoal(5, new FarmGoal(this));
         this.goalSelector.addGoal(5, new LumberGoal(this));
+        this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.BuildGoal(this));
+        this.goalSelector.addGoal(4, new com.dominionmod.dominion.entity.goal.SleepGoal(this));
         this.goalSelector.addGoal(6, new DepositGoal(this));
         this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 0.45) {
             @Override public boolean canUse() { return order == Order.DUTY && super.canUse(); }
@@ -191,6 +197,8 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (lastUpkeepDay < 0) lastUpkeepDay = day;
         if (day > lastUpkeepDay) upkeep(level, day);
 
+        if (isSleeping() && (level.isBrightOutside() || order != Order.DUTY || enemyNear(level))) stopSleeping();
+        if (this.tickCount % 100 == 0) refreshFromKingdom(level);
         if (job.worker()) pickUpNearbyItems(level);
         if (job.soldier) commanderBonus(level);
 
@@ -212,6 +220,35 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         Kingdom k = d.byId(kingdomId);
         if (k != null) Realm.addCitizen(k, getUUID(), job, d);
         if (!job.soldier) setTarget(null);
+    }
+
+    private boolean enemyNear(ServerLevel level) {
+        return !level.getEntitiesOfClass(Mob.class, getBoundingBox().inflate(10), m -> m instanceof Enemy && m.isAlive()).isEmpty();
+    }
+
+    /** Keeps colors and flag in step with the kingdom, and makes sure they have a bed. */
+    private void refreshFromKingdom(ServerLevel level) {
+        Kingdom k = kingdom();
+        if (k == null) return;
+        if (getPrimary() != k.primary) this.entityData.set(PRIMARY, k.primary);
+        if (getSecondary() != k.secondary) this.entityData.set(SECONDARY, k.secondary);
+        if (!ItemStack.matches(this.entityData.get(FLAG), k.flag)) this.entityData.set(FLAG, k.flag.copy());
+        if (!baseName.isEmpty() && !baseName.equals(k.names.get(getUUID()))) {
+            k.names.put(getUUID(), baseName);
+            Realm.data(level).markChanged();
+        }
+        Realm.ensureBed(level, k, this);
+    }
+
+    /** The bed this citizen sleeps in, if they have one. */
+    public @Nullable BlockPos home() {
+        Kingdom k = kingdom();
+        return k == null ? null : k.bedOf(getUUID());
+    }
+
+    @Override
+    protected boolean isImmobile() {
+        return super.isImmobile() || isSleeping();
     }
 
     /** Soldiers fight harder near any member of their kingdom. */
@@ -328,6 +365,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             }
         }
         for (ItemStack s : inventory.removeAllItems()) spawnAtLocation(level, s);
+        for (ItemStack s : materials.removeAllItems()) spawnAtLocation(level, s);
     }
 
     @Override
@@ -336,6 +374,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             Kingdom k = kingdom();
             if (k != null) tellKingdom(level, k, Component.literal(baseName + " the " + job().title + " has died.").withStyle(ChatFormatting.GRAY));
             for (ItemStack s : inventory.removeAllItems()) spawnAtLocation(level, s);
+            for (ItemStack s : materials.removeAllItems()) spawnAtLocation(level, s);
             Realm.removeCitizen(level, kingdomId, getUUID());
         }
         super.die(source);
@@ -401,6 +440,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             case FARMER -> "They'll harvest and replant crops around this spot.";
             case LUMBERJACK -> "They'll fell and replant trees around this spot.";
             case MILITIA, ARCHER -> "They'll guard this spot. Use the Command Baton to lead them.";
+            case BUILDER -> "They'll build your construction sites. Get blueprints from the Build tab of your Realm screen (K).";
             default -> "";
         };
     }
@@ -418,6 +458,8 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     public Component status() {
         String mood = hungryDays > 0 ? "hungry" : "fed";
         if (job().soldier) mood += unpaidDays > 0 ? ", unpaid" : ", paid";
+        BlockPos bed = home();
+        mood += bed == null ? ", no bed" : ", sleeps at " + bed.getX() + " " + bed.getY() + " " + bed.getZ();
         String orderText = switch (order) {
             case RALLY -> "rallied to their commander";
             case HOLD -> "holding position";
@@ -435,10 +477,13 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.entityData.set(PRIMARY, k.primary);
         this.entityData.set(SECONDARY, k.secondary);
         this.entityData.set(LOOK, this.random.nextInt(4));
+        this.entityData.set(FLAG, k.flag.copy());
         if (baseName.isEmpty()) baseName = NAMES[this.random.nextInt(NAMES.length)];
         this.post = blockPosition();
         this.lastUpkeepDay = level.getGameTime() / DAY;
         Realm.addCitizen(k, getUUID(), job(), Realm.data(level));
+        k.names.put(getUUID(), baseName);
+        Realm.ensureBed(level, k, this);
         refreshName();
     }
 
@@ -463,6 +508,8 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     public int getPrimary() { return this.entityData.get(PRIMARY); }
     public int getSecondary() { return this.entityData.get(SECONDARY); }
     public int getLook() { return this.entityData.get(LOOK); }
+    public ItemStack getFlag() { return this.entityData.get(FLAG); }
+    public SimpleContainer materials() { return materials; }
     public String baseName() { return baseName; }
 
     // ------------------------------------------------------------------ orders
@@ -555,6 +602,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         out.putInt("Secondary", getSecondary());
         out.putInt("Look", getLook());
         writeInventoryToTag(out);
+        materials.storeAsItemList(out.list("Materials", ItemStack.CODEC));
     }
 
     @Override
@@ -579,6 +627,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.entityData.set(SECONDARY, in.getIntOr("Secondary", 4));
         this.entityData.set(LOOK, in.getIntOr("Look", 0));
         readInventoryFromTag(in);
+        in.list("Materials", ItemStack.CODEC).ifPresent(list -> materials.fromItemList(list));
         lastJob = job();
     }
 

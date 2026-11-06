@@ -1,18 +1,28 @@
 package com.dominionmod.dominion.client;
 
+import com.dominionmod.dominion.build.Plans;
+import com.dominionmod.dominion.build.Structures;
 import com.dominionmod.dominion.entity.Job;
 import com.dominionmod.dominion.network.Payloads;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
-/** Your kingdom at a glance: people, food, coin, Influence, and a map of the land around you. */
+/** Your kingdom at a glance (Overview), your people and their beds (Citizens), and construction (Build). */
 public class RealmScreen extends Screen {
-    private static final int W = 340, H = 214, CELL = 11;
+    private static final int W = 360, H = 236, CELL = 11, ROWS = 12;
+    private static int tab = 0;
+    private static int scroll = 0;
+    private static int pickedStructure = 0;
     private Payloads.RealmInfo info;
 
     public RealmScreen(Payloads.RealmInfo info) {
@@ -37,20 +47,86 @@ public class RealmScreen extends Screen {
         ClientPacketDistributor.sendToServer(new Payloads.RealmAction(action));
     }
 
+    private static void send(int action, String arg) {
+        ClientPacketDistributor.sendToServer(new Payloads.RealmAction(action, arg));
+    }
+
+    private void setTab(int t) {
+        tab = t;
+        scroll = 0;
+        rebuildWidgets();
+    }
+
     @Override
     protected void init() {
         int l = left(), t = top();
         if (info.has()) {
+            String[] names = {"Overview", "Citizens", "Build"};
+            for (int i = 0; i < names.length; i++) {
+                final int idx = i;
+                Button b = Button.builder(Component.literal(names[i]), x -> setTab(idx)).bounds(l + 10 + i * 74, t - 18, 72, 18).build();
+                b.active = tab != i;
+                addRenderableWidget(b);
+            }
+        } else {
+            tab = 0;
+        }
+        switch (tab) {
+            case 1 -> initCitizens(l, t);
+            case 2 -> initBuild(l, t);
+            default -> initOverview(l, t);
+        }
+        addRenderableWidget(Button.builder(Component.literal("Close"), b -> onClose()).bounds(l + W - 70, t + H - 26, 60, 20).build());
+    }
+
+    private void initOverview(int l, int t) {
+        if (info.has()) {
             addRenderableWidget(Button.builder(Component.literal("Claim this chunk (" + info.claimCost() + ")"), b -> send(Payloads.RealmAction.CLAIM))
-                    .bounds(l + 10, t + H - 52, 150, 20).build());
+                    .bounds(l + 10, t + H - 50, 150, 20).build());
             addRenderableWidget(Button.builder(Component.literal("Release this chunk"), b -> send(Payloads.RealmAction.UNCLAIM))
-                    .bounds(l + 10, t + H - 28, 150, 20).build());
-            addRenderableWidget(Button.builder(Component.literal(info.peaceful() ? "Monster spawns: OFF" : "Monster spawns: ON"),
-                    b -> send(Payloads.RealmAction.TOGGLE_PEACEFUL)).bounds(l + 166, t + H - 52, 164, 20).build());
+                    .bounds(l + 10, t + H - 26, 150, 20).build());
+            if (info.ruler()) {
+                addRenderableWidget(Button.builder(Component.literal(info.peaceful() ? "Monster spawns: OFF" : "Monster spawns: ON"),
+                        b -> send(Payloads.RealmAction.TOGGLE_PEACEFUL)).bounds(l + 166, t + H - 50, 120, 20).build());
+                addRenderableWidget(Button.builder(Component.literal("Edit flag"), b -> Minecraft.getInstance().gui.setScreen(
+                        new FlagScreen(this, info.flag(), design -> {
+                            send(Payloads.RealmAction.SET_FLAG, design);
+                            Minecraft.getInstance().gui.setScreen(this);
+                        }, "Raise this flag"))).bounds(l + 290, t + H - 50, 60, 20).build());
+            }
         }
         addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> send(Payloads.RealmAction.REFRESH))
-                .bounds(l + 166, t + H - 28, 80, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Close"), b -> onClose()).bounds(l + 250, t + H - 28, 80, 20).build());
+                .bounds(l + 166, t + H - 26, 80, 20).build());
+    }
+
+    private void initCitizens(int l, int t) {
+        int n = info.roster().size();
+        if (n > ROWS) {
+            addRenderableWidget(Button.builder(Component.literal("^"), b -> { scroll = Math.max(0, scroll - ROWS); rebuildWidgets(); })
+                    .bounds(l + 10, t + H - 26, 30, 20).build());
+            addRenderableWidget(Button.builder(Component.literal("v"), b -> { scroll = Math.min(Math.max(0, n - ROWS), scroll + ROWS); rebuildWidgets(); })
+                    .bounds(l + 44, t + H - 26, 30, 20).build());
+        }
+    }
+
+    private void initBuild(int l, int t) {
+        List<Structures.Structure> all = new ArrayList<>(Structures.all());
+        for (int i = 0; i < all.size(); i++) {
+            final int idx = i;
+            Button b = Button.builder(Component.literal(all.get(i).name()), x -> { pickedStructure = idx; rebuildWidgets(); })
+                    .bounds(l + 10, t + 24 + i * 14, 100, 13).build();
+            b.active = pickedStructure != i;
+            addRenderableWidget(b);
+        }
+        Structures.Structure s = all.get(Math.min(pickedStructure, all.size() - 1));
+        addRenderableWidget(Button.builder(Component.literal("Take blueprint"), b -> send(Payloads.RealmAction.BLUEPRINT, s.id()))
+                .bounds(l + 120, t + 126, 100, 20).build());
+        List<String> sites = info.sites();
+        for (int i = 0; i < sites.size() && i < 3; i++) {
+            String id = sites.get(i).split("\\|", -1)[0];
+            addRenderableWidget(Button.builder(Component.literal("Cancel"), b -> send(Payloads.RealmAction.CANCEL_SITE, id))
+                    .bounds(l + W - 62, t + 168 + i * 14, 52, 13).build());
+        }
     }
 
     @Override
@@ -70,7 +146,16 @@ public class RealmScreen extends Screen {
         g.fill(l, t, l + W, t + H, 0xE0121416);
         g.fill(l, t, l + W, t + 3, p);
         g.fill(l, t + 3, l + W, t + 4, s);
+        switch (tab) {
+            case 1 -> drawCitizens(g, l, t, p);
+            case 2 -> drawBuild(g, l, t, p);
+            default -> drawOverview(g, l, t, p, s);
+        }
+        if (!info.message().isEmpty()) g.text(this.font, info.message(), l + 10, t + H - 62, 0xFFFFE08A, false);
+        this.renderables.forEach(r -> r.extractRenderState(g, mouseX, mouseY, partialTick));
+    }
 
+    private void drawOverview(GuiGraphicsExtractor g, int l, int t, int p, int s) {
         int x = l + 10, y = t + 10;
         if (!info.has()) {
             g.text(this.font, "You don't rule a kingdom yet.", x, y, 0xFFFFD86B, true);
@@ -87,24 +172,23 @@ public class RealmScreen extends Screen {
             g.text(this.font, "Citizens: " + pop + " / " + info.beds() + " beds", x, y, pop >= info.beds() ? 0xFFFF8080 : 0xFFCCCCCC, false);
             y += 12;
             var jobs = info.jobs();
+            int soldiers = 0;
             for (Job j : Job.values()) {
                 int n = j.ordinal() < jobs.size() ? jobs.get(j.ordinal()) : 0;
+                if (j.soldier) soldiers += n;
                 if (n == 0) continue;
                 g.text(this.font, "  " + (j == Job.UNASSIGNED ? "Unassigned" : j.title + (j.soldier ? "" : "s")) + ": " + n, x, y,
                         j.soldier ? 0xFFFFB070 : 0xFFA0D890, false);
                 y += 10;
             }
             y += 4;
-            int soldiers = (jobs.size() > 4 ? jobs.get(Job.MILITIA.ordinal()) + jobs.get(Job.ARCHER.ordinal()) : 0);
             g.text(this.font, "Storehouse: " + info.coins() + " coins, " + info.food() + " food", x, y, 0xFFFFD86B, false);
             y += 12;
-            int needFood = pop, needCoins = soldiers;
-            if (info.food() < needFood) g.text(this.font, "Not enough food for tomorrow!", x, y, 0xFFFF6060, false);
-            else if (info.coins() < needCoins) g.text(this.font, "Not enough coin for tomorrow's wages!", x, y, 0xFFFF6060, false);
+            if (info.food() < pop) g.text(this.font, "Not enough food for tomorrow!", x, y, 0xFFFF6060, false);
+            else if (info.coins() < soldiers) g.text(this.font, "Not enough coin for tomorrow's wages!", x, y, 0xFFFF6060, false);
             else g.text(this.font, "Chests by the Town Hall are your storehouse.", x, y, 0xFF777777, false);
         }
 
-        // Map: 11 x 11 chunks centered on you.
         int n = Payloads.MAP_RADIUS * 2 + 1;
         int mx = l + W - 10 - n * CELL, my = t + 12;
         g.fill(mx - 1, my - 1, mx + n * CELL + 1, my + n * CELL + 1, 0xFF000000);
@@ -120,9 +204,91 @@ public class RealmScreen extends Screen {
         String here = info.here().isEmpty() ? "Here: wilderness" : "Here: " + info.here();
         g.text(this.font, here, mx, my + n * CELL + 4, 0xFFAAAAAA, false);
         g.text(this.font, "North is up", mx, my + n * CELL + 14, 0xFF666666, false);
+    }
 
-        if (!info.message().isEmpty()) g.text(this.font, info.message(), l + 10, t + H - 64, 0xFFFFE08A, false);
+    private void drawCitizens(GuiGraphicsExtractor g, int l, int t, int p) {
+        int x = l + 10, y = t + 10;
+        g.text(this.font, "Citizens of " + info.name(), x, y, p, true);
+        y += 14;
+        g.text(this.font, "Name", x, y, 0xFF888888, false);
+        g.text(this.font, "Job", x + 110, y, 0xFF888888, false);
+        g.text(this.font, "Bed", x + 200, y, 0xFF888888, false);
+        y += 12;
+        List<String> roster = info.roster();
+        if (roster.isEmpty()) g.text(this.font, "Nobody yet. Recruit villagers on your land with 5 Gold Coins.", x, y, 0xFFAAAAAA, false);
+        for (int i = scroll; i < roster.size() && i < scroll + ROWS; i++) {
+            String[] r = roster.get(i).split("\\|", -1);
+            if (r.length < 3) continue;
+            g.text(this.font, r[0], x, y, 0xFFEEEEEE, false);
+            g.text(this.font, r[1], x + 110, y, 0xFFA0D890, false);
+            g.text(this.font, r[2], x + 200, y, r[2].equals("no bed") ? 0xFFFF8080 : 0xFFCCCCCC, false);
+            y += 12;
+        }
+        g.text(this.font, "To move someone to another bed: select them with the Command Baton,", l + 84, t + H - 34, 0xFF888888, false);
+        g.text(this.font, "then right-click the bed with it. Whoever slept there swaps beds.", l + 84, t + H - 24, 0xFF888888, false);
+    }
 
-        this.renderables.forEach(r -> r.extractRenderState(g, mouseX, mouseY, partialTick));
+    private void drawBuild(GuiGraphicsExtractor g, int l, int t, int p) {
+        g.text(this.font, "Construction", l + 10, t + 10, p, true);
+        List<Structures.Structure> all = new ArrayList<>(Structures.all());
+        Structures.Structure s = all.get(Math.min(pickedStructure, all.size() - 1));
+        int x = l + 120, y = t + 24;
+        g.text(this.font, s.name() + (s.kind() == Structures.Kind.WALL ? "" : "  (" + s.width() + " x " + s.depth() + ", " + (s.height() - s.sink()) + " tall)"),
+                x, y, 0xFFFFD86B, false);
+        y += 12;
+        for (String line : wrap(s.description(), 38)) {
+            g.text(this.font, line, x, y, 0xFFCCCCCC, false);
+            y += 10;
+        }
+        y += 2;
+        g.text(this.font, s.kind() == Structures.Kind.WALL ? "Materials per block of wall:" : "Materials:", x, y, 0xFF888888, false);
+        y += 10;
+        int col = 0;
+        for (Map.Entry<Item, Integer> e : Plans.materials(s).entrySet()) {
+            String name = new ItemStack(e.getKey()).getHoverName().getString();
+            if (name.endsWith(" Wool")) name = "Wool (any)";
+            if (name.endsWith(" Bed")) name = "Bed (any)";
+            g.text(this.font, e.getValue() + " " + name, x + col * 118, y, 0xFFDDDDDD, false);
+            col++;
+            if (col == 2) {
+                col = 0;
+                y += 10;
+            }
+        }
+        g.text(this.font, "Builders take materials from the storehouse.", l + 120, t + 152, 0xFF777777, false);
+
+        List<String> sites = info.sites();
+        int sy = t + 168;
+        g.text(this.font, sites.isEmpty() ? "No construction sites. Mark one with a blueprint." : "Construction sites:", l + 10, sy - 10, 0xFF888888, false);
+        for (int i = 0; i < sites.size() && i < 3; i++) {
+            String[] r = sites.get(i).split("\\|", -1);
+            if (r.length < 6) continue;
+            int done = parse(r[2]), total = Math.max(1, parse(r[3]));
+            g.text(this.font, r[1] + " at " + r[5] + "  " + (100 * done / total) + "%  " + r[4], l + 10, sy + 2 + i * 14, 0xFFDDDDDD, false);
+        }
+        if (sites.size() > 3) g.text(this.font, "+" + (sites.size() - 3) + " more", l + 10, sy + 44, 0xFF888888, false);
+    }
+
+    private static int parse(String s) {
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private static List<String> wrap(String text, int width) {
+        List<String> out = new ArrayList<>();
+        StringBuilder line = new StringBuilder();
+        for (String w : text.split(" ")) {
+            if (line.length() + w.length() + 1 > width && !line.isEmpty()) {
+                out.add(line.toString());
+                line.setLength(0);
+            }
+            if (!line.isEmpty()) line.append(' ');
+            line.append(w);
+        }
+        if (!line.isEmpty()) out.add(line.toString());
+        return out;
     }
 }

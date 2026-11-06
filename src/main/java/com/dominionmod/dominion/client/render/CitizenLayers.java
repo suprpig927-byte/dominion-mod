@@ -44,13 +44,21 @@ public final class CitizenLayers {
         }
     }
 
-    /** Soldiers wear a tabard over their armor so every army is easy to tell apart. */
+    /**
+     * Soldiers wear a tabard over their armor so every army is easy to tell apart, with the
+     * kingdom's own flag (every pattern layer) on the chest, drawn like a shield's design.
+     */
     public static class Tabard extends RenderLayer<CitizenRenderState, CitizenModel> {
         private final HumanoidModel<CitizenRenderState> model;
+        private final EmblemModel emblem;
+        private final net.minecraft.client.resources.model.sprite.SpriteGetter sprites;
 
-        public Tabard(RenderLayerParent<CitizenRenderState, CitizenModel> parent, HumanoidModel<CitizenRenderState> model) {
+        public Tabard(RenderLayerParent<CitizenRenderState, CitizenModel> parent, HumanoidModel<CitizenRenderState> model, EmblemModel emblem,
+                      net.minecraft.client.resources.model.sprite.SpriteGetter sprites) {
             super(parent);
             this.model = model;
+            this.emblem = emblem;
+            this.sprites = sprites;
         }
 
         @Override
@@ -58,6 +66,30 @@ public final class CitizenLayers {
             if (s.isInvisible || !s.job.soldier) return;
             renderColoredCutoutModel(model, TABARD, pose, collector, light, s, s.primary, 4);
             renderColoredCutoutModel(model, TABARD_TRIM, pose, collector, light, s, s.secondary, 5);
+            if (s.flagBase == null) return;
+            // The emblem rides on the chest: follow the body, then sit just in front of the tabard.
+            pose.pushPose();
+            getParentModel().body.translateAndRotate(pose);
+            pose.translate(0.0f, 5.6f / 16.0f, -3.4f / 16.0f);
+            pose.scale(0.42f, 0.42f, 0.42f);
+            net.minecraft.client.renderer.blockentity.BannerRenderer.submitPatterns(sprites, pose, collector.order(6), light,
+                    net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, emblem, net.minecraft.util.Unit.INSTANCE, false,
+                    s.flagBase, s.flagPatterns);
+            pose.popPose();
+        }
+    }
+
+    /** A flat plate the shape of a shield's face, which the flag's patterns are painted onto. */
+    public static class EmblemModel extends net.minecraft.client.model.Model<net.minecraft.util.Unit> {
+        public EmblemModel(net.minecraft.client.model.geom.ModelPart root) {
+            super(root, net.minecraft.client.renderer.rendertype.RenderTypes::entityCutout);
+        }
+
+        public static net.minecraft.client.model.geom.builders.LayerDefinition createLayer() {
+            var mesh = new net.minecraft.client.model.geom.builders.MeshDefinition();
+            mesh.getRoot().addOrReplaceChild("plate", net.minecraft.client.model.geom.builders.CubeListBuilder.create()
+                    .texOffs(0, 0).addBox(-6.0f, -11.0f, -0.5f, 12.0f, 22.0f, 1.0f), net.minecraft.client.model.geom.PartPose.ZERO);
+            return net.minecraft.client.model.geom.builders.LayerDefinition.create(mesh, 64, 64);
         }
     }
 }

@@ -59,7 +59,7 @@ public final class Realm {
     // ------------------------------------------------------------------ founding
 
     /** Founds a kingdom around the Town Hall at {@code hall}. Returns an error message, or null on success. */
-    public static @Nullable String found(ServerPlayer p, BlockPos hall, String rawName, int primary, int secondary) {
+    public static @Nullable String found(ServerPlayer p, BlockPos hall, String rawName, int primary, int secondary, String flagDesign) {
         ServerLevel level = (ServerLevel) p.level();
         KingdomData d = data(level);
         String name = rawName.trim().replaceAll("\\s+", " ");
@@ -74,7 +74,7 @@ public final class Realm {
 
         primary = Math.floorMod(primary, 16);
         secondary = Math.floorMod(secondary, 16);
-        ItemStack flag = p.getOffhandItem().getItem() instanceof BannerItem ? p.getOffhandItem().copyWithCount(1) : plainBanner(primary);
+        ItemStack flag = Flags.toBanner(flagDesign, level.registryAccess());
         Kingdom k = new Kingdom(name, p.getUUID(), primary, secondary, flag);
         k.hall = java.util.Optional.of(hall.immutable());
         k.hallDim = KingdomData.dim(level);
@@ -176,7 +176,92 @@ public final class Realm {
     public static void removeCitizen(ServerLevel level, @Nullable UUID kingdom, UUID citizen) {
         KingdomData d = data(level);
         Kingdom k = d.byId(kingdom);
-        if (k != null && k.citizens.remove(citizen) != null) d.markChanged();
+        if (k == null) return;
+        k.citizens.remove(citizen);
+        k.names.remove(citizen);
+        k.beds.values().removeIf(citizen::equals);
+        d.markChanged();
+    }
+
+    // ------------------------------------------------------------------ beds
+
+    public static boolean isBedHead(Level level, BlockPos pos) {
+        BlockState s = level.getBlockState(pos);
+        return s.getBlock() instanceof net.minecraft.world.level.block.BedBlock
+                && s.getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD;
+    }
+
+    /** The head half of whichever bed is at {@code pos}. */
+    public static @Nullable BlockPos bedHead(Level level, BlockPos pos) {
+        BlockState s = level.getBlockState(pos);
+        if (!(s.getBlock() instanceof net.minecraft.world.level.block.BedBlock)) return null;
+        if (s.getValue(net.minecraft.world.level.block.BedBlock.PART) == net.minecraft.world.level.block.state.properties.BedPart.HEAD) return pos.immutable();
+        return pos.relative(s.getValue(net.minecraft.world.level.block.BedBlock.FACING)).immutable();
+    }
+
+    /** Gives a citizen a bed if they don't have a working one: the nearest unclaimed bed in the kingdom. */
+    public static void ensureBed(ServerLevel level, Kingdom k, Citizen c) {
+        BlockPos mine = k.bedOf(c.getUUID());
+        if (mine != null) {
+            if (!level.isLoaded(mine) || isBedHead(level, mine) && data(level).ownerAt(level, mine) == k) return;
+            k.beds.remove(mine.asLong()); // the bed is gone
+            data(level).markChanged();
+        }
+        if (k.hall.isEmpty() || !k.hallDim.equals(KingdomData.dim(level))) return;
+        KingdomData d = data(level);
+        // Forget beds whose sleeper has left.
+        k.beds.values().removeIf(id -> !k.citizens.containsKey(id));
+        level.getPoiManager().getInRange(h -> h.is(PoiTypes.HOME), k.hall.get(), HOUSING_RADIUS, PoiManager.Occupancy.ANY)
+                .map(r -> r.getPos())
+                .filter(pos -> !k.beds.containsKey(pos.asLong()) && d.ownerAt(level, pos) == k && isBedHead(level, pos))
+                .min(java.util.Comparator.comparingDouble(pos -> pos.distSqr(c.blockPosition())))
+                .ifPresent(pos -> {
+                    k.beds.put(pos.asLong(), c.getUUID());
+                    d.markChanged();
+                });
+    }
+
+    /** Moves a citizen into a bed. Whoever slept there swaps into the citizen's old bed. */
+    public static Component assignBed(ServerLevel level, Kingdom k, Citizen c, BlockPos clicked) {
+        BlockPos head = bedHead(level, clicked);
+        if (head == null) return err("That isn't a bed.");
+        if (data(level).ownerAt(level, head) != k) return err("That bed isn't on your land.");
+        BlockPos old = k.bedOf(c.getUUID());
+        if (head.equals(old)) return Component.literal(c.baseName() + " already sleeps here.").withStyle(ChatFormatting.GRAY);
+        UUID other = k.beds.get(head.asLong());
+        if (old != null) k.beds.remove(old.asLong());
+        k.beds.put(head.asLong(), c.getUUID());
+        String msg = c.baseName() + " will sleep in this bed now.";
+        if (other != null && !other.equals(c.getUUID())) {
+            String otherName = k.names.getOrDefault(other, "Its old sleeper");
+            if (old != null) {
+                k.beds.put(old.asLong(), other);
+                msg += " " + otherName + " moves to " + c.baseName() + "'s old bed.";
+            } else {
+                msg += " " + otherName + " will look for another bed.";
+            }
+        }
+        if (c.isSleeping()) c.stopSleeping();
+        data(level).markChanged();
+        return Component.literal(msg).withStyle(ChatFormatting.GREEN);
+    }
+
+    // ------------------------------------------------------------------ flag
+
+    /** The ruler changes the flag: it's re-raised over the Town Hall and every citizen's tabard updates. */
+    public static Component setFlag(ServerPlayer p, String design) {
+        ServerLevel level = (ServerLevel) p.level();
+        Kingdom k = of(p);
+        if (k == null || !k.owner.equals(p.getUUID())) return err("Only the ruler can change the flag.");
+        k.flag = Flags.toBanner(design, level.registryAccess());
+        data(level).markChanged();
+        if (k.hall.isPresent() && k.hallDim.equals(KingdomData.dim(level))) {
+            BlockPos top = k.hall.get().above();
+            if (level.getBlockState(top).getBlock() instanceof BannerBlock || level.getBlockState(top).getBlock() instanceof net.minecraft.world.level.block.WallBannerBlock)
+                level.removeBlock(top, false);
+            raiseFlag(level, k.hall.get(), k, p);
+        }
+        return Component.literal("Your new flag flies over " + k.name + ".").withStyle(ChatFormatting.GREEN);
     }
 
     /** Called about once a minute: Influence trickles in over the day. */

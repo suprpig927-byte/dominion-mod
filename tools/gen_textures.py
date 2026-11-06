@@ -322,6 +322,41 @@ def items():
         baton.putpixel((x, y), (180, 30, 30, 255))
     baton.save(os.path.join(ROOT, "item", "command_baton.png"))
 
+    hammer = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for i in range(2, 11):
+        hammer.putpixel((i, 15 - i - 1), (110, 72, 40, 255))
+        hammer.putpixel((i + 1, 15 - i - 1), (82, 52, 28, 255))
+    head = [(9, 1), (10, 1), (11, 1), (12, 1), (8, 2), (9, 2), (10, 2), (11, 2), (12, 2), (13, 2), (9, 3), (10, 3), (11, 3), (12, 3), (13, 3), (14, 3),
+            (10, 4), (11, 4), (12, 4), (13, 4), (14, 4), (11, 5), (12, 5), (13, 5)]
+    for (x, y) in head:
+        hammer.putpixel((x, y), jitter((150, 150, 158), 10, rnd))
+    for (x, y) in ((9, 1), (8, 2), (10, 1)):
+        hammer.putpixel((x, y), (205, 205, 212, 255))
+    hammer.save(os.path.join(ROOT, "item", "builders_hammer.png"))
+
+    bp = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+    for y in range(2, 14):
+        for x in range(2, 14):
+            c = (52, 92, 170) if (x + y) % 7 else (60, 100, 180)
+            bp.putpixel((x, y), jitter(c, 6, rnd))
+    for x in range(2, 14):
+        bp.putpixel((x, 2), (200, 200, 190, 255))
+        bp.putpixel((x, 13), (150, 150, 140, 255))
+    for x in range(4, 12):
+        bp.putpixel((x, 5), (225, 235, 255, 255))
+        bp.putpixel((x, 11), (225, 235, 255, 255))
+    for y in range(5, 12):
+        bp.putpixel((4, y), (225, 235, 255, 255))
+        bp.putpixel((11, y), (225, 235, 255, 255))
+    for i in range(4):
+        bp.putpixel((5 + i, 5 - i if 5 - i > 2 else 3), (225, 235, 255, 255))
+        bp.putpixel((10 - i, 5 - i if 5 - i > 2 else 3), (225, 235, 255, 255))
+    bp.putpixel((7, 9), (225, 235, 255, 255))
+    bp.putpixel((7, 10), (225, 235, 255, 255))
+    bp.putpixel((8, 9), (225, 235, 255, 255))
+    bp.putpixel((8, 10), (225, 235, 255, 255))
+    bp.save(os.path.join(ROOT, "item", "blueprint.png"))
+
 
 def blocks():
     rnd = random.Random(41)

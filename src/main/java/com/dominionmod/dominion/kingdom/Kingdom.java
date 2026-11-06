@@ -30,6 +30,10 @@ public final class Kingdom {
     /** Citizen UUID -> job ordinal, so counts work even while citizens are in unloaded chunks. */
     public final Map<UUID, Integer> citizens = new HashMap<>();
     public boolean peaceful;
+    /** Bed (head block, packed) -> the citizen who sleeps there. */
+    public final Map<Long, UUID> beds = new HashMap<>();
+    /** Citizen -> name, for the roster. */
+    public final Map<UUID, String> names = new HashMap<>();
 
     public static final Codec<Kingdom> CODEC = RecordCodecBuilder.create(i -> i.group(
             UUIDUtil.STRING_CODEC.fieldOf("id").forGetter(k -> k.id),
@@ -43,11 +47,14 @@ public final class Kingdom {
             Codec.STRING.optionalFieldOf("hall_dim", "minecraft:overworld").forGetter(k -> k.hallDim),
             Codec.DOUBLE.optionalFieldOf("influence", 0.0).forGetter(k -> k.influence),
             Codec.unboundedMap(Codec.STRING, Codec.INT).optionalFieldOf("citizens", Map.of()).forGetter(Kingdom::citizensAsStrings),
-            Codec.BOOL.optionalFieldOf("peaceful", true).forGetter(k -> k.peaceful)
+            Codec.BOOL.optionalFieldOf("peaceful", true).forGetter(k -> k.peaceful),
+            Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("beds", Map.of()).forGetter(Kingdom::bedsAsStrings),
+            Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("names", Map.of()).forGetter(Kingdom::namesAsStrings)
     ).apply(i, Kingdom::new));
 
     private Kingdom(UUID id, String name, UUID owner, List<UUID> members, int primary, int secondary, ItemStack flag,
-                    Optional<BlockPos> hall, String hallDim, double influence, Map<String, Integer> citizens, boolean peaceful) {
+                    Optional<BlockPos> hall, String hallDim, double influence, Map<String, Integer> citizens, boolean peaceful,
+                    Map<String, String> beds, Map<String, String> names) {
         this.id = id;
         this.name = name;
         this.owner = owner;
@@ -66,16 +73,46 @@ public final class Kingdom {
             }
         });
         this.peaceful = peaceful;
+        beds.forEach((k, v) -> {
+            try {
+                this.beds.put(Long.parseLong(k), UUID.fromString(v));
+            } catch (IllegalArgumentException ignored) {
+            }
+        });
+        names.forEach((k, v) -> {
+            try {
+                this.names.put(UUID.fromString(k), v);
+            } catch (IllegalArgumentException ignored) {
+            }
+        });
     }
 
     public Kingdom(String name, UUID owner, int primary, int secondary, ItemStack flag) {
-        this(UUID.randomUUID(), name, owner, List.of(owner), primary, secondary, flag, Optional.empty(), "minecraft:overworld", 0, Map.of(), true);
+        this(UUID.randomUUID(), name, owner, List.of(owner), primary, secondary, flag, Optional.empty(), "minecraft:overworld", 0, Map.of(), true, Map.of(), Map.of());
     }
 
     private Map<String, Integer> citizensAsStrings() {
         Map<String, Integer> out = new HashMap<>();
         citizens.forEach((k, v) -> out.put(k.toString(), v));
         return out;
+    }
+
+    private Map<String, String> bedsAsStrings() {
+        Map<String, String> out = new HashMap<>();
+        beds.forEach((k, v) -> out.put(Long.toString(k), v.toString()));
+        return out;
+    }
+
+    private Map<String, String> namesAsStrings() {
+        Map<String, String> out = new HashMap<>();
+        names.forEach((k, v) -> out.put(k.toString(), v));
+        return out;
+    }
+
+    /** The bed this citizen sleeps in, if any. */
+    public @org.jspecify.annotations.Nullable BlockPos bedOf(UUID citizen) {
+        for (var e : beds.entrySet()) if (e.getValue().equals(citizen)) return BlockPos.of(e.getKey());
+        return null;
     }
 
     public DyeColor primaryDye() {

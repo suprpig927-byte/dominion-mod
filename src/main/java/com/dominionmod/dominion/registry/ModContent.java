@@ -49,6 +49,9 @@ public final class ModContent {
     public static final DeferredItem<Item> GOLD_COIN = ITEMS.registerSimpleItem("gold_coin", p -> p.stacksTo(99));
     public static final DeferredItem<CommandBatonItem> COMMAND_BATON = ITEMS.registerItem("command_baton", CommandBatonItem::new,
             p -> p.stacksTo(1).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<Item> BUILDERS_HAMMER = ITEMS.registerSimpleItem("builders_hammer", p -> p.stacksTo(1));
+    public static final DeferredItem<com.dominionmod.dominion.item.BlueprintItem> BLUEPRINT = ITEMS.registerItem("blueprint",
+            com.dominionmod.dominion.item.BlueprintItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<BlockItem> TOWN_HALL_ITEM = ITEMS.registerSimpleBlockItem("town_hall", TOWN_HALL);
     public static final DeferredItem<BlockItem> MARKET_ITEM = ITEMS.registerSimpleBlockItem("market", MARKET);
 
@@ -61,6 +64,7 @@ public final class ModContent {
                 out.accept(MARKET_ITEM.get());
                 out.accept(COMMAND_BATON.get());
                 out.accept(GOLD_COIN.get());
+                out.accept(BUILDERS_HAMMER.get());
             }).build());
 
     public static void register(IEventBus modBus) {

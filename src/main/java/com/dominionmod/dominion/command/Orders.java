@@ -165,6 +165,23 @@ public final class Orders {
         p.sendOverlayMessage(Component.literal(msg.trim()).withStyle(ChatFormatting.YELLOW));
     }
 
+    /** Right-click a bed: move the one selected citizen into it, or say whose bed it is. */
+    public static void assignBed(ServerPlayer p, BlockPos pos) {
+        Kingdom k = Realm.of(p);
+        if (k == null) return;
+        ServerLevel level = (ServerLevel) p.level();
+        List<Citizen> sel = selectedCitizens(p);
+        if (sel.size() != 1) {
+            BlockPos head = Realm.bedHead(level, pos);
+            UUID owner = head == null ? null : k.beds.get(head.asLong());
+            String who = owner == null ? "Nobody sleeps here yet." : k.names.getOrDefault(owner, "Someone") + " sleeps here.";
+            p.sendSystemMessage(Component.literal(who + (sel.isEmpty() ? " Select one citizen with the baton, then click a bed to move them in."
+                    : " Select just one citizen to move them into this bed.")).withStyle(ChatFormatting.GRAY));
+            return;
+        }
+        p.sendSystemMessage(Realm.assignBed(level, k, sel.get(0), pos));
+    }
+
     /** Right-click an enemy: charge! */
     public static void charge(ServerPlayer p, LivingEntity target) {
         List<Citizen> soldiers = selectedCitizens(p).stream().filter(c -> c.job().soldier).toList();

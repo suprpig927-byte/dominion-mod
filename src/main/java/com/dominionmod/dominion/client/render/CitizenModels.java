@@ -13,6 +13,7 @@ public final class CitizenModels {
     public static final ModelLayerLocation TRIM = new ModelLayerLocation(DominionMod.id("citizen"), "trim");
     public static final ModelLayerLocation OUTFIT = new ModelLayerLocation(DominionMod.id("citizen"), "outfit");
     public static final ModelLayerLocation TABARD = new ModelLayerLocation(DominionMod.id("citizen"), "tabard");
+    public static final ModelLayerLocation EMBLEM = new ModelLayerLocation(DominionMod.id("citizen"), "emblem");
 
     public static void register(EntityRenderersEvent.RegisterLayerDefinitions e) {
         e.registerLayerDefinition(BODY, () -> CitizenModel.createLayer(CubeDeformation.NONE));
@@ -20,5 +21,6 @@ public final class CitizenModels {
         e.registerLayerDefinition(TRIM, () -> CitizenModel.createLayer(new CubeDeformation(0.08f)));
         e.registerLayerDefinition(OUTFIT, () -> CitizenModel.createLayer(new CubeDeformation(0.12f)));
         e.registerLayerDefinition(TABARD, CitizenModel::createTabard);
+        e.registerLayerDefinition(EMBLEM, CitizenLayers.EmblemModel::createLayer);
     }
 }

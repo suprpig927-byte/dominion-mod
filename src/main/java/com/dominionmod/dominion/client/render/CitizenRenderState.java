@@ -9,4 +9,8 @@ public class CitizenRenderState extends HumanoidRenderState {
     public int look;
     public Job job = Job.UNASSIGNED;
     public boolean isAggressive;
+    /** The kingdom flag shown on soldiers' tabards (null = no flag). */
+    public net.minecraft.world.item.DyeColor flagBase;
+    public net.minecraft.world.level.block.entity.BannerPatternLayers flagPatterns =
+            net.minecraft.world.level.block.entity.BannerPatternLayers.EMPTY;
 }

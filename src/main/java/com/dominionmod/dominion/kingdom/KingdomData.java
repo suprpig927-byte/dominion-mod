@@ -31,7 +31,8 @@ public final class KingdomData extends SavedData {
 
     public static final Codec<KingdomData> CODEC = RecordCodecBuilder.create(i -> i.group(
             Kingdom.CODEC.listOf().optionalFieldOf("kingdoms", List.of()).forGetter(d -> new ArrayList<>(d.kingdoms.values())),
-            Claim.CODEC.listOf().optionalFieldOf("claims", List.of()).forGetter(KingdomData::claimList)
+            Claim.CODEC.listOf().optionalFieldOf("claims", List.of()).forGetter(KingdomData::claimList),
+            com.dominionmod.dominion.build.Site.CODEC.listOf().optionalFieldOf("sites", List.of()).forGetter(d -> new ArrayList<>(d.sites))
     ).apply(i, KingdomData::new));
 
     public static final SavedDataType<KingdomData> TYPE = new SavedDataType<>(DominionMod.id("kingdoms"), KingdomData::new, CODEC);
@@ -42,7 +43,10 @@ public final class KingdomData extends SavedData {
 
     public KingdomData() {}
 
-    private KingdomData(List<Kingdom> list, List<Claim> claimList) {
+    private final List<com.dominionmod.dominion.build.Site> sites = new ArrayList<>();
+
+    private KingdomData(List<Kingdom> list, List<Claim> claimList, List<com.dominionmod.dominion.build.Site> siteList) {
+        for (var site : siteList) sites.add(site);
         for (Kingdom k : list) kingdoms.put(k.id, k);
         for (Claim c : claimList) {
             if (kingdoms.containsKey(c.kingdom())) claims.computeIfAbsent(c.dim(), d -> new HashMap<>()).put(c.chunk(), c.kingdom());
@@ -91,6 +95,7 @@ public final class KingdomData extends SavedData {
     public void remove(Kingdom k) {
         kingdoms.remove(k.id);
         for (Map<Long, UUID> m : claims.values()) m.values().removeIf(k.id::equals);
+        sites.removeIf(s -> s.kingdom.equals(k.id));
         setDirty();
     }
 
@@ -134,6 +139,28 @@ public final class KingdomData extends SavedData {
             if (k.id.equals(m.get(ChunkPos.pack(chunk.x() + d[0], chunk.z() + d[1])))) return true;
         }
         return false;
+    }
+
+    // ------------------------------------------------------------------ construction sites
+
+    public List<com.dominionmod.dominion.build.Site> sites(Kingdom k) {
+        return sites.stream().filter(s -> s.kingdom.equals(k.id)).toList();
+    }
+
+    public @Nullable com.dominionmod.dominion.build.Site site(UUID id) {
+        for (var s : sites) if (s.id.equals(id)) return s;
+        return null;
+    }
+
+    public void addSite(com.dominionmod.dominion.build.Site s) {
+        sites.add(s);
+        setDirty();
+    }
+
+    public void removeSite(com.dominionmod.dominion.build.Site s) {
+        sites.remove(s);
+        com.dominionmod.dominion.build.Plans.forget(s.id);
+        setDirty();
     }
 
     public void markChanged() {

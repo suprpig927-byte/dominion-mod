@@ -22,6 +22,7 @@ public class FoundingScreen extends Screen {
     private String typed = "";
     private int primary = DyeColor.RED.getId(), secondary = DyeColor.YELLOW.getId();
     private final List<int[]> swatches = new ArrayList<>(); // x, y, row, dye
+    private String flag;
 
     public FoundingScreen(BlockPos hall) {
         super(Component.literal("Found a Kingdom"));
@@ -58,10 +59,15 @@ public class FoundingScreen extends Screen {
                 swatches.add(new int[]{sx, sy, row, dye});
             }
         }
-        addRenderableWidget(Button.builder(Component.literal("Found Kingdom"), b -> {
-            ClientPacketDistributor.sendToServer(new Payloads.FoundKingdom(hall, typed, primary, secondary));
-            onClose();
-        }).bounds(left() + W - 112, top() + H - 28, 100, 20).build());
+        addRenderableWidget(Button.builder(Component.literal("Next: Your Flag >"), b -> {
+            if (flag == null) flag = com.dominionmod.dominion.kingdom.Flags.encode(primary,
+                    List.of(new com.dominionmod.dominion.kingdom.Flags.Layer("minecraft:stripe_middle", secondary)));
+            Minecraft.getInstance().gui.setScreen(new FlagScreen(this, flag, design -> {
+                flag = design;
+                ClientPacketDistributor.sendToServer(new Payloads.FoundKingdom(hall, typed, primary, secondary, design));
+                Minecraft.getInstance().gui.setScreen(null);
+            }, "Found Kingdom"));
+        }).bounds(left() + W - 122, top() + H - 28, 110, 20).build());
         addRenderableWidget(Button.builder(Component.literal("Later"), b -> onClose())
                 .bounds(left() + 12, top() + H - 28, 60, 20).build());
     }
@@ -99,11 +105,9 @@ public class FoundingScreen extends Screen {
         g.fill(px + 2, py + 2, px + 20, py + 28, p);
         g.fill(px + 9, py + 8, px + 13, py + 20, s);
         g.fill(px + 5, py + 12, px + 17, py + 16, s);
-        boolean banner = Minecraft.getInstance().player != null && Minecraft.getInstance().player.getOffhandItem().getItem() instanceof BannerItem;
-        g.text(this.font, "Your soldiers' tabards will look like this.", px + 30, py + 4, 0xFFDDDDDD, false);
-        g.text(this.font, banner ? "Flag: the banner in your off hand." : "Flag: a plain " + nice(primary).toLowerCase() + " banner.",
-                px + 30, py + 16, banner ? 0xFF8BE07A : 0xFFAAAAAA, false);
-        if (!banner) g.text(this.font, "(Design one at a Loom and hold it in your off hand.)", px + 30, py + 26, 0xFF777777, false);
+        g.text(this.font, "Your soldiers' tabards come in these colors,", px + 30, py + 4, 0xFFDDDDDD, false);
+        g.text(this.font, "with your flag on the chest.", px + 30, py + 16, 0xFFDDDDDD, false);
+        g.text(this.font, "Next you'll design the flag itself.", px + 30, py + 26, 0xFF777777, false);
     }
 
     private static String nice(int dye) {
