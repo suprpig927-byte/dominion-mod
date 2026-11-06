@@ -92,7 +92,8 @@ public final class SelfTest {
         if (level.getBlockEntity(chest2) instanceof ChestBlockEntity be) {
             ItemStack[] mats = {new ItemStack(Items.COBBLESTONE, 64), new ItemStack(Items.OAK_PLANKS, 64), new ItemStack(Items.OAK_PLANKS, 64),
                     new ItemStack(Items.OAK_LOG, 32), new ItemStack(Items.GLASS_PANE, 8), new ItemStack(Items.OAK_DOOR, 2),
-                    new ItemStack(Items.BED.pick(net.minecraft.world.item.DyeColor.WHITE), 2), new ItemStack(Items.CHEST, 2),
+                    new ItemStack(Items.BED.pick(net.minecraft.world.item.DyeColor.WHITE)),
+                    new ItemStack(Items.BED.pick(net.minecraft.world.item.DyeColor.RED)), new ItemStack(Items.CHEST, 2),
                     new ItemStack(Items.CRAFTING_TABLE, 1), new ItemStack(Items.LANTERN, 2), new ItemStack(Items.OAK_SLAB, 32)};
             for (int i = 0; i < mats.length; i++) be.setItem(i, mats[i]);
         }
