@@ -41,14 +41,14 @@ public class HoldGoal extends Goal {
         target = where();
         if (target == null) return false;
         double r = radius();
-        return c.distanceToSqr(target.getCenter()) > r * r;
+        return c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(target)) > r * r;
     }
 
     @Override
     public boolean canContinueToUse() {
         if (target == null || c.getTarget() != null || where() == null) return false;
         double r = Math.max(1.0, radius() * 0.5);
-        return c.distanceToSqr(target.getCenter()) > r * r;
+        return c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(target)) > r * r;
     }
 
     @Override

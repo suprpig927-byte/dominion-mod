@@ -30,7 +30,8 @@ jobs:
         shell: bash
         run: |
           set +e +o pipefail
-          msg=$( (grep -iE "error|wrong|exception" -A3 build.log || tail -40 build.log || echo "no build.log") | head -80 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          msg=$( (grep -E "error:|warning: \[removal\]" -A2 build.log | grep -v "^--$" | sed -E 's#^/home/runner/work/[^/]+/[^/]+/src/main/java/##' || tail -60 build.log) | head -400 | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          if [ -z "$msg" ]; then msg=$(tail -60 build.log | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}'); fi
           echo "::error title=Build errors::${msg}"
 
       - uses: actions/upload-artifact@v4

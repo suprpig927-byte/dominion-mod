@@ -198,7 +198,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             Player cmd = commanderPlayer();
             if (cmd == null || getTarget().distanceToSqr(cmd) > 20 * 20) setTarget(null);
         }
-        if (order == Order.HOLD && anchor != null && getTarget() != null && getTarget().distanceToSqr(anchor.getCenter()) > 14 * 14) {
+        if (order == Order.HOLD && anchor != null && getTarget() != null && getTarget().distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(anchor)) > 14 * 14) {
             setTarget(null);
         }
     }
@@ -297,7 +297,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (k != null) tellKingdom(level, k, Component.literal(baseName + " the " + job().title + " " + why + " and left your kingdom.")
                 .withStyle(ChatFormatting.RED));
         dropEverything(level);
-        Villager v = EntityType.VILLAGER.create(level, EntitySpawnReason.CONVERSION);
+        Villager v = net.minecraft.world.entity.EntityTypes.VILLAGER.create(level, EntitySpawnReason.CONVERSION);
         if (v != null) {
             v.snapTo(getX(), getY(), getZ(), getYRot(), getXRot());
             level.addFreshEntity(v);

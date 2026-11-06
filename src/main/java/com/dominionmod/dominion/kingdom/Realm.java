@@ -68,7 +68,7 @@ public final class Realm {
         if (d.byPlayer(p.getUUID()) != null) return "You already belong to a kingdom.";
         if (d.byName(name) != null) return "A kingdom called " + name + " already exists.";
         if (!level.getBlockState(hall).is(ModContent.TOWN_HALL.get())) return "The Town Hall is gone.";
-        if (p.distanceToSqr(hall.getCenter()) > 64) return "Stand next to your Town Hall.";
+        if (p.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(hall)) > 64) return "Stand next to your Town Hall.";
         Kingdom owner = d.ownerAt(level, hall);
         if (owner != null) return "This land already belongs to " + owner.name + ".";
 
@@ -196,7 +196,7 @@ public final class Realm {
     }
 
     public static void give(Player p, ItemStack stack) {
-        if (!p.getInventory().add(stack)) p.drop(stack, false);
+        if (!p.getInventory().add(stack) && p.level() instanceof ServerLevel sl) p.spawnAtLocation(sl, stack);
     }
 
     public static Component err(String msg) {

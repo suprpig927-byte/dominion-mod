@@ -55,7 +55,7 @@ public class LumberGoal extends Goal {
         for (BlockPos p : BlockPos.betweenClosed(post.offset(-RADIUS, -4, -RADIUS), post.offset(RADIUS, 6, RADIUS))) {
             if (level.getBlockState(p).is(BlockTags.LOGS) && level.getBlockState(p.below()).is(BlockTags.DIRT)) bases.add(p.immutable());
         }
-        bases.sort(Comparator.comparingDouble(p -> c.distanceToSqr(p.getCenter())));
+        bases.sort(Comparator.comparingDouble(p -> c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(p))));
         for (BlockPos b : bases) {
             if (collectTree(level, b)) {
                 base = b;
@@ -86,7 +86,7 @@ public class LumberGoal extends Goal {
             }
         }
         // Chop from the top down so the trunk doesn't float.
-        logs.sort(Comparator.comparingInt(BlockPos::getY).reversed());
+        logs.sort(Comparator.comparingInt((BlockPos b) -> b.getY()).reversed());
         return leaves && !logs.isEmpty();
     }
 
@@ -113,13 +113,13 @@ public class LumberGoal extends Goal {
         ticks++;
         BlockPos next = logs.get(0);
         c.getLookControl().setLookAt(next.getX() + 0.5, Math.min(next.getY(), base.getY() + 2) + 0.5, next.getZ() + 0.5);
-        if (c.distanceToSqr(base.getCenter()) > 3.0 * 3.0) {
+        if (c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(base)) > 3.0 * 3.0) {
             if (ticks % 20 == 0) c.getNavigation().moveTo(base.getX() + 0.5, base.getY(), base.getZ() + 0.5, 0.5);
             return;
         }
         c.getNavigation().stop();
         if (++chop % 8 != 0) return;
-        c.swing(InteractionHand.MAIN_HAND);
+        c.swingForAttack(InteractionHand.MAIN_HAND);
         if (!(c.level() instanceof ServerLevel level)) return;
         BlockPos p = logs.remove(0);
         BlockState s = level.getBlockState(p);

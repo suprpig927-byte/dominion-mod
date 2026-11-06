@@ -39,7 +39,7 @@ public class DepositGoal extends Goal {
         Kingdom k = c.kingdom();
         if (k == null || k.hall.isEmpty() || !k.hallDim.equals(KingdomData.dim(c.level()))) return false;
         hall = k.hall.get();
-        return c.distanceToSqr(hall.getCenter()) < 160 * 160;
+        return c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(hall)) < 160 * 160;
     }
 
     @Override
@@ -56,7 +56,7 @@ public class DepositGoal extends Goal {
     @Override
     public void tick() {
         ticks++;
-        if (c.distanceToSqr(hall.getCenter()) > 4.5 * 4.5) {
+        if (c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(hall)) > 4.5 * 4.5) {
             if (ticks % 40 == 0) c.getNavigation().moveTo(hall.getX() + 0.5, hall.getY(), hall.getZ() + 0.5, 0.55);
             return;
         }

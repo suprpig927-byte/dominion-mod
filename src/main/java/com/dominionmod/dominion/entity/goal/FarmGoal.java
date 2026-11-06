@@ -49,7 +49,7 @@ public class FarmGoal extends Goal {
             boolean harvest = s.getBlock() instanceof CropBlock crop && crop.isMaxAge(s);
             boolean plant = !harvest && haveSeed && s.is(Blocks.FARMLAND) && c.level().getBlockState(p.above()).isAir();
             if (!harvest && !plant) continue;
-            double d = c.distanceToSqr(p.getCenter()) + (plant ? 16 : 0); // harvesting comes first
+            double d = c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(p)) + (plant ? 16 : 0); // harvesting comes first
             if (d < bestD) {
                 bestD = d;
                 best = plant ? p.above().immutable() : p.immutable();
@@ -92,7 +92,7 @@ public class FarmGoal extends Goal {
     public void tick() {
         ticks++;
         c.getLookControl().setLookAt(target.getX() + 0.5, target.getY() + 0.3, target.getZ() + 0.5);
-        if (c.distanceToSqr(target.getCenter()) > 2.6 * 2.6) {
+        if (c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(target)) > 2.6 * 2.6) {
             if (ticks % 20 == 0) moveTo();
             return;
         }
@@ -102,7 +102,7 @@ public class FarmGoal extends Goal {
             if (planting) plant(level);
             else harvest(level);
         }
-        c.swing(InteractionHand.MAIN_HAND);
+        c.swingForAttack(InteractionHand.MAIN_HAND);
         target = null;
         cooldown = 5;
     }
