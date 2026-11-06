@@ -29,7 +29,7 @@ A NeoForge 26.3 Minecraft mod: found a kingdom, recruit villagers, put your peop
 
 ## Land
 - Press **K** (or right-click your Town Hall) for the Realm screen: your stats, a map of nearby chunks, and Claim / Release buttons.
-- Claiming a chunk costs Influence (8 + 4 per chunk you own) and it must border your land. Influence comes in through the day: 5 + 3 per citizen.
+- A new kingdom starts with the 3x3 chunks around its Town Hall. Each extra chunk costs Influence (10, plus 3 more for every chunk beyond the first 9) and it must border your land. Influence comes in through the day: 5 + 3 per citizen.
 - Outsiders can't break, place or use blocks on your land. Monster spawning can be switched off for your land.
 - Hold the Command Baton to see borders in each kingdom's color.
 

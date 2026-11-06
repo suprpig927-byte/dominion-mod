@@ -55,7 +55,7 @@ public final class Payloads {
 
     /** Client -> server: a Realm screen button (or opening the screen, which asks for fresh info). */
     public record RealmAction(int action, String arg) implements CustomPacketPayload {
-        public static final int REFRESH = 0, CLAIM = 1, UNCLAIM = 2, TOGGLE_PEACEFUL = 3, OPEN = 4, BLUEPRINT = 5, CANCEL_SITE = 6, SET_FLAG = 7;
+        public static final int REFRESH = 0, CLAIM = 1, UNCLAIM = 2, TOGGLE_PEACEFUL = 3, OPEN = 4, BLUEPRINT = 5, CANCEL_SITE = 6, SET_FLAG = 7, MAP = 8;
 
         public RealmAction(int action) {
             this(action, "");
@@ -119,6 +119,84 @@ public final class Payloads {
         }
     }
 
+    /**
+     * Server -> client: a top-down picture of the land around the player, one pixel per block,
+     * as vanilla map color ids (0 = not loaded). {@code x0, z0} is the north-west corner.
+     */
+    public record MapData(int x0, int z0, int size, byte[] colors) implements CustomPacketPayload {
+        public static final Type<MapData> TYPE = new Type<>(DominionMod.id("map_data"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, MapData> CODEC = StreamCodec.of(
+                (RegistryFriendlyByteBuf buf, MapData p) -> {
+                    buf.writeInt(p.x0);
+                    buf.writeInt(p.z0);
+                    buf.writeVarInt(p.size);
+                    buf.writeByteArray(p.colors);
+                }, buf -> new MapData(buf.readInt(), buf.readInt(), buf.readVarInt(), buf.readByteArray()));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
+    public static void sendMap(ServerPlayer p) {
+        ServerLevel level = (ServerLevel) p.level();
+        ChunkPos center = ChunkPos.containing(p.blockPosition());
+        int n = (MAP_RADIUS * 2 + 1) * 16;
+        int x0 = (center.x() - MAP_RADIUS) * 16, z0 = (center.z() - MAP_RADIUS) * 16;
+        int[] heights = new int[n * (n + 1)];
+        net.minecraft.world.level.block.state.BlockState[] tops = new net.minecraft.world.level.block.state.BlockState[n * (n + 1)];
+        // Row 0 is one block north of the map, for shading the first real row.
+        net.minecraft.core.BlockPos.MutableBlockPos pos = new net.minecraft.core.BlockPos.MutableBlockPos();
+        for (int row = 0; row <= n; row++) {
+            int z = z0 - 1 + row;
+            for (int col = 0; col < n; col++) {
+                int x = x0 + col;
+                var chunk = level.getChunkSource().getChunkNow(x >> 4, z >> 4);
+                int i = row * n + col;
+                if (chunk == null) {
+                    heights[i] = Integer.MIN_VALUE;
+                    continue;
+                }
+                int h = chunk.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.WORLD_SURFACE, x & 15, z & 15);
+                var state = chunk.getBlockState(pos.set(x, h, z));
+                // See through blocks that have no map color (glass, barriers) to what's beneath.
+                for (int k = 0; k < 4 && state.getMapColor(level, pos) == net.minecraft.world.level.material.MapColor.NONE && h > level.getMinY(); k++) {
+                    h--;
+                    state = chunk.getBlockState(pos.set(x, h, z));
+                }
+                heights[i] = h;
+                tops[i] = state;
+            }
+        }
+        byte[] colors = new byte[n * n];
+        for (int row = 1; row <= n; row++) {
+            int z = z0 - 1 + row;
+            for (int col = 0; col < n; col++) {
+                int i = row * n + col;
+                if (heights[i] == Integer.MIN_VALUE || tops[i] == null) continue;
+                int x = x0 + col;
+                var state = tops[i];
+                var color = state.getMapColor(level, pos.set(x, heights[i], z));
+                net.minecraft.world.level.material.MapColor.Brightness b;
+                if (!state.getFluidState().isEmpty()) {
+                    // Deeper water is darker.
+                    var chunk = level.getChunkSource().getChunkNow(x >> 4, z >> 4);
+                    int depth = 0;
+                    while (depth < 10 && chunk != null && !chunk.getBlockState(pos.set(x, heights[i] - depth - 1, z)).getFluidState().isEmpty()) depth++;
+                    b = depth < 2 ? net.minecraft.world.level.material.MapColor.Brightness.HIGH
+                            : depth < 5 ? net.minecraft.world.level.material.MapColor.Brightness.NORMAL
+                            : net.minecraft.world.level.material.MapColor.Brightness.LOW;
+                } else {
+                    int north = heights[i - n];
+                    if (north == Integer.MIN_VALUE || north == heights[i]) b = net.minecraft.world.level.material.MapColor.Brightness.NORMAL;
+                    else b = heights[i] > north ? net.minecraft.world.level.material.MapColor.Brightness.HIGH
+                            : net.minecraft.world.level.material.MapColor.Brightness.LOW;
+                }
+                colors[(row - 1) * n + col] = color.getPackedId(b);
+            }
+        }
+        PacketDistributor.sendToPlayer(p, new MapData(x0, z0, n, colors));
+    }
+
     private static void writeInts(RegistryFriendlyByteBuf buf, List<Integer> list) {
         buf.writeVarInt(list.size());
         for (int i : list) buf.writeVarInt(i + 1);
@@ -150,6 +228,8 @@ public final class Payloads {
                 com.dominionmod.dominion.client.FoundingScreen.open(p.pos()));
         r.playToClient(RealmInfo.TYPE, RealmInfo.CODEC, (p, ctx) ->
                 com.dominionmod.dominion.client.RealmScreen.receive(p));
+        r.playToClient(MapData.TYPE, MapData.CODEC, (p, ctx) ->
+                com.dominionmod.dominion.client.RealmMap.receive(p));
 
         r.playToServer(FoundKingdom.TYPE, FoundKingdom.CODEC, (p, ctx) -> {
             if (!(ctx.player() instanceof ServerPlayer sp)) return;
@@ -164,6 +244,10 @@ public final class Payloads {
 
         r.playToServer(RealmAction.TYPE, RealmAction.CODEC, (p, ctx) -> {
             if (!(ctx.player() instanceof ServerPlayer sp)) return;
+            if (p.action() == RealmAction.MAP) {
+                sendMap(sp);
+                return;
+            }
             String msg = "";
             switch (p.action()) {
                 case RealmAction.CLAIM -> msg = Realm.claimHere(sp).getString();
@@ -192,6 +276,7 @@ public final class Payloads {
     }
 
     public static void sendRealm(ServerPlayer p, boolean open, String message) {
+        sendMap(p);
         ServerLevel level = (ServerLevel) p.level();
         KingdomData d = Realm.data(level);
         Kingdom k = d.byPlayer(p.getUUID());

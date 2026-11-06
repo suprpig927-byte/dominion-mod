@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.Identifier;
 
-/** The layers that dress a citizen in their kingdom's colors. */
+/** The layers that dress a citizen: biome clothes, a work outfit, a sash in kingdom colors, and the soldier's tabard. */
 public final class CitizenLayers {
     private CitizenLayers() {}
 
@@ -17,79 +17,54 @@ public final class CitizenLayers {
         return DominionMod.id("textures/entity/citizen/" + name + ".png");
     }
 
-    private static final Identifier TUNIC = tex("tunic");
-    private static final Identifier TRIM = tex("tunic_trim");
-    private static final Identifier TABARD = tex("tabard");
-    private static final Identifier TABARD_TRIM = tex("tabard_trim");
+    static Identifier vanilla(String path) {
+        return Identifier.withDefaultNamespace("textures/entity/villager/" + path + ".png");
+    }
 
-    /** Work clothes (straw hat, apron, quiver...), the tunic in the primary color, and trim in the secondary. */
+    private static final Identifier SASH = tex("sash");
+    private static final Identifier BELT = tex("belt");
+
+    /** Vanilla profession outfits that suit each job. Soldiers wear a tabard instead. */
+    static String profession(Job job) {
+        return switch (job) {
+            case FARMER -> "farmer";
+            case LUMBERJACK -> "toolsmith";
+            case BUILDER -> "mason";
+            default -> null;
+        };
+    }
+
     public static class Clothes extends RenderLayer<CitizenRenderState, CitizenModel> {
-        private final CitizenModel outfit, tunic, trim;
-
-        public Clothes(RenderLayerParent<CitizenRenderState, CitizenModel> parent, CitizenModel outfit, CitizenModel tunic, CitizenModel trim) {
+        public Clothes(RenderLayerParent<CitizenRenderState, CitizenModel> parent) {
             super(parent);
-            this.outfit = outfit;
-            this.tunic = tunic;
-            this.trim = trim;
         }
 
         @Override
         public void submit(PoseStack pose, SubmitNodeCollector collector, int light, CitizenRenderState s, float yRot, float xRot) {
             if (s.isInvisible) return;
-            renderColoredCutoutModel(tunic, TUNIC, pose, collector, light, s, s.primary, 1);
-            renderColoredCutoutModel(trim, TRIM, pose, collector, light, s, s.secondary, 2);
-            if (s.job != Job.UNASSIGNED) {
-                renderColoredCutoutModel(outfit, tex("job_" + s.job.name().toLowerCase()), pose, collector, light, s, 0xFFFFFFFF, 3);
-            }
+            CitizenModel m = getParentModel();
+            renderColoredCutoutModel(m, vanilla("type/" + s.villagerType), pose, collector, light, s, 0xFFFFFFFF, 1);
+            String prof = profession(s.job);
+            if (prof != null) renderColoredCutoutModel(m, vanilla("profession/" + prof), pose, collector, light, s, 0xFFFFFFFF, 2);
+            renderColoredCutoutModel(m, SASH, pose, collector, light, s, s.primary, 3);
+            renderColoredCutoutModel(m, BELT, pose, collector, light, s, s.secondary, 4);
         }
     }
 
-    /**
-     * Soldiers wear a tabard over their armor so every army is easy to tell apart, with the
-     * kingdom's own flag (every pattern layer) on the chest, drawn like a shield's design.
-     */
+    /** Soldiers wear a tabard over their armor with the kingdom's flag painted across it. */
     public static class Tabard extends RenderLayer<CitizenRenderState, CitizenModel> {
         private final HumanoidModel<CitizenRenderState> model;
-        private final EmblemModel emblem;
-        private final net.minecraft.client.resources.model.sprite.SpriteGetter sprites;
 
-        public Tabard(RenderLayerParent<CitizenRenderState, CitizenModel> parent, HumanoidModel<CitizenRenderState> model, EmblemModel emblem,
-                      net.minecraft.client.resources.model.sprite.SpriteGetter sprites) {
+        public Tabard(RenderLayerParent<CitizenRenderState, CitizenModel> parent, HumanoidModel<CitizenRenderState> model) {
             super(parent);
             this.model = model;
-            this.emblem = emblem;
-            this.sprites = sprites;
         }
 
         @Override
         public void submit(PoseStack pose, SubmitNodeCollector collector, int light, CitizenRenderState s, float yRot, float xRot) {
             if (s.isInvisible || !s.job.soldier) return;
-            renderColoredCutoutModel(model, TABARD, pose, collector, light, s, s.primary, 4);
-            renderColoredCutoutModel(model, TABARD_TRIM, pose, collector, light, s, s.secondary, 5);
-            if (s.flagBase == null) return;
-            // The emblem rides on the chest: follow the body, then sit just in front of the tabard.
-            pose.pushPose();
-            getParentModel().body.translateAndRotate(pose);
-            pose.translate(0.0f, 5.6f / 16.0f, -3.4f / 16.0f);
-            pose.scale(0.42f, 0.42f, 0.42f);
-            net.minecraft.client.renderer.blockentity.BannerRenderer.submitPatterns(sprites, pose, collector, light,
-                    net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY, emblem, net.minecraft.util.Unit.INSTANCE, false,
-                    s.flagBase, s.flagPatterns);
-            pose.popPose();
-        }
-    }
-
-    /** A flat plate the shape of a shield's face, which the flag's patterns are painted onto. */
-    public static class EmblemModel extends net.minecraft.client.model.Model<net.minecraft.util.Unit> {
-        public EmblemModel(net.minecraft.client.model.geom.ModelPart root) {
-            super(root, net.minecraft.client.renderer.rendertype.RenderTypes::entityCutout);
-        }
-
-        public static net.minecraft.client.model.geom.builders.LayerDefinition createLayer() {
-            var mesh = new net.minecraft.client.model.geom.builders.MeshDefinition();
-            mesh.getRoot().addOrReplaceChild("plate", net.minecraft.client.model.geom.builders.CubeListBuilder.create()
-                    .texOffs(0, 0).addBox(-6.0f, -11.0f, -0.5f, 12.0f, 22.0f, 1.0f), net.minecraft.client.model.geom.PartPose.ZERO);
-            return net.minecraft.client.model.geom.builders.LayerDefinition.create(mesh, 64, 64);
+            Identifier texture = FlagTextures.tabard(s.flagBase, s.flagPatterns, s.primaryDye, s.secondaryDye);
+            renderColoredCutoutModel(model, texture, pose, collector, light, s, 0xFFFFFFFF, 6);
         }
     }
 }

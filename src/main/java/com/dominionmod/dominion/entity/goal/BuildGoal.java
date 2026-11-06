@@ -278,7 +278,9 @@ public class BuildGoal extends Goal {
 
     private void finish(ServerLevel level, KingdomData d, Kingdom k) {
         d.removeSite(site);
-        Citizen.tellKingdom(level, k, Component.literal("The " + site.name() + " is finished!").withStyle(ChatFormatting.GREEN));
+        if (site.structure.equals("storehouse")) k.storehouses.add(site.origin.above().asLong());
+        Citizen.tellKingdom(level, k, Component.literal("The " + site.name() + " is finished!"
+                + (site.structure.equals("storehouse") ? " Its chests are part of your storehouse now." : "")).withStyle(ChatFormatting.GREEN));
         // Leftover materials go back to the storehouse.
         var store = Storehouse.containers(level, k);
         for (ItemStack s : c.materials().removeAllItems()) {

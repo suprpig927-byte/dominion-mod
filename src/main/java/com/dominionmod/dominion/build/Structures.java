@@ -18,6 +18,7 @@ import org.jspecify.annotations.Nullable;
  *  K chest              R barrel               Q crafting table l lantern        A ladder (on the wall to its north)
  *  F oak fence          g oak fence gate       f farmland       W water          w wheat (planted from seeds)
  *  N kingdom flag       T market block         X primary wool   Z secondary wool O spruce log  o spruce fence
+ *  &gt; spruce stairs rising east     &lt; spruce stairs rising west
  * </pre>
  */
 public final class Structures {
@@ -45,22 +46,20 @@ public final class Structures {
     }
 
     static {
-        add("cottage", "Cottage", "A small home with two beds, a chest and a crafting table.", 1,
-                new String[]{"CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC"},
-                new String[]{"LPPPPPL", "Ph...hP", "Pb...bP", "P..l..P", "P.....P", "PQ...KP", "LPPDPPL"},
-                new String[]{"LPPGPPL", "P.....P", "P.....P", "G.....G", "P.....P", "P.....P", "LPPuPPL"},
-                new String[]{"LPPPPPL", "P.....P", "P.....P", "P.....P", "P.....P", "P.....P", "LPPPPPL"},
-                new String[]{"PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP"},
-                new String[]{"       ", " sssss ", " sssss ", " sssss ", " sssss ", " sssss ", "       "});
+        addLayers("cottage", "Cottage", "A timber-and-stone home with two beds, a chest, a crafting table and a pitched roof.", 1, withRoof(
+                new String[][]{
+                        {"CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC"},
+                        {"LCCCCCL", "Ch...hC", "Cb...bC", "C..l..C", "C.....C", "CQ...KC", "LCCDCCL"},
+                        {"LPPGPPL", "P.....P", "P.....P", "G.....G", "P.....P", "P.....P", "LPPuPPL"},
+                        {"LPPPPPL", "P.....P", "P.....P", "P.....P", "P.....P", "P.....P", "LPPPPPL"}}));
 
-        add("barracks", "Barracks", "Bunks for four soldiers, with chests and barrels for their gear. Flies your flag.", 1,
-                new String[]{"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
-                new String[]{"LPPPPPPPL", "Ph.h.h.hP", "Pb.b.b.bP", "P...l...P", "P.......P", "PKR...RKP", "LPPPDPPPL"},
-                new String[]{"LPPGPGPPL", "P.......P", "P.......P", "G.......G", "P.......P", "P.......P", "LPGPuPGPL"},
-                new String[]{"LPPPPPPPL", "P.......P", "P.......P", "P.......P", "P.......P", "P.......P", "LPPPPPPPL"},
-                new String[]{"PPPPPPPPP", "PPPPPPPPP", "PPPPPPPPP", "PPPPPPPPP", "PPPPPPPPP", "PPPPPPPPP", "PPPPPPPPP"},
-                new String[]{"         ", " sssssss ", " sssssss ", " sssNsss ", " sssssss ", " sssssss ", "         "});
-
+        addLayers("barracks", "Barracks", "Bunks for four soldiers, with chests and barrels for their gear. Flies your flag from the roof.", 1, withRoof(
+                new String[][]{
+                        {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
+                        {"LMMMMMMML", "Mh.h.h.hM", "Mb.b.b.bM", "M...l...M", "M.......M", "MKR...RKM", "LMMMDMMML"},
+                        {"LPPGPGPPL", "P.......P", "P.......P", "G.......G", "P.......P", "P.......P", "LPGPuPGPL"},
+                        {"LPPPPPPPL", "P.......P", "P.......P", "P.......P", "P.......P", "P.......P", "LPPPPPPPL"}},
+                new String[]{"         ", "         ", "         ", "    N    ", "         ", "         ", "         "}));
         add("farm", "Wheat Farm", "A fenced 7x7 wheat field around a water source. Give it a Farmer.", 1,
                 new String[]{"CCCCCCCCC", "CfffffffC", "CfffffffC", "CfffffffC", "CfffWfffC", "CfffffffC", "CfffffffC", "CfffffffC", "CCCCCCCCC"},
                 new String[]{"FFFFFFFFF", "FwwwwwwwF", "FwwwwwwwF", "FwwwwwwwF", "Fwww.wwwF", "FwwwwwwwF", "FwwwwwwwF", "FwwwwwwwF", "FFFFgFFFF"});
@@ -76,12 +75,12 @@ public final class Structures {
                 new String[]{"PPPPP", "PPAPP", "PPPPP", "PPPPP", "PPPPP"},
                 new String[]{"FFFFF", "F...F", "F.N.F", "F...F", "FFFFF"});
 
-        add("storehouse", "Storehouse", "An open shed full of chests and barrels. Build it within 6 blocks of your Town Hall.", 1,
-                new String[]{"CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC"},
-                new String[]{"LKKRKKL", "P.....P", "P.....P", "PR...RP", "L.....L"},
-                new String[]{"LPPPPPL", "P.....P", "P.....P", "P.....P", "L.....L"},
-                new String[]{"LPPPPPL", "P.....P", "P.....P", "P.....P", "LPPPPPL"},
-                new String[]{"PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP"});
+        addLayers("storehouse", "Storehouse", "A stone-footed warehouse lined with chests and barrels under a tall roof. Its chests join your storehouse, wherever you build it.", 1, withRoof(
+                new String[][]{
+                        {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
+                        {"LMMMMMMML", "MRKKRKKRM", "M.......M", "MR.....RM", "M...l...M", "MR.....RM", "LMMMDMMML"},
+                        {"LPPPPPPPL", "PR.....RP", "P.......P", "G.......G", "P.......P", "PR.....RP", "LPPPuPPPL"},
+                        {"LPPPPPPPL", "P.......P", "P.......P", "G.......G", "P.......P", "P.......P", "LPGPPPGPL"}}));
 
         add("market_stall", "Market Stall", "A Market under an awning striped in your colors.", 0,
                 new String[]{"F...F", ".....", "..T..", ".....", "F...F"},
@@ -97,6 +96,34 @@ public final class Structures {
 
         wall("stone_wall", "Stone Wall", "Stone brick wall, 4 high with battlements. Click two points to draw it.", "MMMMM", "MMMM ");
         wall("palisade", "Palisade", "Sharpened spruce log fence, 4 high. Click two points to draw it.", "OOOOo", "OOOOo");
+    }
+
+    /** Walls (bottom up), then a gable roof of spruce stairs with its ridge running front to back, then any extra layers. */
+    private static String[][] withRoof(String[][] walls, String[]... extra) {
+        int w = walls[0][0].length(), d = walls[0].length;
+        java.util.List<String[]> out = new java.util.ArrayList<>(java.util.List.of(walls));
+        for (int k = 0; k <= w / 2; k++) {
+            String[] rows = new String[d];
+            for (int z = 0; z < d; z++) {
+                StringBuilder row = new StringBuilder();
+                for (int x = 0; x < w; x++) {
+                    char c = ' ';
+                    if (x == k && x == w - 1 - k) c = 'P';
+                    else if (x == k) c = '>';
+                    else if (x == w - 1 - k) c = '<';
+                    else if (x > k && x < w - 1 - k) c = (z == 0 || z == d - 1) ? 'P' : '.';
+                    row.append(c);
+                }
+                rows[z] = row.toString();
+            }
+            out.add(rows);
+        }
+        for (String[] e : extra) out.add(e);
+        return out.toArray(new String[0][]);
+    }
+
+    private static void addLayers(String id, String name, String desc, int sink, String[][] layers) {
+        ALL.put(id, new Structure(id, name, desc, Kind.BUILDING, sink, List.of(layers)));
     }
 
     public static @Nullable Structure get(String id) {

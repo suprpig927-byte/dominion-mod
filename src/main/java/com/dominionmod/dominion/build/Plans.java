@@ -198,6 +198,8 @@ public final class Plans {
             case 'R' -> state = Blocks.BARREL.defaultBlockState();
             case 'Q' -> state = Blocks.CRAFTING_TABLE.defaultBlockState();
             case 'l' -> state = Blocks.LANTERN.defaultBlockState();
+            case '>' -> state = Blocks.SPRUCE_STAIRS.defaultBlockState().setValue(net.minecraft.world.level.block.StairBlock.FACING, Direction.EAST);
+            case '<' -> state = Blocks.SPRUCE_STAIRS.defaultBlockState().setValue(net.minecraft.world.level.block.StairBlock.FACING, Direction.WEST);
             case 'A' -> state = Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING, Direction.SOUTH);
             case 'T' -> state = ModContent.MARKET.get().defaultBlockState();
             case 'X' -> state = Blocks.WOOL.pick(DyeColor.byId(k.primary)).defaultBlockState();
@@ -260,6 +262,7 @@ public final class Plans {
             case 'R' -> Items.BARREL;
             case 'Q' -> Items.CRAFTING_TABLE;
             case 'l' -> Items.LANTERN;
+            case '>', '<' -> Items.SPRUCE_STAIRS;
             case 'A' -> Items.LADDER;
             case 'T' -> ModContent.MARKET_ITEM.get();
             case 'X', 'Z' -> Items.WOOL.pick(DyeColor.WHITE);

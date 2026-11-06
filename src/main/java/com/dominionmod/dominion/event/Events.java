@@ -201,6 +201,7 @@ public final class Events {
         Citizen c = ModContent.CITIZEN.get().create(level, EntitySpawnReason.CONVERSION);
         if (c == null) return;
         c.snapTo(v.getX(), v.getY(), v.getZ(), v.getYRot(), v.getXRot());
+        c.copyLookFrom(v);
         c.joinKingdom(k, level);
         level.addFreshEntity(c);
         v.discard();

@@ -45,7 +45,7 @@ public final class Realm {
     }
 
     public static int claimCost(KingdomData d, Kingdom k) {
-        return 8 + 4 * d.claimCount(k);
+        return 10 + 3 * Math.max(0, d.claimCount(k) - 9);
     }
 
     public static double dailyInfluence(Kingdom k) {
@@ -80,7 +80,13 @@ public final class Realm {
         k.hallDim = KingdomData.dim(level);
         k.influence = START_INFLUENCE;
         d.add(k);
-        d.claim(level, ChunkPos.containing(hall), k);
+        // A new kingdom starts with the Town Hall's chunk and the eight around it.
+        ChunkPos hc = ChunkPos.containing(hall);
+        for (int dx = -1; dx <= 1; dx++)
+            for (int dz = -1; dz <= 1; dz++) {
+                ChunkPos c = new ChunkPos(hc.x() + dx, hc.z() + dz);
+                if (d.ownerAt(level, c) == null) d.claim(level, c, k);
+            }
         raiseFlag(level, hall, k, p);
 
         give(p, new ItemStack(ModContent.GOLD_COIN.get(), START_COINS));

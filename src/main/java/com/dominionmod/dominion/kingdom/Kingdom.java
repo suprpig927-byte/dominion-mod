@@ -32,6 +32,8 @@ public final class Kingdom {
     public boolean peaceful;
     /** Bed (head block, packed) -> the citizen who sleeps there. */
     public final Map<Long, UUID> beds = new HashMap<>();
+    /** Finished Storehouse buildings (their centers): their chests count as storehouse too, wherever they are. */
+    public final java.util.List<Long> storehouses = new java.util.ArrayList<>();
     /** Citizen -> name, for the roster. */
     public final Map<UUID, String> names = new HashMap<>();
 
@@ -49,12 +51,14 @@ public final class Kingdom {
             Codec.unboundedMap(Codec.STRING, Codec.INT).optionalFieldOf("citizens", Map.of()).forGetter(Kingdom::citizensAsStrings),
             Codec.BOOL.optionalFieldOf("peaceful", true).forGetter(k -> k.peaceful),
             Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("beds", Map.of()).forGetter(Kingdom::bedsAsStrings),
-            Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("names", Map.of()).forGetter(Kingdom::namesAsStrings)
+            Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("names", Map.of()).forGetter(Kingdom::namesAsStrings),
+            Codec.LONG.listOf().optionalFieldOf("storehouses", List.of()).forGetter(k -> k.storehouses)
     ).apply(i, Kingdom::new));
 
     private Kingdom(UUID id, String name, UUID owner, List<UUID> members, int primary, int secondary, ItemStack flag,
                     Optional<BlockPos> hall, String hallDim, double influence, Map<String, Integer> citizens, boolean peaceful,
-                    Map<String, String> beds, Map<String, String> names) {
+                    Map<String, String> beds, Map<String, String> names, List<Long> storehouses) {
+        this.storehouses.addAll(storehouses);
         this.id = id;
         this.name = name;
         this.owner = owner;
@@ -88,7 +92,7 @@ public final class Kingdom {
     }
 
     public Kingdom(String name, UUID owner, int primary, int secondary, ItemStack flag) {
-        this(UUID.randomUUID(), name, owner, List.of(owner), primary, secondary, flag, Optional.empty(), "minecraft:overworld", 0, Map.of(), true, Map.of(), Map.of());
+        this(UUID.randomUUID(), name, owner, List.of(owner), primary, secondary, flag, Optional.empty(), "minecraft:overworld", 0, Map.of(), true, Map.of(), Map.of(), List.of());
     }
 
     private Map<String, Integer> citizensAsStrings() {

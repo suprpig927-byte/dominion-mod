@@ -15,13 +15,11 @@ import net.minecraft.world.item.DyeColor;
 public class CitizenRenderer extends HumanoidMobRenderer<Citizen, CitizenRenderState, CitizenModel> {
     public CitizenRenderer(EntityRendererProvider.Context ctx) {
         super(ctx, new CitizenModel(ctx.bakeLayer(CitizenModels.BODY)), 0.5f);
-        this.addLayer(new CitizenLayers.Clothes(this, new CitizenModel(ctx.bakeLayer(CitizenModels.OUTFIT)),
-                new CitizenModel(ctx.bakeLayer(CitizenModels.TUNIC)), new CitizenModel(ctx.bakeLayer(CitizenModels.TRIM))));
+        this.addLayer(new CitizenLayers.Clothes(this));
         this.addLayer(new HumanoidArmorLayer<>(this,
                 ArmorModelSet.bake(ModelLayers.ZOMBIE_VILLAGER_ARMOR, ctx.getModelSet(), part -> new HumanoidModel<CitizenRenderState>(part)),
                 ctx.getEquipmentRenderer()));
-        this.addLayer(new CitizenLayers.Tabard(this, new HumanoidModel<>(ctx.bakeLayer(CitizenModels.TABARD)),
-                new CitizenLayers.EmblemModel(ctx.bakeLayer(CitizenModels.EMBLEM)), ctx.getSprites()));
+        this.addLayer(new CitizenLayers.Tabard(this, new HumanoidModel<>(ctx.bakeLayer(CitizenModels.TABARD))));
     }
 
     @Override
@@ -34,7 +32,9 @@ public class CitizenRenderer extends HumanoidMobRenderer<Citizen, CitizenRenderS
         super.extractRenderState(c, s, partialTicks);
         s.primary = 0xFF000000 | DyeColor.byId(c.getPrimary()).getTextureDiffuseColor();
         s.secondary = 0xFF000000 | DyeColor.byId(c.getSecondary()).getTextureDiffuseColor();
-        s.look = Math.floorMod(c.getLook(), 4);
+        s.primaryDye = c.getPrimary();
+        s.secondaryDye = c.getSecondary();
+        s.villagerType = c.getVillagerType();
         s.job = c.job();
         s.isAggressive = c.isAggressive();
         net.minecraft.world.item.ItemStack flag = c.getFlag();
@@ -56,6 +56,6 @@ public class CitizenRenderer extends HumanoidMobRenderer<Citizen, CitizenRenderS
 
     @Override
     public Identifier getTextureLocation(CitizenRenderState s) {
-        return CitizenLayers.tex("skin_" + s.look);
+        return CitizenLayers.vanilla("villager");
     }
 }

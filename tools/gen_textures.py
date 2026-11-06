@@ -418,12 +418,44 @@ def blocks():
     mtop.save(os.path.join(ROOT, "block", "market_top.png"))
 
 
+def sash():
+    """Kingdom colors for the villager layout: a sash (primary) and a belt (secondary), both tinted in game."""
+    rnd = random.Random(51)
+    body = faces(16, 20, 8, 12, 6)
+    robe = faces(0, 38, 8, 20, 6)
+    img = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    for f in (body, robe):
+        for key, mirror in (("front", False), ("back", True)):
+            r = f[key]
+            for y in range(12):
+                cx = int(y * 7 / 11)
+                if mirror:
+                    cx = 7 - cx
+                for x in (cx - 1, cx, cx + 1):
+                    if 0 <= x < 8:
+                        g = 236 if x == cx else 205
+                        px(img, r, x, y, jitter((g, g, g), 3, rnd))
+    img.save(os.path.join(ENT, "sash.png"))
+    belt = Image.new("RGBA", (64, 64), (0, 0, 0, 0))
+    for f in (body, robe):
+        for r in side_faces(f):
+            for x in range(r[2]):
+                px(belt, r, x, 8, jitter((230, 230, 230), 3, rnd))
+                px(belt, r, x, 9, jitter((196, 196, 196), 3, rnd))
+        # a buckle
+        px(belt, f["front"], 3, 8, (255, 255, 255))
+        px(belt, f["front"], 4, 8, (255, 255, 255))
+        px(belt, f["front"], 3, 9, (255, 255, 255))
+        px(belt, f["front"], 4, 9, (255, 255, 255))
+    # a hem stripe on the robe
+    for r in side_faces(robe):
+        for x in range(r[2]):
+            px(belt, r, x, 18, jitter((220, 220, 220), 3, rnd))
+    belt.save(os.path.join(ENT, "belt.png"))
+
+
 if __name__ == "__main__":
-    for look in range(4):
-        skin(look)
-    tunic()
-    outfits()
-    tabard()
+    sash()
     items()
     blocks()
     print("textures written to", os.path.abspath(ROOT))

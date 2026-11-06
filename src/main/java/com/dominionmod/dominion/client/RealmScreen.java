@@ -19,7 +19,8 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /** Your kingdom at a glance (Overview), your people and their beds (Citizens), and construction (Build). */
 public class RealmScreen extends Screen {
-    private static final int W = 360, H = 236, CELL = 11, ROWS = 12;
+    private static final int W = 400, H = 262, MAP = 176, ROWS = 14;
+    private int refreshTicks;
     private static int tab = 0;
     private static int scroll = 0;
     private static int pickedStructure = 0;
@@ -82,21 +83,19 @@ public class RealmScreen extends Screen {
     private void initOverview(int l, int t) {
         if (info.has()) {
             addRenderableWidget(Button.builder(Component.literal("Claim this chunk (" + info.claimCost() + ")"), b -> send(Payloads.RealmAction.CLAIM))
-                    .bounds(l + 10, t + H - 50, 150, 20).build());
+                    .bounds(l + 10, t + H - 74, 190, 20).build());
             addRenderableWidget(Button.builder(Component.literal("Release this chunk"), b -> send(Payloads.RealmAction.UNCLAIM))
-                    .bounds(l + 10, t + H - 26, 150, 20).build());
+                    .bounds(l + 10, t + H - 50, 190, 20).build());
             if (info.ruler()) {
                 addRenderableWidget(Button.builder(Component.literal(info.peaceful() ? "Monster spawns: OFF" : "Monster spawns: ON"),
-                        b -> send(Payloads.RealmAction.TOGGLE_PEACEFUL)).bounds(l + 166, t + H - 50, 120, 20).build());
+                        b -> send(Payloads.RealmAction.TOGGLE_PEACEFUL)).bounds(l + 10, t + H - 26, 120, 20).build());
                 addRenderableWidget(Button.builder(Component.literal("Edit flag"), b -> Minecraft.getInstance().gui.setScreen(
                         new FlagScreen(this, info.flag(), design -> {
                             send(Payloads.RealmAction.SET_FLAG, design);
                             Minecraft.getInstance().gui.setScreen(this);
-                        }, "Raise this flag"))).bounds(l + 290, t + H - 50, 60, 20).build());
+                        }, "Raise this flag"))).bounds(l + 134, t + H - 26, 66, 20).build());
             }
         }
-        addRenderableWidget(Button.builder(Component.literal("Refresh"), b -> send(Payloads.RealmAction.REFRESH))
-                .bounds(l + 166, t + H - 26, 80, 20).build());
     }
 
     private void initCitizens(int l, int t) {
@@ -151,7 +150,10 @@ public class RealmScreen extends Screen {
             case 2 -> drawBuild(g, l, t, p);
             default -> drawOverview(g, l, t, p, s);
         }
-        if (!info.message().isEmpty()) g.text(this.font, info.message(), l + 10, t + H - 62, 0xFFFFE08A, false);
+        if (!info.message().isEmpty()) {
+            List<String> lines = wrap(info.message(), tab == 0 ? 34 : 64);
+            for (int i = 0; i < lines.size(); i++) g.text(this.font, lines.get(i), l + 10, t + H - 100 + i * 10 - (lines.size() - 1) * 10, 0xFFFFE08A, false);
+        }
         this.renderables.forEach(r -> r.extractRenderState(g, mouseX, mouseY, partialTick));
     }
 
@@ -189,21 +191,59 @@ public class RealmScreen extends Screen {
             else g.text(this.font, "Chests by the Town Hall are your storehouse.", x, y, 0xFF777777, false);
         }
 
+        drawMap(g, l + W - 10 - MAP, t + 10, s);
+    }
+
+    /** The live map: real terrain from the server, with each kingdom's land tinted in its color. */
+    private void drawMap(GuiGraphicsExtractor g, int mx, int my, int trim) {
         int n = Payloads.MAP_RADIUS * 2 + 1;
-        int mx = l + W - 10 - n * CELL, my = t + 12;
-        g.fill(mx - 1, my - 1, mx + n * CELL + 1, my + n * CELL + 1, 0xFF000000);
-        for (int i = 0; i < info.map().size() && i < n * n; i++) {
-            int v = info.map().get(i);
-            int cx = mx + (i % n) * CELL, cy = my + (i / n) * CELL;
-            int c = v < 0 ? 0xFF2B3A2B : v >= 100 ? color(v - 100) : color(v) & 0x99FFFFFF;
-            g.fill(cx, cy, cx + CELL - 1, cy + CELL - 1, c);
-            if (v >= 100) g.fill(cx, cy + CELL - 2, cx + CELL - 1, cy + CELL - 1, s);
+        int cell = MAP / n;
+        int px = n * cell;
+        g.fill(mx - 1, my - 1, mx + px + 1, my + px + 1, 0xFF000000);
+        if (RealmMap.ready) {
+            g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, RealmMap.ID, mx, my, 0, 0, px, px, RealmMap.size(), RealmMap.size(),
+                    RealmMap.size(), RealmMap.size());
+        } else {
+            g.text(this.font, "Loading map...", mx + 50, my + px / 2, 0xFF888888, false);
         }
-        int c0 = mx + Payloads.MAP_RADIUS * CELL, r0 = my + Payloads.MAP_RADIUS * CELL;
-        g.fill(c0 + 3, r0 + 3, c0 + CELL - 4, r0 + CELL - 4, 0xFFFFFFFF);
+        // Claims: a light wash of the owner's color, with a solid edge where the owner changes.
+        var map = info.map();
+        for (int i = 0; i < map.size() && i < n * n; i++) {
+            int v = map.get(i);
+            if (v < 0) continue;
+            int col = i % n, row = i / n;
+            int cx = mx + col * cell, cy = my + row * cell;
+            int c = color(v >= 100 ? v - 100 : v);
+            g.fill(cx, cy, cx + cell, cy + cell, (c & 0x00FFFFFF) | 0x38000000);
+            int edge = (c & 0x00FFFFFF) | 0xE0000000;
+            if (row == 0 || !map.get(i - n).equals(v)) g.fill(cx, cy, cx + cell, cy + 1, edge);
+            if (row == n - 1 || !map.get(i + n).equals(v)) g.fill(cx, cy + cell - 1, cx + cell, cy + cell, edge);
+            if (col == 0 || !map.get(i - 1).equals(v)) g.fill(cx, cy, cx + 1, cy + cell, edge);
+            if (col == n - 1 || !map.get(i + 1).equals(v)) g.fill(cx + cell - 1, cy, cx + cell, cy + cell, edge);
+        }
+        // You.
+        var player = Minecraft.getInstance().player;
+        if (player != null && RealmMap.ready) {
+            double fx = (player.getX() - RealmMap.x0) / RealmMap.size() * px, fz = (player.getZ() - RealmMap.z0) / RealmMap.size() * px;
+            int ppx = mx + (int) fx, ppz = my + (int) fz;
+            if (ppx >= mx && ppx < mx + px && ppz >= my && ppz < my + px) {
+                g.fill(ppx - 2, ppz - 2, ppx + 3, ppz + 3, 0xFF000000);
+                g.fill(ppx - 1, ppz - 1, ppx + 2, ppz + 2, 0xFFFFFFFF);
+                float yaw = player.getYRot() * net.minecraft.util.Mth.DEG_TO_RAD;
+                int ax = ppx + (int) Math.round(-Math.sin(yaw) * 5), az = ppz + (int) Math.round(Math.cos(yaw) * 5);
+                g.fill(ax - 1, az - 1, ax + 1, az + 1, 0xFFFFFFFF);
+            }
+        }
         String here = info.here().isEmpty() ? "Here: wilderness" : "Here: " + info.here();
-        g.text(this.font, here, mx, my + n * CELL + 4, 0xFFAAAAAA, false);
-        g.text(this.font, "North is up", mx, my + n * CELL + 14, 0xFF666666, false);
+        g.text(this.font, here, mx, my + px + 4, 0xFFAAAAAA, false);
+        g.text(this.font, "North is up", mx + px - this.font.width("North is up"), my + px + 4, 0xFF666666, false);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        // Keep the map live while it's on screen.
+        if (tab == 0 && info.has() && ++refreshTicks % 40 == 0) send(Payloads.RealmAction.MAP);
     }
 
     private void drawCitizens(GuiGraphicsExtractor g, int l, int t, int p) {

@@ -81,6 +81,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     private static final EntityDataAccessor<Integer> PRIMARY = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> SECONDARY = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> LOOK = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.INT);
+    private static final EntityDataAccessor<String> TYPE = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<ItemStack> FLAG = SynchedEntityData.defineId(Citizen.class, EntityDataSerializers.ITEM_STACK);
 
     public static final long DAY = 24000L;
@@ -128,6 +129,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         builder.define(SECONDARY, 4);
         builder.define(LOOK, 0);
         builder.define(FLAG, ItemStack.EMPTY);
+        builder.define(TYPE, "plains");
     }
 
     // ------------------------------------------------------------------ AI
@@ -348,6 +350,10 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         dropEverything(level);
         Villager v = net.minecraft.world.entity.EntityTypes.VILLAGER.create(level, EntitySpawnReason.CONVERSION);
         if (v != null) {
+            var type = level.registryAccess().lookupOrThrow(net.minecraft.core.registries.Registries.VILLAGER_TYPE)
+                    .get(net.minecraft.resources.ResourceKey.create(net.minecraft.core.registries.Registries.VILLAGER_TYPE,
+                            net.minecraft.resources.Identifier.withDefaultNamespace(getVillagerType())));
+            type.ifPresent(t -> v.setVillagerData(v.getVillagerData().withType(t)));
             v.snapTo(getX(), getY(), getZ(), getYRot(), getXRot());
             level.addFreshEntity(v);
         }
@@ -509,6 +515,13 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     public int getSecondary() { return this.entityData.get(SECONDARY); }
     public int getLook() { return this.entityData.get(LOOK); }
     public ItemStack getFlag() { return this.entityData.get(FLAG); }
+    public String getVillagerType() { return this.entityData.get(TYPE); }
+
+    /** Keeps the look of the villager they were: desert villagers stay in desert clothes, and so on. */
+    public void copyLookFrom(Villager v) {
+        v.getVillagerData().type().unwrapKey().ifPresent(k -> this.entityData.set(TYPE, k.identifier().getPath()));
+        if (v.hasCustomName() && v.getCustomName() != null) baseName = v.getCustomName().getString();
+    }
     public SimpleContainer materials() { return materials; }
     public String baseName() { return baseName; }
 
@@ -601,6 +614,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         out.putInt("Primary", getPrimary());
         out.putInt("Secondary", getSecondary());
         out.putInt("Look", getLook());
+        out.putString("VillagerType", getVillagerType());
         writeInventoryToTag(out);
         materials.storeAsItemList(out.list("Materials", ItemStack.CODEC));
     }
@@ -626,6 +640,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.entityData.set(PRIMARY, in.getIntOr("Primary", 14));
         this.entityData.set(SECONDARY, in.getIntOr("Secondary", 4));
         this.entityData.set(LOOK, in.getIntOr("Look", 0));
+        this.entityData.set(TYPE, in.getStringOr("VillagerType", "plains"));
         readInventoryFromTag(in);
         in.list("Materials", ItemStack.CODEC).ifPresent(list -> materials.fromItemList(list));
         lastJob = job();

@@ -22,13 +22,18 @@ public final class Storehouse {
     public static List<Container> containers(ServerLevel level, Kingdom k) {
         List<Container> out = new ArrayList<>();
         if (k.hall.isEmpty() || !KingdomData.dim(level).equals(k.hallDim)) return out;
-        BlockPos hall = k.hall.get();
-        for (BlockPos p : BlockPos.betweenClosed(hall.offset(-RADIUS, -HEIGHT, -RADIUS), hall.offset(RADIUS, HEIGHT, RADIUS))) {
+        java.util.Set<BlockPos> seen = new java.util.HashSet<>();
+        scan(level, k.hall.get(), RADIUS, HEIGHT, out, seen);
+        for (long l : k.storehouses) scan(level, BlockPos.of(l), 6, 4, out, seen);
+        return out;
+    }
+
+    private static void scan(ServerLevel level, BlockPos center, int r, int h, List<Container> out, java.util.Set<BlockPos> seen) {
+        for (BlockPos p : BlockPos.betweenClosed(center.offset(-r, -h, -r), center.offset(r, h, r))) {
             if (!level.isLoaded(p)) continue;
             BlockEntity be = level.getBlockEntity(p);
-            if (be instanceof Container c && isStorage(be)) out.add(c);
+            if (be instanceof Container c && isStorage(be) && seen.add(p.immutable())) out.add(c);
         }
-        return out;
     }
 
     private static boolean isStorage(BlockEntity be) {
