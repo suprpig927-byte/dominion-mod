@@ -70,6 +70,7 @@ public final class Events {
         if (!(e.getLevel() instanceof ServerLevel level)) return;
         long t = level.getGameTime();
         if (level.dimension() == Level.OVERWORLD && t % 1200 == 0) Realm.minuteTick(level);
+        if (level.dimension() == Level.OVERWORLD) com.dominionmod.dominion.debug.SelfTest.tick(level);
         if (t % 10 != 0) return;
         KingdomData d = Realm.data(level);
         for (ServerPlayer p : level.players()) {

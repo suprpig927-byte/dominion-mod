@@ -1,6 +1,8 @@
 name: Server smoke test
 
 on:
+  push:
+    branches: [smoke]
   workflow_dispatch:
     inputs:
       commands:
@@ -36,6 +38,7 @@ jobs:
           done
           sleep 5
           CMDS="${{ github.event.inputs.commands }}"
+          if [ -z "$CMDS" ] && [ -f .github/smoke-commands.txt ]; then CMDS=$(cat .github/smoke-commands.txt); fi
           if [ -n "$CMDS" ]; then
             python3 - "$CMDS" <<'PY' > rcon.log 2>&1
           import sys, time

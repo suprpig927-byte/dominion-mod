@@ -288,6 +288,14 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         }
     }
 
+    /** Debug: run one day's upkeep right now. */
+    public void debugUpkeep() {
+        if (this.level() instanceof ServerLevel level) upkeep(level, lastUpkeepDay + 1);
+    }
+
+    public int hungryDays() { return hungryDays; }
+    public int unpaidDays() { return unpaidDays; }
+
     public static void tellKingdom(ServerLevel level, Kingdom k, Component msg) {
         for (ServerPlayer p : level.getServer().getPlayerList().getPlayers()) if (k.isMember(p.getUUID())) p.sendSystemMessage(msg);
     }
