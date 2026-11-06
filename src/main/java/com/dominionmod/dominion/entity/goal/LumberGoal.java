@@ -29,7 +29,7 @@ public class LumberGoal extends Goal {
     public static final int RADIUS = 14;
     private static final int MAX_LOGS = 96;
     private final Citizen c;
-    private BlockPos base;
+    private BlockPos base, stand;
     private final List<BlockPos> logs = new ArrayList<>();
     private Block logType = Blocks.OAK_LOG;
     private int cooldown, ticks, chop;
@@ -59,6 +59,7 @@ public class LumberGoal extends Goal {
         for (BlockPos b : bases) {
             if (collectTree(level, b)) {
                 base = b;
+        if (b != null) c.markWorked();
                 logType = level.getBlockState(b).getBlock();
                 return true;
             }
@@ -94,7 +95,8 @@ public class LumberGoal extends Goal {
     public void start() {
         ticks = 0;
         chop = 0;
-        c.getNavigation().moveTo(base.getX() + 0.5, base.getY(), base.getZ() + 0.5, 0.5);
+        stand = Spots.standNear(c.level(), base, c);
+        c.getNavigation().moveTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, 0.5);
     }
 
     @Override
@@ -114,8 +116,8 @@ public class LumberGoal extends Goal {
         ticks++;
         BlockPos next = logs.get(0);
         c.getLookControl().setLookAt(next.getX() + 0.5, Math.min(next.getY(), base.getY() + 2) + 0.5, next.getZ() + 0.5);
-        if (c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(base)) > 3.0 * 3.0) {
-            if (ticks % 20 == 0) c.getNavigation().moveTo(base.getX() + 0.5, base.getY(), base.getZ() + 0.5, 0.5);
+        if (c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(base)) > 3.2 * 3.2) {
+            if (ticks % 20 == 0) c.getNavigation().moveTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, 0.5);
             return;
         }
         c.getNavigation().stop();

@@ -111,7 +111,7 @@ public final class DominionCommand {
                 .then(Commands.literal("admin").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                         .then(Commands.literal("selftest").executes(ctx -> {
                             com.dominionmod.dominion.debug.SelfTest.start(ctx.getSource().getServer().overworld());
-                            ctx.getSource().sendSuccess(() -> Component.literal("Self-test started at 4000, 4000. Results in the log in 30 seconds."), true);
+                            ctx.getSource().sendSuccess(() -> Component.literal("Self-test started at 4000, 4000. Results in the log in 75 seconds."), true);
                             return 1;
                         }))
                         .then(Commands.literal("influence").then(Commands.argument("amount", IntegerArgumentType.integer()).executes(ctx -> {

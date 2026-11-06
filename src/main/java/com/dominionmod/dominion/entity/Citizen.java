@@ -101,6 +101,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     private long lastUpkeepDay = -1;
     private int hungryDays, unpaidDays;
     private Job lastJob = Job.UNASSIGNED;
+    private int lastWorkTick;
 
     public Citizen(EntityType<? extends Citizen> type, Level level) {
         super(type, level);
@@ -292,6 +293,9 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     public void debugUpkeep() {
         if (this.level() instanceof ServerLevel level) upkeep(level, lastUpkeepDay + 1);
     }
+
+    public void markWorked() { lastWorkTick = tickCount; }
+    public int idleTicks() { return tickCount - lastWorkTick; }
 
     public int hungryDays() { return hungryDays; }
     public int unpaidDays() { return unpaidDays; }

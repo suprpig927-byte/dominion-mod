@@ -20,7 +20,7 @@ import net.minecraft.world.item.ItemStack;
 public class DepositGoal extends Goal {
     private static final Map<UUID, Long> WARNED = new HashMap<>();
     private final Citizen c;
-    private BlockPos hall;
+    private BlockPos hall, stand;
     private int ticks, cooldown;
 
     public DepositGoal(Citizen c) {
@@ -35,7 +35,8 @@ public class DepositGoal extends Goal {
         cooldown = 40;
         int haul = c.haulCount();
         boolean evening = !c.level().isBrightOutside();
-        if (!(c.inventoryFull() && haul > 0) && haul < 48 && !(evening && haul > 0)) return false;
+        boolean idle = haul > 0 && c.idleTicks() > 300;
+        if (!(c.inventoryFull() && haul > 0) && haul < 32 && !(evening && haul > 0) && !idle) return false;
         Kingdom k = c.kingdom();
         if (k == null || k.hall.isEmpty() || !k.hallDim.equals(KingdomData.dim(c.level()))) return false;
         hall = k.hall.get();
@@ -45,7 +46,8 @@ public class DepositGoal extends Goal {
     @Override
     public void start() {
         ticks = 0;
-        c.getNavigation().moveTo(hall.getX() + 0.5, hall.getY(), hall.getZ() + 0.5, 0.55);
+        stand = Spots.standNear(c.level(), hall, c);
+        c.getNavigation().moveTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, 0.55);
     }
 
     @Override
@@ -58,7 +60,7 @@ public class DepositGoal extends Goal {
         if (hall == null) return;
         ticks++;
         if (c.distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(hall)) > 4.5 * 4.5) {
-            if (ticks % 40 == 0) c.getNavigation().moveTo(hall.getX() + 0.5, hall.getY(), hall.getZ() + 0.5, 0.55);
+            if (ticks % 40 == 0) c.getNavigation().moveTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5, 0.55);
             return;
         }
         if (!(c.level() instanceof ServerLevel level)) return;

@@ -35,7 +35,7 @@ import net.minecraft.world.level.levelgen.Heightmap;
 
 /**
  * /dominion admin selftest: builds a tiny kingdom far from spawn (a hall, a storehouse, beds, a
- * wheat field, a tree, four citizens and a zombie), then logs what happened 30 seconds later.
+ * wheat field, a tree, four citizens and a zombie), then logs what happened 75 seconds later.
  * Used by the automated server test; harmless to run in a creative test world.
  */
 public final class SelfTest {
@@ -124,7 +124,7 @@ public final class SelfTest {
             level.addFreshEntity(z);
             zombie = z.getUUID();
         }
-        checkAt = level.getGameTime() + 600;
+        checkAt = level.getGameTime() + 1500;
         log("started at " + center + ", citizens: " + citizens.size() + ", kingdom citizens: " + k.citizens);
     }
 

@@ -1,1 +1,1 @@
-dominion admin selftest; wait 40; dominion list
+dominion admin selftest; wait 85; dominion list

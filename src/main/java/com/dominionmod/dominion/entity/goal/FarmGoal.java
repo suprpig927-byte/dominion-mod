@@ -57,6 +57,7 @@ public class FarmGoal extends Goal {
             }
         }
         target = best;
+        if (best != null) c.markWorked();
         planting = bestPlant;
         return best != null;
     }
