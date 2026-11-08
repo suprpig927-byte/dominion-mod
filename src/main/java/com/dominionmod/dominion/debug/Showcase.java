@@ -38,6 +38,11 @@ public final class Showcase {
         server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), "time set noon");
         server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), "weather clear");
         server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), "gamerule doDaylightCycle false");
+        // The flat test world spawns slimes; keep them away from the camera and keep the camera alive.
+        for (String cmd : new String[]{"gamerule doMobSpawning false", "gamerule spawn_mobs false", "gamerule advance_time false", "kill @e[type=minecraft:slime]"})
+            server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), cmd);
+        p.getAbilities().invulnerable = true;
+        p.onUpdateAbilities();
         BlockPos c = p.blockPosition();
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, c.getX(), c.getZ());
         BlockPos center = new BlockPos(c.getX(), y, c.getZ());
