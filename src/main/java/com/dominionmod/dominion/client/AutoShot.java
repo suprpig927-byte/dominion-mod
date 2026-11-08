@@ -72,7 +72,7 @@ public final class AutoShot {
         if (t == 400) shot(mc, "tier_thatch");
         if (t == 402) look(mc, bx + 24, by + 1, bz - 13, 180f, 5f);
         if (t == 440) shot(mc, "tier_royal");
-        if (t == 442) look(mc, bx, by + 9, bz - 22, 180f, 18f);
+        if (t == 442) look(mc, bx, by + 13, bz - 16, 180f, 22f);
         if (t == 490) shot(mc, "buildings");
         if (t == 492) look(mc, bx - 26, by + 1, bz - 31, 180f, 5f);
         if (t == 530) shot(mc, "storehouse");
@@ -89,18 +89,26 @@ public final class AutoShot {
             if (mc.gui.hud.isHidden()) mc.gui.hud.toggle();
         }
         if (t == 720) shot(mc, "first_person");
-        if (t == 722) mc.player.startUsingItem(net.minecraft.world.InteractionHand.OFF_HAND);
+        if (t == 721) mc.player.getInventory().setSelectedSlot(1);
+        if (t == 728) shot(mc, "flintlock_fp");
+        if (t == 729) mc.player.getInventory().setSelectedSlot(8);
+        if (t == 732) mc.options.keyUse.setDown(true);
         if (t == 740) shot(mc, "blocking");
         if (t == 742) {
-            mc.player.stopUsingItem();
+            mc.options.keyUse.setDown(false);
+            mc.player.getInventory().setSelectedSlot(0);
             if (!mc.gui.hud.isHidden()) mc.gui.hud.toggle();
             mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);
         }
         if (t == 770) shot(mc, "third_person");
-        if (t == 772) mc.player.startUsingItem(net.minecraft.world.InteractionHand.OFF_HAND);
+        if (t == 772) {
+            mc.player.getInventory().setSelectedSlot(8);
+            mc.options.keyUse.setDown(true);
+        }
         if (t == 790) shot(mc, "third_person_block");
         if (t == 792) {
-            mc.player.stopUsingItem();
+            mc.options.keyUse.setDown(false);
+            mc.player.getInventory().setSelectedSlot(0);
             mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
             look(mc, bx, by, bz, 180f, 10f);
             if (mc.gui.hud.isHidden()) mc.gui.hud.toggle();
