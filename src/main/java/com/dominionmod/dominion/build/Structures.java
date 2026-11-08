@@ -21,7 +21,9 @@ import org.jspecify.annotations.Nullable;
  *  K chest  R barrel  Q crafting table  A ladder  B bookshelf  E lectern  Y anvil  U blast furnace  S smithing table
  *  H Research Table  J Training Desk  T Market  N kingdom flag  X/Z wool in primary/secondary color
  *  f farmland  ~ water  y wheat  g fence gate  O spruce log  o spruce fence  s oak slab  c campfire
+ *  x/z log beam running east-west/north-south
  *  decorations (free): 1-4 open shutter facing N/E/S/W   v flowering planter   d path   e chimney fire
+ *  [ ] eave bracket on the west/east side   w door awning
  * </pre>
  */
 public final class Structures {
@@ -96,7 +98,8 @@ public final class Structures {
 
     /**
      * Dresses a house up: open shutters beside every window, flowering planters under the ground-floor
-     * windows, a path and lanterns at the front door, and a smoking chimney up the back gable.
+     * windows, a path, lanterns and an awning at the front door, a log beam round the top of the walls,
+     * brackets under the eaves, a window in each gable, and a smoking chimney up the back gable.
      * (Decorations cost nothing: builders bring their own trim.)
      */
     private static String[][] decorate(List<String[]> layers, int wallLayers, int W, int D) {
@@ -127,6 +130,31 @@ public final class Structures {
                     }
                 }
             }
+        }
+        // timber framing: a log beam runs round the top of the walls
+        int top = wallLayers - 1;
+        for (int z = 1; z < D - 1; z++) {
+            for (int x = 1; x < W - 1; x++) {
+                boolean side = x == 1 || x == W - 2, end = z == 1 || z == D - 2;
+                if (side == end) continue; // inside, or a corner post
+                char c = g[top][z][x];
+                if (c == 'W' || c == 'P') g[top][z][x] = end ? 'x' : 'z';
+            }
+        }
+        // carved brackets under the eaves along both sides
+        for (int z = 1; z < D - 1; z++) {
+            if (g[top][z][0] == ' ') g[top][z][0] = '[';
+            if (g[top][z][W - 1] == ' ') g[top][z][W - 1] = ']';
+        }
+        // a little window high in each gable
+        int gy = wallLayers + 1;
+        if (W - 4 >= 3 && gy < g.length) {
+            for (int z : new int[]{1, D - 2}) if (g[gy][z][W / 2] == 'P') g[gy][z][W / 2] = 'G';
+        }
+        // a sloped awning over the front door
+        for (int x = 1; x < W - 1; x++) {
+            if (g[1][D - 2][x] != 'D') continue;
+            for (int t = -1; t <= 1; t++) if (g[3][D - 1][x + t] == ' ') g[3][D - 1][x + t] = 'w';
         }
         // the chimney: up the back, beside the east slope, poking above the roof with a fire on top
         if (W >= 9 && g.length >= wallLayers + 5) {

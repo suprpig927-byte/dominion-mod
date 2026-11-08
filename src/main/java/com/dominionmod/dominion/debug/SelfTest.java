@@ -169,7 +169,7 @@ public final class SelfTest {
         }
         StringBuilder deco = new StringBuilder();
         for (String[] layer : com.dominionmod.dominion.build.Structures.get("cottage").layers())
-            for (String row : layer) for (char ch : row.toCharArray()) if ("1234vde".indexOf(ch) >= 0) deco.append(ch);
+            for (String row : layer) for (char ch : row.toCharArray()) if ("1234vdexz[]wG".indexOf(ch) >= 0) deco.append(ch);
         log("cottage decorations: " + deco);
         checkAt = level.getGameTime() + 3000;
         log("started at " + center + ", citizens: " + citizens.size() + ", kingdom citizens: " + k.citizens);

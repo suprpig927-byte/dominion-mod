@@ -127,6 +127,13 @@ public final class AutoShot {
         if (t == 980) shot(mc, "flag");
         if (t == 1000) {
             mc.gui.setScreen(null);
+            if (!mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+            look(mc, bx + 6.5, by + 2, bz - 14, 145f, 8f);
+        }
+        if (t == 1040) shot(mc, "house_corner");
+        if (t == 1042) look(mc, bx - 6.5, by + 2, bz - 32, -35f, 8f);
+        if (t == 1080) shot(mc, "house_back");
+        if (t == 1100) {
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();
         }

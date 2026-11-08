@@ -103,6 +103,21 @@ public final class Palette {
                 yield shutter.defaultBlockState().setValue(net.minecraft.world.level.block.TrapDoorBlock.FACING, d)
                         .setValue(net.minecraft.world.level.block.TrapDoorBlock.OPEN, true);
             }
+            case 'x', 'z' -> {
+                BlockState log = pick(tier, Blocks.STRIPPED_OAK_LOG, Blocks.SPRUCE_LOG, Blocks.SPRUCE_LOG, Blocks.DARK_OAK_LOG, Blocks.POLISHED_BASALT);
+                yield log.setValue(RotatedPillarBlock.AXIS, c == 'x' ? Direction.Axis.X : Direction.Axis.Z);
+            }
+            case '[', ']', 'w' -> {
+                Block wood = switch (tier) {
+                    case THATCH -> Blocks.OAK_STAIRS;
+                    case TIMBER, STONE -> Blocks.SPRUCE_STAIRS;
+                    default -> Blocks.DARK_OAK_STAIRS;
+                };
+                Direction d = c == '[' ? Direction.EAST : c == ']' ? Direction.WEST : Direction.NORTH;
+                yield wood.defaultBlockState().setValue(StairBlock.FACING, d)
+                        .setValue(StairBlock.HALF, c == 'w' ? net.minecraft.world.level.block.state.properties.Half.BOTTOM
+                                : net.minecraft.world.level.block.state.properties.Half.TOP);
+            }
             case 'v' -> Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState().setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true);
             case 'd' -> Blocks.DIRT_PATH.defaultBlockState();
             case 'e' -> Blocks.CAMPFIRE.defaultBlockState();
@@ -116,6 +131,6 @@ public final class Palette {
 
     /** Characters whose block is placed for free (no material needed). */
     public static boolean free(char c) {
-        return c == 'f' || c == '~' || c == 'N' || (c >= '1' && c <= '4') || c == 'v' || c == 'd' || c == 'e';
+        return c == 'f' || c == '~' || c == 'N' || (c >= '1' && c <= '4') || c == 'v' || c == 'd' || c == 'e' || c == '[' || c == ']' || c == 'w';
     }
 }
