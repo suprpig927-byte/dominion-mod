@@ -133,7 +133,32 @@ public final class AutoShot {
         if (t == 1040) shot(mc, "house_corner");
         if (t == 1042) look(mc, bx - 6.5, by + 2, bz - 32, -35f, 8f);
         if (t == 1080) shot(mc, "house_back");
-        if (t == 1100) {
+        // the new house designs (north row)
+        if (t == 1100) look(mc, bx - 19, by + 3, bz - 45, 180f, 8f);
+        if (t == 1140) shot(mc, "designs_west");
+        if (t == 1142) look(mc, bx + 19, by + 3, bz - 45, 180f, 8f);
+        if (t == 1180) shot(mc, "designs_east");
+        // the creatures
+        if (t == 1182) look(mc, bx - 20.5, by + 1.2, bz - 4.5, 0f, 6f);
+        if (t == 1220) shot(mc, "creatures");
+        // the orc village to the east
+        if (t == 1222) look(mc, bx + 38, by + 6, bz - 3.5, -90f, 12f);
+        if (t == 1280) shot(mc, "orc_village");
+        // the wild kingdom and its castle to the south
+        if (t == 1282) look(mc, bx, by + 16, bz + 14, 0f, 20f);
+        if (t == 1340) shot(mc, "castle");
+        if (t == 1342) look(mc, bx, by + 7, bz + 92, 180f, 8f);
+        if (t == 1390) shot(mc, "castle_gate");
+        // casting a spell
+        if (t == 1392) {
+            look(mc, bx, by, bz, 180f, -5f);
+            if (mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+            mc.player.getInventory().setSelectedSlot(7);
+        }
+        if (t == 1410) mc.options.keyUse.setDown(true);
+        if (t == 1413) mc.options.keyUse.setDown(false);
+        if (t == 1416) shot(mc, "spell");
+        if (t == 1440) {
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();
         }

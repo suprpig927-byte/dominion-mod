@@ -52,6 +52,10 @@ public class Deer extends Animal {
         b.define(STAG, false);
     }
 
+    public void forceStag(boolean stag) {
+        this.entityData.set(STAG, stag);
+    }
+
     public boolean isStag() {
         return this.entityData.get(STAG);
     }

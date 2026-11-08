@@ -152,11 +152,56 @@ public final class Showcase {
         var inv = p.getInventory();
         ItemStack[] bar = {new ItemStack(ModContent.MUSKET.get()), new ItemStack(ModContent.FLINTLOCK.get()), new ItemStack(ModContent.LONGSWORD.get()),
                 new ItemStack(ModContent.GREATSWORD.get()), new ItemStack(ModContent.BATTLE_AXE.get()), new ItemStack(ModContent.HALBERD.get()),
-                new ItemStack(ModContent.GLAIVE.get()), new ItemStack(ModContent.FLAIL.get()), new ItemStack(ModContent.BULLET.get(), 32)};
+                pouch(), new ItemStack(ModContent.SPELL_BOOK.get()), new ItemStack(ModContent.BULLET.get(), 32)};
         for (int i = 0; i < bar.length; i++) inv.setItem(i, bar[i]);
         inv.setSelectedSlot(0);
         p.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(ModContent.IRON_SHIELD.get()));
+        p.giveExperienceLevels(30);
+
+        // The new house designs, and two of them with an upper storey, in a row behind the others.
+        instant(level, k, "longhouse", center.offset(-26, -1, -56), 0, 1);
+        instant(level, k, "farmhouse", center.offset(-12, -1, -56), 0, 2);
+        instant(level, k, "townhouse_2", center.offset(1, -1, -56), 0, 3);
+        instant(level, k, "cottage_2", center.offset(12, -1, -56), 0, 4);
+        instant(level, k, "farmhouse_2", center.offset(26, -1, -56), 0, 1);
+
+        // A row of wild creatures, standing still for their portraits.
+        var creatures = List.of(ModContent.DEER.get(), ModContent.DEER.get(), ModContent.MUSTANG.get(), ModContent.CLYDESDALE.get(),
+                ModContent.SHETLAND_PONY.get(), ModContent.CENTAUR.get(), ModContent.ORC.get(), ModContent.ORC.get());
+        for (int i = 0; i < creatures.size(); i++) {
+            var m = creatures.get(i).create(level, EntitySpawnReason.COMMAND);
+            if (m == null) continue;
+            m.snapTo(center.getX() - 31.5 + i * 2.8, center.getY(), center.getZ() + 8.5, 90, 0);
+            m.finalizeSpawn(level, level.getCurrentDifficultyAt(center), EntitySpawnReason.COMMAND, null);
+            if (m instanceof com.dominionmod.dominion.entity.wild.Deer deer && i == 0) deer.forceStag(true);
+            if (m instanceof com.dominionmod.dominion.entity.wild.Deer deer && i == 1) deer.forceStag(false);
+            if (m instanceof com.dominionmod.dominion.entity.wild.Orc orc && i == 7) orc.makeChief();
+            m.setYHeadRot(90);
+            m.setYBodyRot(90);
+            m.setNoAi(true);
+            m.setInvulnerable(true);
+            m.setPersistenceRequired();
+            level.addFreshEntity(m);
+        }
+
+        // An orc village to the east and a wild kingdom with its castle to the south.
+        var rs = net.minecraft.util.RandomSource.create(7);
+        int ox = center.getX() + 72, oz = center.getZ();
+        com.dominionmod.dominion.kingdom.Settlements.generateNow(level, com.dominionmod.dominion.kingdom.Settlements.Type.ORC_VILLAGE,
+                new BlockPos(ox, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ox, oz) - 1, oz), rs);
+        int cx = center.getX(), cz = center.getZ() + 64;
+        com.dominionmod.dominion.kingdom.Settlements.generateNow(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_KINGDOM,
+                new BlockPos(cx, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, cx, cz) - 1, cz), rs);
+        for (var orc : level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.Orc.class, new net.minecraft.world.phys.AABB(new BlockPos(ox, center.getY(), oz)).inflate(40))) {
+            orc.setNoAi(true);
+        }
         p.teleportTo(level, center.getX() + 0.5, center.getY(), center.getZ() + 3.5, java.util.Set.of(), 180f, 10f, true);
+    }
+
+    private static ItemStack pouch() {
+        ItemStack s = new ItemStack(ModContent.AMMO_POUCH.get());
+        com.dominionmod.dominion.item.AmmoPouchItem.setCount(s, 300);
+        return s;
     }
 
     /** Builds a structure immediately (no builders, no materials). */
