@@ -152,4 +152,18 @@ public class Orc extends Monster {
     public boolean canAttack(LivingEntity target) {
         return !(target instanceof Orc) && super.canAttack(target);
     }
+
+    @Override
+    public void die(net.minecraft.world.damagesource.DamageSource source) {
+        com.dominionmod.dominion.DominionMod.LOGGER.info("SELFTEST orc died ({}) at {} from {} by {}", isChief() ? "chief" : "orc",
+                blockPosition().toShortString(), source.getMsgId(), source.getEntity() == null ? "-" : source.getEntity().getType().toShortString());
+        super.die(source);
+    }
+
+    @Override
+    public void remove(RemovalReason reason) {
+        if (reason != RemovalReason.UNLOADED_TO_CHUNK && reason != RemovalReason.KILLED)
+            com.dominionmod.dominion.DominionMod.LOGGER.info("SELFTEST orc removed {} at {}", reason, blockPosition().toShortString());
+        super.remove(reason);
+    }
 }
