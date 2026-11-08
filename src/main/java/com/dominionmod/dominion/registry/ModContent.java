@@ -111,12 +111,12 @@ public final class ModContent {
 
     // ---------------------------------------------------------------- spawn eggs
 
-    /** One spawn egg per mob the mod adds. Which mob each egg hatches is attached once the entity types exist (see register). */
+    /** One spawn egg per mob the mod adds. Entity types register before items, so each egg can name its mob directly. */
     public static final java.util.Map<String, DeferredItem<net.minecraft.world.item.SpawnEggItem>> SPAWN_EGGS = new java.util.LinkedHashMap<>();
 
     static {
         for (String mob : List.of("citizen", "deer", "orc", "centaur", "clydesdale", "mustang", "shetland_pony"))
-            SPAWN_EGGS.put(mob, ITEMS.registerItem(mob + "_spawn_egg", net.minecraft.world.item.SpawnEggItem::new, p -> p));
+            SPAWN_EGGS.put(mob, ITEMS.registerItem(mob + "_spawn_egg", net.minecraft.world.item.SpawnEggItem::new, p -> p.spawnEgg(eggMob(mob))));
     }
 
     private static EntityType<?> eggMob(String mob) {
@@ -211,9 +211,6 @@ public final class ModContent {
         ITEMS.register(modBus);
         ENTITIES.register(modBus);
         TABS.register(modBus);
-        modBus.addListener((net.neoforged.neoforge.event.ModifyDefaultComponentsEvent e) ->
-                SPAWN_EGGS.forEach((mob, egg) -> e.modify(egg.get(), b -> b.set(DataComponents.ENTITY_DATA,
-                        net.minecraft.world.item.component.TypedEntityData.of(eggMob(mob), new net.minecraft.nbt.CompoundTag())))));
         modBus.addListener((net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent e) -> {
             if (e.getTabKey() == net.minecraft.world.item.CreativeModeTabs.SPAWN_EGGS) SPAWN_EGGS.values().forEach(egg -> e.accept(egg.get()));
         });
