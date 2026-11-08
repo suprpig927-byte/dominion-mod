@@ -26,24 +26,18 @@ import org.jspecify.annotations.Nullable;
  */
 public class BreedHorse extends Horse {
     public enum Breed {
-        /** A big, strong draft horse: lots of health, slow, a poor jumper. Dark coats with white socks. */
-        CLYDESDALE(1.25, 34, 42, 0.16, 0.20, 0.45, 0.60,
-                new Variant[]{Variant.BROWN, Variant.DARK_BROWN, Variant.BLACK, Variant.CHESTNUT},
-                new Markings[]{Markings.WHITE, Markings.WHITE, Markings.WHITE_FIELD}),
-        /** A wild horse of the plains: fast and a great jumper, but not tough. */
-        MUSTANG(1.0, 18, 26, 0.28, 0.34, 0.70, 0.95,
-                new Variant[]{Variant.CHESTNUT, Variant.BROWN, Variant.CREAMY, Variant.GRAY, Variant.BLACK},
-                new Markings[]{Markings.NONE, Markings.WHITE_DOTS, Markings.BLACK_DOTS, Markings.WHITE_FIELD}),
-        /** A tiny, sturdy pony. */
-        SHETLAND(0.62, 12, 18, 0.20, 0.24, 0.40, 0.50, Variant.values(),
-                new Markings[]{Markings.NONE, Markings.WHITE_FIELD, Markings.WHITE_DOTS, Markings.WHITE});
+        /** A big, strong draft horse: lots of health, slow, a poor jumper. Bay, black or dark bay with a bald face and feathered white legs. */
+        CLYDESDALE(1.25, 34, 42, 0.16, 0.20, 0.45, 0.60, new Variant[]{Variant.BROWN, Variant.BLACK, Variant.DARK_BROWN}),
+        /** A wild horse of the plains: fast and a great jumper, but not tough. Buckskin, grullo, pinto, sorrel or bay. */
+        MUSTANG(1.0, 18, 26, 0.28, 0.34, 0.70, 0.95, new Variant[]{Variant.CREAMY, Variant.GRAY, Variant.WHITE, Variant.CHESTNUT, Variant.BROWN}),
+        /** A tiny, sturdy, shaggy pony. Black, chestnut with a flaxen mane, piebald, dapple grey or palomino. */
+        SHETLAND(0.62, 12, 18, 0.20, 0.24, 0.40, 0.50, new Variant[]{Variant.BLACK, Variant.CHESTNUT, Variant.WHITE, Variant.GRAY, Variant.CREAMY});
 
         public final double scale, minHp, maxHp, minSpeed, maxSpeed, minJump, maxJump;
+        /** Each coat is a painted texture of its own; the vanilla colour it is stored as only picks which one. */
         public final Variant[] coats;
-        public final Markings[] markings;
 
-        Breed(double scale, double minHp, double maxHp, double minSpeed, double maxSpeed, double minJump, double maxJump,
-              Variant[] coats, Markings[] markings) {
+        Breed(double scale, double minHp, double maxHp, double minSpeed, double maxSpeed, double minJump, double maxJump, Variant[] coats) {
             this.scale = scale;
             this.minHp = minHp;
             this.maxHp = maxHp;
@@ -52,7 +46,12 @@ public class BreedHorse extends Horse {
             this.minJump = minJump;
             this.maxJump = maxJump;
             this.coats = coats;
-            this.markings = markings;
+        }
+
+        /** The breed's coat for a stored colour (horses from older saves may carry a colour the breed doesn't have). */
+        public Variant coatFor(Variant v) {
+            for (Variant c : coats) if (c == v) return v;
+            return coats[v.getId() % coats.length];
         }
     }
 
@@ -80,7 +79,7 @@ public class BreedHorse extends Horse {
                                                   @Nullable SpawnGroupData data) {
         SpawnGroupData out = super.finalizeSpawn(level, difficulty, reason, data);
         RandomSource r = level.getRandom();
-        setLook(Util.getRandom(breed.coats, r), Util.getRandom(breed.markings, r));
+        setLook(Util.getRandom(breed.coats, r), Markings.NONE);
         return out;
     }
 
@@ -111,8 +110,9 @@ public class BreedHorse extends Horse {
         BreedHorse foal = type.create(level, EntitySpawnReason.BREEDING);
         if (foal == null) return null;
         Horse other = partner instanceof Horse h ? h : this;
-        foal.setLook(this.random.nextBoolean() ? this.getVariant() : other.getVariant(),
-                this.random.nextInt(3) == 0 ? Util.getRandom(breed.markings, this.random) : this.getMarkings());
+        Variant coat = this.random.nextInt(8) == 0 ? Util.getRandom(breed.coats, this.random)
+                : breed.coatFor(this.random.nextBoolean() ? this.getVariant() : other.getVariant());
+        foal.setLook(coat, Markings.NONE);
         this.setOffspringAttributes(partner, foal);
         return foal;
     }

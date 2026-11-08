@@ -262,7 +262,7 @@ def totem_top():
 
 
 def write():
-    deer()
+    # deer.png now comes from gen_beasts.py
     centaur()
     orc(False)
     orc(True)

@@ -18,7 +18,21 @@ public final class WildModels {
     public static final ModelLayerLocation CENTAUR = new ModelLayerLocation(DominionMod.id("centaur"), "main");
     public static final ModelLayerLocation ORC = new ModelLayerLocation(DominionMod.id("orc"), "main");
 
+    private static final java.util.Map<String, ModelLayerLocation> HORSES = new java.util.HashMap<>();
+
+    /** Layer for a breed horse: "main", "baby", "armor" or "saddle". */
+    public static ModelLayerLocation horse(com.dominionmod.dominion.entity.wild.BreedHorse.Breed breed, String layer) {
+        return HORSES.computeIfAbsent(breed.name() + "/" + layer,
+                k -> new ModelLayerLocation(DominionMod.id("horse_" + breed.name().toLowerCase()), layer));
+    }
+
     public static void register(EntityRenderersEvent.RegisterLayerDefinitions e) {
+        for (var breed : com.dominionmod.dominion.entity.wild.BreedHorse.Breed.values()) {
+            e.registerLayerDefinition(horse(breed, "main"), () -> BreedHorseModels.body(breed));
+            e.registerLayerDefinition(horse(breed, "baby"), () -> BreedHorseModels.baby(breed));
+            e.registerLayerDefinition(horse(breed, "armor"), () -> BreedHorseModels.armor(breed));
+            e.registerLayerDefinition(horse(breed, "saddle"), () -> BreedHorseModels.saddle(breed));
+        }
         e.registerLayerDefinition(DEER, DeerModel::createBodyLayer);
         e.registerLayerDefinition(DEER_BABY, DeerModel::createBabyLayer);
         e.registerLayerDefinition(CENTAUR, CentaurModel::createBodyLayer);

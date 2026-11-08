@@ -170,19 +170,45 @@ public final class Showcase {
         instant(level, k, "cottage_2", center.offset(12, -1, -56), 0, 4);
         instant(level, k, "farmhouse_2", center.offset(26, -1, -56), 0, 1);
 
-        // A row of wild creatures, standing still for their portraits.
-        var creatures = List.of(ModContent.DEER.get(), ModContent.DEER.get(), ModContent.MUSTANG.get(), ModContent.CLYDESDALE.get(),
-                ModContent.SHETLAND_PONY.get(), ModContent.CENTAUR.get(), ModContent.ORC.get(), ModContent.ORC.get());
-        for (int i = 0; i < creatures.size(); i++) {
-            var m = creatures.get(i).create(level, EntitySpawnReason.COMMAND);
+        // Wild animals standing still for their portraits: deer and the pony coats to the west,
+        // every Clydesdale and Mustang coat to the east.
+        record Sitter(net.minecraft.world.entity.EntityType<?> type, int look) {}
+        var west = List.of(new Sitter(ModContent.DEER.get(), 1), new Sitter(ModContent.DEER.get(), 0), new Sitter(ModContent.DEER.get(), 2),
+                new Sitter(ModContent.SHETLAND_PONY.get(), 0), new Sitter(ModContent.SHETLAND_PONY.get(), 1), new Sitter(ModContent.SHETLAND_PONY.get(), 2),
+                new Sitter(ModContent.SHETLAND_PONY.get(), 3), new Sitter(ModContent.SHETLAND_PONY.get(), 4));
+        var east = List.of(new Sitter(ModContent.CLYDESDALE.get(), 0), new Sitter(ModContent.CLYDESDALE.get(), 1), new Sitter(ModContent.CLYDESDALE.get(), 2),
+                new Sitter(ModContent.MUSTANG.get(), 0), new Sitter(ModContent.MUSTANG.get(), 1), new Sitter(ModContent.MUSTANG.get(), 2),
+                new Sitter(ModContent.MUSTANG.get(), 3), new Sitter(ModContent.MUSTANG.get(), 4));
+        for (int row = 0; row < 2; row++) {
+            var sitters = row == 0 ? west : east;
+            for (int i = 0; i < sitters.size(); i++) {
+                Sitter st = sitters.get(i);
+                if (!(st.type().create(level, EntitySpawnReason.COMMAND) instanceof net.minecraft.world.entity.Mob m)) continue;
+                double x = row == 0 ? center.getX() - 31.5 + i * 2.8 : center.getX() + 3.5 + i * 3.0;
+                m.snapTo(x, center.getY(), center.getZ() + 8.5, 90, 0);
+                m.finalizeSpawn(level, level.getCurrentDifficultyAt(center), EntitySpawnReason.COMMAND, null);
+                if (m instanceof com.dominionmod.dominion.entity.wild.Deer deer) {
+                    deer.forceStag(st.look() == 1);
+                    if (st.look() == 2) deer.setAge(-24000);
+                }
+                if (m instanceof com.dominionmod.dominion.entity.wild.BreedHorse h)
+                    h.setLook(h.breed.coats[st.look()], net.minecraft.world.entity.animal.equine.Markings.NONE);
+                m.setYHeadRot(90);
+                m.setYBodyRot(90);
+                m.setNoAi(true);
+                m.setPermanentlyInvulnerable(true);
+                m.setPersistenceRequired();
+                level.addFreshEntity(m);
+            }
+        }
+        // The centaur and orcs from the last round stand behind the deer.
+        var others = List.of(ModContent.CENTAUR.get(), ModContent.ORC.get(), ModContent.ORC.get());
+        for (int i = 0; i < others.size(); i++) {
+            var m = others.get(i).create(level, EntitySpawnReason.COMMAND);
             if (m == null) continue;
-            m.snapTo(center.getX() - 31.5 + i * 2.8, center.getY(), center.getZ() + 8.5, 90, 0);
+            m.snapTo(center.getX() - 30.5 + i * 3.0, center.getY(), center.getZ() + 12.5, 90, 0);
             m.finalizeSpawn(level, level.getCurrentDifficultyAt(center), EntitySpawnReason.COMMAND, null);
-            if (m instanceof com.dominionmod.dominion.entity.wild.Deer deer && i == 0) deer.forceStag(true);
-            if (m instanceof com.dominionmod.dominion.entity.wild.Deer deer && i == 1) deer.forceStag(false);
-            if (m instanceof com.dominionmod.dominion.entity.wild.Orc orc && i == 7) orc.makeChief();
-            m.setYHeadRot(90);
-            m.setYBodyRot(90);
+            if (m instanceof com.dominionmod.dominion.entity.wild.Orc orc && i == 2) orc.makeChief();
             m.setNoAi(true);
             m.setPermanentlyInvulnerable(true);
             m.setPersistenceRequired();

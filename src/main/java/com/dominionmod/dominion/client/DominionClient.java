@@ -29,9 +29,9 @@ public class DominionClient {
             e.registerEntityRenderer(ModContent.DEER.get(), com.dominionmod.dominion.client.render.wild.DeerRenderer::new);
             e.registerEntityRenderer(ModContent.CENTAUR.get(), com.dominionmod.dominion.client.render.wild.CentaurRenderer::new);
             e.registerEntityRenderer(ModContent.ORC.get(), com.dominionmod.dominion.client.render.wild.OrcRenderer::new);
-            e.registerEntityRenderer(ModContent.CLYDESDALE.get(), net.minecraft.client.renderer.entity.HorseRenderer::new);
-            e.registerEntityRenderer(ModContent.MUSTANG.get(), net.minecraft.client.renderer.entity.HorseRenderer::new);
-            e.registerEntityRenderer(ModContent.SHETLAND_PONY.get(), net.minecraft.client.renderer.entity.HorseRenderer::new);
+            e.registerEntityRenderer(ModContent.CLYDESDALE.get(), ctx -> new com.dominionmod.dominion.client.render.wild.BreedHorseRenderer(ctx, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE));
+            e.registerEntityRenderer(ModContent.MUSTANG.get(), ctx -> new com.dominionmod.dominion.client.render.wild.BreedHorseRenderer(ctx, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.MUSTANG));
+            e.registerEntityRenderer(ModContent.SHETLAND_PONY.get(), ctx -> new com.dominionmod.dominion.client.render.wild.BreedHorseRenderer(ctx, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.SHETLAND));
         });
         modBus.addListener(CitizenModels::register);
         modBus.addListener(com.dominionmod.dominion.client.render.wild.WildModels::register);

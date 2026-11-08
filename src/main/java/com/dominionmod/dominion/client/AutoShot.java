@@ -158,7 +158,15 @@ public final class AutoShot {
         if (t == 1410) mc.options.keyUse.setDown(true);
         if (t == 1413) mc.options.keyUse.setDown(false);
         if (t == 1416) shot(mc, "spell");
-        if (t == 1440) {
+        // horse coats and a close look at the deer
+        if (t == 1418) {
+            if (!mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+            look(mc, bx + 14, by + 1.8, bz - 5.5, 0f, 6f);
+        }
+        if (t == 1460) shot(mc, "horses");
+        if (t == 1462) look(mc, bx - 26.5, by + 1.3, bz + 4.5, 20f, 4f);
+        if (t == 1500) shot(mc, "deer");
+        if (t == 1520) {
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();
         }

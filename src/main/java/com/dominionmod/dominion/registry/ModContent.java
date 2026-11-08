@@ -67,7 +67,7 @@ public final class ModContent {
     private static DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.BreedHorse>> horse(
             String id, com.dominionmod.dominion.entity.wild.BreedHorse.Breed breed) {
         return ENTITIES.registerEntityType(id, (type, level) -> new com.dominionmod.dominion.entity.wild.BreedHorse(type, level, breed),
-                MobCategory.CREATURE, b -> b.sized(1.3964844f, 1.6f).eyeHeight(1.52f).passengerAttachments(1.44375f).clientTrackingRange(10));
+                MobCategory.CREATURE, b -> b.sized(1.3964844f, 1.6f).eyeHeight(1.52f).passengerAttachments(breed == com.dominionmod.dominion.entity.wild.BreedHorse.Breed.SHETLAND ? 1.44375f - 3.0f * 1.1f / 16.0f : 1.44375f).clientTrackingRange(10));
     }
 
     // ---------------------------------------------------------------- blocks

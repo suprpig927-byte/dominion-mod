@@ -8,6 +8,7 @@ import net.minecraft.resources.Identifier;
 
 public class DeerRenderer extends AgeableMobRenderer<Deer, DeerRenderState, DeerModel> {
     private static final Identifier TEXTURE = DominionMod.id("textures/entity/deer.png");
+    private static final Identifier FAWN = DominionMod.id("textures/entity/deer_fawn.png");
 
     public DeerRenderer(EntityRendererProvider.Context ctx) {
         super(ctx, new DeerModel(ctx.bakeLayer(WildModels.DEER)), new DeerModel(ctx.bakeLayer(WildModels.DEER_BABY)), 0.6f);
@@ -26,6 +27,6 @@ public class DeerRenderer extends AgeableMobRenderer<Deer, DeerRenderState, Deer
 
     @Override
     public Identifier getTextureLocation(DeerRenderState s) {
-        return TEXTURE;
+        return s.isBaby ? FAWN : TEXTURE;
     }
 }
