@@ -39,7 +39,7 @@ public final class Palette {
         Block b = switch (tier) {
             case THATCH -> Blocks.MUD_BRICK_STAIRS;
             case TIMBER -> Blocks.SPRUCE_STAIRS;
-            case STONE -> Blocks.STONE_BRICK_STAIRS;
+            case STONE -> Blocks.DEEPSLATE_TILE_STAIRS;
             case BRICK -> Blocks.DARK_OAK_STAIRS;
             default -> Blocks.CUT_COPPER_STAIRS.waxed().unaffected();
         };
@@ -57,7 +57,7 @@ public final class Palette {
             case 'M' -> pick(tier, Blocks.MUD_BRICKS, Blocks.COBBLESTONE, Blocks.STONE_BRICKS, Blocks.STONE_BRICKS, Blocks.DEEPSLATE_TILES);
             case 'W' -> pick(tier, Blocks.PACKED_MUD, Blocks.OAK_PLANKS, Blocks.COBBLESTONE, Blocks.BRICKS, Blocks.DEEPSLATE_BRICKS);
             case 'L' -> {
-                BlockState s = pick(tier, Blocks.STRIPPED_OAK_LOG, Blocks.OAK_LOG, Blocks.STRIPPED_SPRUCE_LOG, Blocks.CHISELED_STONE_BRICKS,
+                BlockState s = pick(tier, Blocks.OAK_LOG, Blocks.OAK_LOG, Blocks.STRIPPED_SPRUCE_LOG, Blocks.CHISELED_STONE_BRICKS,
                         Blocks.POLISHED_DEEPSLATE);
                 yield s.hasProperty(RotatedPillarBlock.AXIS) ? s.setValue(RotatedPillarBlock.AXIS, Direction.Axis.Y) : s;
             }
@@ -66,7 +66,7 @@ public final class Palette {
             case 'F' -> pick(tier, Blocks.OAK_FENCE, Blocks.OAK_FENCE, Blocks.SPRUCE_FENCE, Blocks.DARK_OAK_FENCE, Blocks.DARK_OAK_FENCE);
             case '>' -> tier == THATCH ? Blocks.HAY_BLOCK.defaultBlockState() : stairs(tier, Direction.EAST);
             case '<' -> tier == THATCH ? Blocks.HAY_BLOCK.defaultBlockState() : stairs(tier, Direction.WEST);
-            case 'r' -> pick(tier, Blocks.HAY_BLOCK, Blocks.SPRUCE_PLANKS, Blocks.STONE_BRICKS, Blocks.DARK_OAK_PLANKS,
+            case 'r' -> pick(tier, Blocks.HAY_BLOCK, Blocks.SPRUCE_PLANKS, Blocks.DEEPSLATE_TILES, Blocks.DARK_OAK_PLANKS,
                     Blocks.CUT_COPPER.waxed().unaffected());
             case 'l' -> tier == THATCH ? Blocks.TORCH.defaultBlockState() : Blocks.LANTERN.defaultBlockState();
             case 'n' -> tier == THATCH ? Blocks.AIR.defaultBlockState() : Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true);
@@ -104,7 +104,7 @@ public final class Palette {
                         .setValue(net.minecraft.world.level.block.TrapDoorBlock.OPEN, true);
             }
             case 'x', 'z' -> {
-                BlockState log = pick(tier, Blocks.STRIPPED_OAK_LOG, Blocks.SPRUCE_LOG, Blocks.SPRUCE_LOG, Blocks.DARK_OAK_LOG, Blocks.POLISHED_BASALT);
+                BlockState log = pick(tier, Blocks.OAK_LOG, Blocks.SPRUCE_LOG, Blocks.SPRUCE_LOG, Blocks.DARK_OAK_LOG, Blocks.POLISHED_BASALT);
                 yield log.setValue(RotatedPillarBlock.AXIS, c == 'x' ? Direction.Axis.X : Direction.Axis.Z);
             }
             case '[', ']', 'w' -> {
