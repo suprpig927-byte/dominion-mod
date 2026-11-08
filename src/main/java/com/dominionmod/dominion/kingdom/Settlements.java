@@ -121,6 +121,8 @@ public final class Settlements {
 
     /** The top solid block (not leaves) of a column. */
     private static BlockPos surface(ServerLevel level, int x, int z) {
+        // Load (or generate) the chunk first: an unloaded chunk reports the world floor, and anything spawned there falls out of the world.
+        level.getChunk(x >> 4, z >> 4);
         return new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1, z);
     }
 

@@ -49,6 +49,7 @@ public final class SelfTest {
     private static BlockPos orcCenter, townCenter, castleCenter;
 
     private static BlockPos surfaceAt(ServerLevel level, BlockPos p) {
+        level.getChunk(p.getX() >> 4, p.getZ() >> 4);
         return new BlockPos(p.getX(), level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, p.getX(), p.getZ()) - 1, p.getZ());
     }
     private static UUID kingdom;
@@ -251,7 +252,7 @@ public final class SelfTest {
             log("wild: orc villages=" + d.orcVillages.size() + " wild kingdoms=" + wild);
             if (orcCenter != null) {
                 var orcs = level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.Orc.class, new net.minecraft.world.phys.AABB(orcCenter).inflate(40));
-                log("orcs still home=" + orcs.size() + " chief=" + orcs.stream().anyMatch(com.dominionmod.dominion.entity.wild.Orc::isChief));
+                log("orc village at y=" + orcCenter.getY() + "; orcs still home=" + orcs.size() + " chief=" + orcs.stream().anyMatch(com.dominionmod.dominion.entity.wild.Orc::isChief));
             }
             Kingdom found = null;
             for (Kingdom wk : d.all()) if (wk.wild && wk.name.startsWith("Kingdom of")) found = wk;
