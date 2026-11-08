@@ -540,13 +540,13 @@ def deer_model():
             boxes = [Box((-1.25, 0, -1.25), (2.5, 5.5, 2.5), tag="thigh"), Box((-0.75, 5.5, -0.75), (1.5, 5.5, 1.5), tag="cannon"),
                      Box((-1, 11, -1), (2, 1, 2), tag="hoof")]
             m.part(name, None, (x, 12, z), boxes=boxes, tag="front")
-    head = m.part("head", None, (0, 7.5, -8))
-    neck = m.part("neck", head, (0, 0, 0), (0.42, 0, 0), [Box((-1.5, -9, -1.5), (3, 10, 3.5)), Box((-2, -3, -2), (4, 4.5, 4.5), tag="base")])
-    skull = m.part("skull", neck, (0, -9, 0.5), (-0.5, 0, 0), [
+    head = m.part("head", None, (0, 7.5, -8.5))
+    neck = m.part("neck", head, (0, 0, 0), (0.8, 0, 0), [Box((-1.5, -7.5, -1.5), (3, 8.5, 3.5)), Box((-2, -3, -2), (4, 4.5, 4.5), tag="base")])
+    skull = m.part("skull", neck, (0, -7.5, 0.5), (-0.62, 0, 0), [
         Box((-2, -3, -2.5), (4, 3.5, 4.5), tag="cranium"), Box((-1.25, -2.5, -6.5), (2.5, 2.5, 4), tag="snout"),
         Box((-1, -0.5, -5.5), (2, 1, 3), tag="jaw")])
     for side, sx in (("right", -1), ("left", 1)):
-        m.part(side + "_ear", skull, (sx * 1.6, -2.6, 0.8), (0.15, 0, sx * 0.75), [Box((-0.75, -4, -0.25), (1.5, 4, 0.5))], tag="ear")
+        m.part(side + "_ear", skull, (sx * 1.7, -2.4, 1.0), (0.45, 0, sx * 1.1), [Box((-0.75, -3.5, -0.25), (1.5, 3.5, 0.5))], tag="ear")
     ant = m.part("antlers", skull, (0, -3, 0))
     for side, sx in (("right", -1), ("left", 1)):
         b1 = m.part(side + "_beam", ant, (sx * 1.2, 0, 0.6), (-0.3, 0, sx * 0.5), [Box((-0.5, -5, -0.5), (1, 5, 1))], tag="antler")

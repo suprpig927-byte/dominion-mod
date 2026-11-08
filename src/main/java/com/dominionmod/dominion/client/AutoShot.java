@@ -164,7 +164,7 @@ public final class AutoShot {
             look(mc, bx + 14, by + 1.8, bz - 5.5, 0f, 6f);
         }
         if (t == 1460) shot(mc, "horses");
-        if (t == 1462) look(mc, bx - 26.5, by + 1.3, bz + 4.5, 20f, 4f);
+        if (t == 1462) look(mc, bx - 31.0, by + 1.4, bz + 3.6, 0f, 6f);
         if (t == 1500) shot(mc, "deer");
         if (t == 1520) {
             DominionMod.LOGGER.info("AUTOSHOT done");

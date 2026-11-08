@@ -144,18 +144,18 @@ final class BeastMeshes {
                 .texOffs(93, 20).addBox(-0.75f, 5.5f, 0f, 1.5f, 4.5f, 1.5f, new CubeDeformation(0f))
                 .texOffs(120, 20).addBox(-0.75f, 9.5f, -0.5f, 1.5f, 3f, 1.5f, new CubeDeformation(0f))
                 .texOffs(74, 29).addBox(-1f, 12f, -1f, 2f, 1f, 2f, new CubeDeformation(0f)), PartPose.offsetAndRotation(2f, 11f, 5.5f, 0f, 0f, 0f));
-        PartDefinition p6 = root.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.offsetAndRotation(0f, 7.5f, -8f, 0f, 0f, 0f));
+        PartDefinition p6 = root.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.offsetAndRotation(0f, 7.5f, -8.5f, 0f, 0f, 0f));
         PartDefinition p7 = p6.addOrReplaceChild("neck", CubeListBuilder.create()
-                .texOffs(40, 0).addBox(-1.5f, -9f, -1.5f, 3f, 10f, 3.5f, new CubeDeformation(0f))
-                .texOffs(0, 20).addBox(-2f, -3f, -2f, 4f, 4.5f, 4.5f, new CubeDeformation(0f)), PartPose.offsetAndRotation(0f, 0f, 0f, 0.42f, 0f, 0f));
+                .texOffs(40, 0).addBox(-1.5f, -7.5f, -1.5f, 3f, 8.5f, 3.5f, new CubeDeformation(0f))
+                .texOffs(0, 20).addBox(-2f, -3f, -2f, 4f, 4.5f, 4.5f, new CubeDeformation(0f)), PartPose.offsetAndRotation(0f, 0f, 0f, 0.8f, 0f, 0f));
         PartDefinition p8 = p7.addOrReplaceChild("skull", CubeListBuilder.create()
                 .texOffs(17, 20).addBox(-2f, -3f, -2.5f, 4f, 3.5f, 4.5f, new CubeDeformation(0f))
                 .texOffs(54, 20).addBox(-1.25f, -2.5f, -6.5f, 2.5f, 2.5f, 4f, new CubeDeformation(0f))
-                .texOffs(24, 29).addBox(-1f, -0.5f, -5.5f, 2f, 1f, 3f, new CubeDeformation(0f)), PartPose.offsetAndRotation(0f, -9f, 0.5f, -0.5f, 0f, 0f));
+                .texOffs(16, 29).addBox(-1f, -0.5f, -5.5f, 2f, 1f, 3f, new CubeDeformation(0f)), PartPose.offsetAndRotation(0f, -7.5f, 0.5f, -0.62f, 0f, 0f));
         PartDefinition p9 = p8.addOrReplaceChild("right_ear", CubeListBuilder.create()
-                .texOffs(0, 29).addBox(-0.75f, -4f, -0.25f, 1.5f, 4f, 0.5f, new CubeDeformation(0f)), PartPose.offsetAndRotation(-1.6f, -2.6f, 0.8f, 0.15f, 0f, -0.75f));
+                .texOffs(26, 29).addBox(-0.75f, -3.5f, -0.25f, 1.5f, 3.5f, 0.5f, new CubeDeformation(0f)), PartPose.offsetAndRotation(-1.7f, -2.4f, 1f, 0.45f, 0f, -1.1f));
         PartDefinition p10 = p8.addOrReplaceChild("left_ear", CubeListBuilder.create()
-                .texOffs(4, 29).addBox(-0.75f, -4f, -0.25f, 1.5f, 4f, 0.5f, new CubeDeformation(0f)), PartPose.offsetAndRotation(1.6f, -2.6f, 0.8f, 0.15f, 0f, 0.75f));
+                .texOffs(30, 29).addBox(-0.75f, -3.5f, -0.25f, 1.5f, 3.5f, 0.5f, new CubeDeformation(0f)), PartPose.offsetAndRotation(1.7f, -2.4f, 1f, 0.45f, 0f, 1.1f));
         PartDefinition p11 = p8.addOrReplaceChild("antlers", CubeListBuilder.create(), PartPose.offsetAndRotation(0f, -3f, 0f, 0f, 0f, 0f));
         PartDefinition p12 = p11.addOrReplaceChild("right_beam", CubeListBuilder.create()
                 .texOffs(99, 20).addBox(-0.5f, -5f, -0.5f, 1f, 5f, 1f, new CubeDeformation(0f)), PartPose.offsetAndRotation(-1.2f, 0f, 0.6f, -0.3f, 0f, -0.5f));
@@ -164,9 +164,9 @@ final class BeastMeshes {
         PartDefinition p14 = p12.addOrReplaceChild("right_beam_tip", CubeListBuilder.create()
                 .texOffs(79, 20).addBox(-0.5f, -6f, -0.5f, 1f, 6f, 1f, new CubeDeformation(-0.05f)), PartPose.offsetAndRotation(0f, -5f, 0f, -0.95f, 0f, 0.25f));
         PartDefinition p15 = p14.addOrReplaceChild("right_tine0", CubeListBuilder.create()
-                .texOffs(8, 29).addBox(-0.4f, -3.5f, -0.4f, 1f, 3.5f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -1.2f, 0f, 1.05f, 0f, -0.1f));
+                .texOffs(0, 29).addBox(-0.4f, -3.5f, -0.4f, 1f, 3.5f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -1.2f, 0f, 1.05f, 0f, -0.1f));
         PartDefinition p16 = p14.addOrReplaceChild("right_tine1", CubeListBuilder.create()
-                .texOffs(12, 29).addBox(-0.4f, -4f, -0.4f, 1f, 4f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -3.2f, 0f, 1.05f, 0f, -0.1f));
+                .texOffs(4, 29).addBox(-0.4f, -4f, -0.4f, 1f, 4f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -3.2f, 0f, 1.05f, 0f, -0.1f));
         PartDefinition p17 = p14.addOrReplaceChild("right_tine2", CubeListBuilder.create()
                 .texOffs(38, 29).addBox(-0.4f, -2.5f, -0.4f, 1f, 2.5f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -5.2f, 0f, 1.05f, 0f, -0.1f));
         PartDefinition p18 = p11.addOrReplaceChild("left_beam", CubeListBuilder.create()
@@ -176,9 +176,9 @@ final class BeastMeshes {
         PartDefinition p20 = p18.addOrReplaceChild("left_beam_tip", CubeListBuilder.create()
                 .texOffs(83, 20).addBox(-0.5f, -6f, -0.5f, 1f, 6f, 1f, new CubeDeformation(-0.05f)), PartPose.offsetAndRotation(0f, -5f, 0f, -0.95f, 0f, -0.25f));
         PartDefinition p21 = p20.addOrReplaceChild("left_tine0", CubeListBuilder.create()
-                .texOffs(16, 29).addBox(-0.4f, -3.5f, -0.4f, 1f, 3.5f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -1.2f, 0f, 1.05f, 0f, 0.1f));
+                .texOffs(8, 29).addBox(-0.4f, -3.5f, -0.4f, 1f, 3.5f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -1.2f, 0f, 1.05f, 0f, 0.1f));
         PartDefinition p22 = p20.addOrReplaceChild("left_tine1", CubeListBuilder.create()
-                .texOffs(20, 29).addBox(-0.4f, -4f, -0.4f, 1f, 4f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -3.2f, 0f, 1.05f, 0f, 0.1f));
+                .texOffs(12, 29).addBox(-0.4f, -4f, -0.4f, 1f, 4f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -3.2f, 0f, 1.05f, 0f, 0.1f));
         PartDefinition p23 = p20.addOrReplaceChild("left_tine2", CubeListBuilder.create()
                 .texOffs(46, 29).addBox(-0.4f, -2.5f, -0.4f, 1f, 2.5f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -5.2f, 0f, 1.05f, 0f, 0.1f));
         return mesh;
