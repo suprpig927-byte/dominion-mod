@@ -155,6 +155,11 @@ public final class Settlements {
 
     private record Spot(String structure, BlockPos ground, int rot, int tier) {}
 
+    /** Queues a settlement to be built over the next ticks (a few buildings a tick). */
+    public static void enqueue(ServerLevel level, Type type, BlockPos center, RandomSource r) {
+        JOBS.addAll(plan(level, type, center, r));
+    }
+
     /** Builds a settlement right away (admin command and tests). */
     public static void generateNow(ServerLevel level, Type type, BlockPos center, RandomSource r) {
         for (Runnable job : plan(level, type, center, r)) job.run();

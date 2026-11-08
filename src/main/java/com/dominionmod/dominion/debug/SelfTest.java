@@ -181,15 +181,12 @@ public final class SelfTest {
         try {
             var rs = net.minecraft.util.RandomSource.create(42);
             orcCenter = surfaceAt(level, center.offset(0, 0, -160));
-            com.dominionmod.dominion.kingdom.Settlements.generateNow(level, com.dominionmod.dominion.kingdom.Settlements.Type.ORC_VILLAGE, orcCenter, rs);
+            com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.ORC_VILLAGE, orcCenter, rs);
             townCenter = surfaceAt(level, center.offset(170, 0, 0));
-            com.dominionmod.dominion.kingdom.Settlements.generateNow(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_TOWN, townCenter, rs);
+            com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_TOWN, townCenter, rs);
             castleCenter = surfaceAt(level, center.offset(-220, 0, 0));
-            com.dominionmod.dominion.kingdom.Settlements.generateNow(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_KINGDOM, castleCenter, rs);
-            int wild = 0;
-            for (Kingdom wk : d.all()) if (wk.wild) wild++;
-            log("wild: orc villages=" + d.orcVillages.size() + " wild kingdoms=" + wild
-                    + " orcs=" + level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.Orc.class, new net.minecraft.world.phys.AABB(orcCenter).inflate(40)).size());
+            com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_KINGDOM, castleCenter, rs);
+            log("wild settlements queued");
         } catch (RuntimeException e) {
             log("wild generation FAILED: " + e);
             DominionMod.LOGGER.error("wild", e);
@@ -242,6 +239,9 @@ public final class SelfTest {
         log("musket target " + (mz == null || !mz.isAlive() ? "dead" : "alive hp=" + ((net.minecraft.world.entity.LivingEntity) mz).getHealth()));
         log("beds now: " + (k == null ? -1 : Realm.beds(level, k)));
         try {
+            int wild = 0;
+            for (Kingdom wk : d.all()) if (wk.wild) wild++;
+            log("wild: orc villages=" + d.orcVillages.size() + " wild kingdoms=" + wild);
             if (orcCenter != null) {
                 var orcs = level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.Orc.class, new net.minecraft.world.phys.AABB(orcCenter).inflate(40));
                 log("orcs still home=" + orcs.size() + " chief=" + orcs.stream().anyMatch(com.dominionmod.dominion.entity.wild.Orc::isChief));
