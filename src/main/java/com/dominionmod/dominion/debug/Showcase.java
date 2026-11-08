@@ -131,6 +131,7 @@ public final class Showcase {
                 {new ItemStack(ModContent.FLAIL.get()), new ItemStack(ModContent.IRON_SHIELD.get())},
                 {new ItemStack(ModContent.FLINTLOCK.get()), null},
                 {new ItemStack(ModContent.MUSKET.get()), null},
+                {new ItemStack(Items.IRON_SWORD), null},
         };
         for (int i = 0; i < armory.length; i++) {
             Citizen cit = ModContent.CITIZEN.get().create(level, EntitySpawnReason.COMMAND);
