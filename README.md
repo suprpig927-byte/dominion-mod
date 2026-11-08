@@ -69,6 +69,8 @@ Fireball (3 XP), Evoker Fangs (4), Frost Nova (6: freezes and slows enemies arou
 Craft one from leather, string and an iron nugget. It holds 512 Bullets: right-click it to sweep the loose bullets in your inventory into it, sneak + right-click to take 64 out. Flintlocks and Muskets load straight from a pouch anywhere in your inventory.
 
 ## The wild
+
+Every mob has a spawn egg (Citizen, Deer, Orc, Centaur, Clydesdale, Mustang, Shetland Pony), in the Dominion tab and the Spawn Eggs tab. They work on spawners too.
 - **Horses**: three new breeds roam the plains, meadows and taiga. The **Clydesdale** is huge and tough but slow; the **Mustang** is fast and a great jumper; the **Shetland Pony** is tiny and sturdy. Tame, saddle and breed them like horses; foals take after their parents.
 - **Deer** live in forests, taiga and meadows. They bolt unless you sneak; tempt and breed them with apples or berries. Stags carry antlers. They drop venison (cook it) and leather.
 - **Centaurs** roam the grasslands in bands. They leave you alone unless you hurt one (then the band shoots back), and they hunt orcs.
