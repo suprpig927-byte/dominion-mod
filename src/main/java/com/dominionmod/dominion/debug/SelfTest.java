@@ -178,27 +178,26 @@ public final class SelfTest {
         for (String[] layer : com.dominionmod.dominion.build.Structures.get("cottage").layers())
             for (String row : layer) for (char ch : row.toCharArray()) if ("1234vdexz[]wG".indexOf(ch) >= 0) deco.append(ch);
         log("cottage decorations: " + deco);
-        // The wild: an orc village, a wild town and a wild kingdom with a castle, far off.
-        try {
-            var rs = net.minecraft.util.RandomSource.create(42);
-            orcCenter = surfaceAt(level, center.offset(0, 0, -160));
-            // No player stands near the village during the test: keep its chunks loaded so the orcs stay countable.
-            // Done a few ticks later so the RCON command returns first (loading 25 chunks takes a while).
-            final BlockPos oc = orcCenter;
-            level.getServer().schedule(new net.minecraft.server.TickTask(level.getServer().getTickCount() + 5, () -> {
+        // The wild is set up a few ticks later so the RCON command returns first (generating far chunks takes a while).
+        level.getServer().schedule(new net.minecraft.server.TickTask(level.getServer().getTickCount() + 5, () -> {
+            // The wild: an orc village, a wild town and a wild kingdom with a castle, far off.
+            try {
+                var rs = net.minecraft.util.RandomSource.create(42);
+                orcCenter = surfaceAt(level, center.offset(0, 0, -160));
+                // No player stands near the village during the test: keep its chunks loaded so the orcs stay countable.
                 for (int dx = -2; dx <= 2; dx++) for (int dz = -2; dz <= 2; dz++)
-                    level.setChunkForced((oc.getX() >> 4) + dx, (oc.getZ() >> 4) + dz, true);
-            }));
-            com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.ORC_VILLAGE, orcCenter, rs);
-            townCenter = surfaceAt(level, center.offset(170, 0, 0));
-            com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_TOWN, townCenter, rs);
-            castleCenter = surfaceAt(level, center.offset(-220, 0, 0));
-            com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_KINGDOM, castleCenter, rs);
-            log("wild settlements queued");
-        } catch (RuntimeException e) {
-            log("wild generation FAILED: " + e);
-            DominionMod.LOGGER.error("wild", e);
-        }
+                    level.setChunkForced((orcCenter.getX() >> 4) + dx, (orcCenter.getZ() >> 4) + dz, true);
+                com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.ORC_VILLAGE, orcCenter, rs);
+                townCenter = surfaceAt(level, center.offset(170, 0, 0));
+                com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_TOWN, townCenter, rs);
+                castleCenter = surfaceAt(level, center.offset(-220, 0, 0));
+                com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_KINGDOM, castleCenter, rs);
+                log("wild settlements queued");
+            } catch (RuntimeException e) {
+                log("wild generation FAILED: " + e);
+                DominionMod.LOGGER.error("wild", e);
+            }
+        }));
         // The new animals and a spell.
         for (var type : List.of(ModContent.DEER.get(), ModContent.CENTAUR.get(), ModContent.CLYDESDALE.get(), ModContent.MUSTANG.get(), ModContent.SHETLAND_PONY.get())) {
             var m = type.create(level, EntitySpawnReason.COMMAND);
