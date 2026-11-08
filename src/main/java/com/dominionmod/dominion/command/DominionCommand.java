@@ -109,6 +109,25 @@ public final class DominionCommand {
                     return 1;
                 })))
                 .then(Commands.literal("admin").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("settle").then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
+                                .suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(new String[]{"orc", "town", "kingdom"}, b))
+                                .executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            String kind = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind");
+                            var type = switch (kind) {
+                                case "orc" -> com.dominionmod.dominion.kingdom.Settlements.Type.ORC_VILLAGE;
+                                case "kingdom" -> com.dominionmod.dominion.kingdom.Settlements.Type.WILD_KINGDOM;
+                                default -> com.dominionmod.dominion.kingdom.Settlements.Type.WILD_TOWN;
+                            };
+                            var look = p.getLookAngle();
+                            int dist = type.radius + 8;
+                            int x = p.getBlockX() + (int) (look.x * dist), z = p.getBlockZ() + (int) (look.z * dist);
+                            var level = (net.minecraft.server.level.ServerLevel) p.level();
+                            var center = new net.minecraft.core.BlockPos(x, level.getHeight(net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1, z);
+                            com.dominionmod.dominion.kingdom.Settlements.generateNow(level, type, center, level.getRandom());
+                            ctx.getSource().sendSuccess(() -> Component.literal("Raised a " + kind + " at " + center.toShortString()), true);
+                            return 1;
+                        })))
                         .then(Commands.literal("selftest").executes(ctx -> {
                             com.dominionmod.dominion.debug.SelfTest.start(ctx.getSource().getServer().overworld());
                             ctx.getSource().sendSuccess(() -> Component.literal("Self-test started at 4000, 4000. Results in the log in two minutes."), true);

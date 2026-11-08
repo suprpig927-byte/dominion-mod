@@ -7,7 +7,9 @@ public enum Order {
     /** Fall in behind the commander: a column on the move, a battle line when they stop. */
     RALLY,
     /** Stand at the anchor point and fight only what comes close. */
-    HOLD;
+    HOLD,
+    /** Walk a route of waypoints round and round, fighting whatever turns up. */
+    PATROL;
 
     public static Order byId(int i) {
         return values()[Math.floorMod(i, values().length)];

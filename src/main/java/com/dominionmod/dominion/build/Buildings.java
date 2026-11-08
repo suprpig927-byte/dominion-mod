@@ -37,6 +37,7 @@ public final class Buildings {
             pr.buildings.add(b);
         } else {
             b.tier = Math.max(b.tier, site.tier);
+            b.structure = site.structure;
         }
         placeSign(level, b);
         Realm.data(level).markChanged();
@@ -105,6 +106,23 @@ public final class Buildings {
         }
         int target = pr.maxTier();
         Structures.Structure st = Structures.get(b.structure);
+        // A Builder's Hammer adds a second storey.
+        if (p.getMainHandItem().is(com.dominionmod.dominion.registry.ModContent.BUILDERS_HAMMER.get())) {
+            Structures.Structure up = Structures.storeyOf(b.structure);
+            if (up == null) {
+                return Component.literal(b.structure.endsWith("_2") ? b.name() + " already has an upper storey."
+                        : "A " + b.name() + " can't take a second storey.").withStyle(ChatFormatting.GRAY);
+            }
+            if (!pr.researched.contains("storeys")) {
+                return Component.literal("Research Upper Storeys at a Research Table to add a second storey.").withStyle(ChatFormatting.GRAY);
+            }
+            Site site = new Site(UUID.randomUUID(), k.id, up.id(), b.dim, b.origin, b.origin, b.rotation, List.of(), 0);
+            site.tier = b.tier;
+            site.building = b.id;
+            d.addSite(site);
+            return Component.literal("Your builders will add an upper storey to the " + b.name() + ", with two more beds.")
+                    .withStyle(ChatFormatting.GREEN);
+        }
         if (target <= b.tier) {
             if (b.tier >= Palette.ROYAL) return Component.literal(b.name() + " (Royal): it can't get any grander.").withStyle(ChatFormatting.GOLD);
             Research.Tech next = Research.get(Palette.TIER_RESEARCH[b.tier + 1]);

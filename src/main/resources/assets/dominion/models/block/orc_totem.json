@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "dominion:block/orc_totem_top",
+    "bottom": "dominion:block/orc_totem_top",
+    "side": "dominion:block/orc_totem_side"
+  }
+}

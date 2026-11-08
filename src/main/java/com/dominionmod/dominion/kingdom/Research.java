@@ -24,7 +24,8 @@ public final class Research {
 
     static {
         add("timber", "Carpentry", "Timber buildings: plank walls, log frames, glass windows. Barracks.", 15, 4, 0.25);
-        add("stone", "Masonry", "Stone buildings, the Watchtower, Stone Walls and the Wall Gate.", 30, 10, 0.5, "timber");
+        add("stone", "Masonry", "Stone buildings, the Watchtower, the Castle, Stone Walls and the Wall Gate.", 30, 10, 0.5, "timber");
+        add("storeys", "Upper Storeys", "Second storeys: hold a Builder's Hammer and right-click a house's sign.", 40, 12, 0.5, "timber");
         add("blacksmithing", "Blacksmithing", "The Blacksmith job (Blacksmith's Tongs) and the Smithy.", 25, 8, 0.5, "timber");
         add("brick", "Brickworks", "Brick buildings with dark oak trim and carpets.", 60, 20, 0.75, "stone");
         add("university", "Higher Learning", "The University: train Wizards, Barbarians, Monks and Engineers.", 80, 30, 1.0, "stone");

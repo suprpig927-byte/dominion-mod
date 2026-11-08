@@ -11,9 +11,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.projectile.EvokerFangs;
+import com.dominionmod.dominion.magic.Spell;
+import com.dominionmod.dominion.magic.Spells;
+import net.minecraft.world.phys.Vec3;
 
-/** Wizards keep their distance and conjure a line of fangs that bursts up under their target. */
+/** Wizards keep their distance and cast from their spell book: fireballs, fangs, lightning, frost and healing. */
 public class WizardGoal extends Goal {
     private static final double RANGE = 14, KEEP = 7;
     private final Citizen c;
@@ -51,24 +53,33 @@ public class WizardGoal extends Goal {
             double dx = c.getX() - t.getX(), dz = c.getZ() - t.getZ();
             c.getNavigation().moveTo(c.getX() + dx, c.getY(), c.getZ() + dz, 0.8);
         } else c.getNavigation().stop();
-        if (d <= RANGE && c.castReady() && c.hasLineOfSight(t) && c.level() instanceof ServerLevel level) {
-            cast(level, t);
-            c.startCast(50);
+        if (d <= RANGE + 6 && c.castReady() && c.hasLineOfSight(t) && c.level() instanceof ServerLevel level) {
+            Spell spell = choose(level, t, d);
+            c.swingForAttack(InteractionHand.MAIN_HAND);
+            Vec3 aim = new Vec3(t.getX() - c.getX(), t.getEyeY() - c.getEyeY(), t.getZ() - c.getZ());
+            if (Spells.cast(level, c, spell, aim, t)) {
+                level.sendParticles(ParticleTypes.WITCH, c.getX(), c.getY() + 2.0, c.getZ(), 12, 0.3, 0.3, 0.3, 0.05);
+            }
+            c.startCast(40);
         }
     }
 
-    private void cast(ServerLevel level, LivingEntity t) {
-        c.swingForAttack(InteractionHand.MAIN_HAND);
-        float yaw = (float) Mth.atan2(t.getZ() - c.getZ(), t.getX() - c.getX());
-        double dist = Math.min(RANGE, c.distanceTo(t) + 2);
-        for (int i = 0; i < (int) (dist / 1.25); i++) {
-            double h = 1.25 * (i + 1);
-            double x = c.getX() + Mth.cos(yaw) * h, z = c.getZ() + Mth.sin(yaw) * h;
-            BlockPos ground = BlockPos.containing(x, Math.max(t.getY(), c.getY()) + 1, z);
-            for (int k = 0; k < 6 && level.getBlockState(ground.below()).canBeReplaced(); k++) ground = ground.below();
-            level.addFreshEntity(new EvokerFangs(level, x, ground.getY(), z, yaw, i, c));
+    /**
+     * Picks a spell for the moment: heal hurt friends, freeze a crowd, strike far targets with
+     * lightning, otherwise fangs or fireballs.
+     */
+    private Spell choose(ServerLevel level, LivingEntity t, double d) {
+        boolean ready;
+        if (Spells.cooldownLeft(c, Spell.HEAL) == 0) {
+            for (LivingEntity e : level.getEntitiesOfClass(LivingEntity.class, c.getBoundingBox().inflate(8), e -> Spells.ally(c, e))) {
+                if (e.getHealth() < e.getMaxHealth() * 0.6f) return Spell.HEAL;
+            }
         }
-        level.sendParticles(ParticleTypes.WITCH, c.getX(), c.getY() + 2.0, c.getZ(), 12, 0.3, 0.3, 0.3, 0.05);
-        level.playSound(null, c.blockPosition(), SoundEvents.EVOKER_CAST_SPELL, c.getSoundSource(), 1.0f, 1.2f);
+        int close = level.getEntitiesOfClass(LivingEntity.class, c.getBoundingBox().inflate(5),
+                e -> e instanceof net.minecraft.world.entity.Mob m && m.getTarget() != null && !Spells.ally(c, e)).size();
+        if (close >= 2 && Spells.cooldownLeft(c, Spell.FROST_NOVA) == 0) return Spell.FROST_NOVA;
+        if (d > 9 && Spells.cooldownLeft(c, Spell.LIGHTNING) == 0) return Spell.LIGHTNING;
+        ready = Spells.cooldownLeft(c, Spell.FANGS) == 0;
+        return ready && d < 13 && c.getRandom().nextBoolean() ? Spell.FANGS : Spell.FIREBALL;
     }
 }

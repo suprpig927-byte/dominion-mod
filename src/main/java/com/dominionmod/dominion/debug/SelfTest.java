@@ -46,6 +46,11 @@ public final class SelfTest {
     private static final List<UUID> citizens = new ArrayList<>();
     private static UUID zombie;
     private static UUID musketTarget;
+    private static BlockPos orcCenter, townCenter, castleCenter;
+
+    private static BlockPos surfaceAt(ServerLevel level, BlockPos p) {
+        return new BlockPos(p.getX(), level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, p.getX(), p.getZ()) - 1, p.getZ());
+    }
     private static UUID kingdom;
     private static com.dominionmod.dominion.build.Site cottage;
 
@@ -140,7 +145,8 @@ public final class SelfTest {
         log("bed check: white beds in store=" + Storehouse.count(st, x -> x.is(white.getItem())) + " any beds=" + Storehouse.count(st, x -> x.is(net.minecraft.tags.ItemTags.BEDS))
                 + " satisfies=" + com.dominionmod.dominion.build.Plans.satisfies(Items.BED.pick(net.minecraft.world.item.DyeColor.BLUE), white)
                 + " whiteIsBed=" + white.is(net.minecraft.tags.ItemTags.BEDS));
-        for (String w : new String[]{"stone_wall", "palisade", "watchtower", "barracks", "farm", "storehouse", "market_stall", "wall_gate", "library", "smithy", "university", "cottage"}) {
+        for (String w : new String[]{"stone_wall", "palisade", "watchtower", "barracks", "farm", "storehouse", "market_stall", "wall_gate", "library", "smithy", "university", "cottage",
+                "longhouse", "farmhouse", "townhouse", "castle", "cottage_2", "longhouse_2", "farmhouse_2", "townhouse_2", "orc_hut", "orc_totem"}) {
             BlockPos a = center.offset(-15, -1, -15), b = center.offset(-5, -1, -9);
             var cols = com.dominionmod.dominion.build.Plans.line(a, b);
             var tmp = new com.dominionmod.dominion.build.Site(UUID.randomUUID(), k.id, w, KingdomData.dim(level), a, b, 1, com.dominionmod.dominion.build.Plans.groundHeights(level, cols), 0);
@@ -171,6 +177,33 @@ public final class SelfTest {
         for (String[] layer : com.dominionmod.dominion.build.Structures.get("cottage").layers())
             for (String row : layer) for (char ch : row.toCharArray()) if ("1234vdexz[]wG".indexOf(ch) >= 0) deco.append(ch);
         log("cottage decorations: " + deco);
+        // The wild: an orc village, a wild town and a wild kingdom with a castle, far off.
+        try {
+            var rs = net.minecraft.util.RandomSource.create(42);
+            orcCenter = surfaceAt(level, center.offset(0, 0, -160));
+            com.dominionmod.dominion.kingdom.Settlements.generateNow(level, com.dominionmod.dominion.kingdom.Settlements.Type.ORC_VILLAGE, orcCenter, rs);
+            townCenter = surfaceAt(level, center.offset(170, 0, 0));
+            com.dominionmod.dominion.kingdom.Settlements.generateNow(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_TOWN, townCenter, rs);
+            castleCenter = surfaceAt(level, center.offset(-220, 0, 0));
+            com.dominionmod.dominion.kingdom.Settlements.generateNow(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_KINGDOM, castleCenter, rs);
+            int wild = 0;
+            for (Kingdom wk : d.all()) if (wk.wild) wild++;
+            log("wild: orc villages=" + d.orcVillages.size() + " wild kingdoms=" + wild
+                    + " orcs=" + level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.Orc.class, new net.minecraft.world.phys.AABB(orcCenter).inflate(40)).size());
+        } catch (RuntimeException e) {
+            log("wild generation FAILED: " + e);
+            DominionMod.LOGGER.error("wild", e);
+        }
+        // The new animals and a spell.
+        for (var type : List.of(ModContent.DEER.get(), ModContent.CENTAUR.get(), ModContent.CLYDESDALE.get(), ModContent.MUSTANG.get(), ModContent.SHETLAND_PONY.get())) {
+            var m = type.create(level, EntitySpawnReason.COMMAND);
+            if (m == null) continue;
+            m.snapTo(center.getX() - 12.5, center.getY() + 1, center.getZ() + 12.5, 0, 0);
+            m.finalizeSpawn(level, level.getCurrentDifficultyAt(center), EntitySpawnReason.COMMAND, null);
+            level.addFreshEntity(m);
+            log("spawned " + net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(type) + " hp=" + m.getMaxHealth()
+                    + " scale=" + m.getScale() + (m instanceof net.minecraft.world.entity.animal.equine.Horse h ? " coat=" + h.getVariant() + "/" + h.getMarkings() : ""));
+        }
         checkAt = level.getGameTime() + 3000;
         log("started at " + center + ", citizens: " + citizens.size() + ", kingdom citizens: " + k.citizens);
     }
@@ -208,6 +241,45 @@ public final class SelfTest {
         var mz = musketTarget == null ? null : level.getEntity(musketTarget);
         log("musket target " + (mz == null || !mz.isAlive() ? "dead" : "alive hp=" + ((net.minecraft.world.entity.LivingEntity) mz).getHealth()));
         log("beds now: " + (k == null ? -1 : Realm.beds(level, k)));
+        try {
+            if (orcCenter != null) {
+                var orcs = level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.Orc.class, new net.minecraft.world.phys.AABB(orcCenter).inflate(40));
+                log("orcs still home=" + orcs.size() + " chief=" + orcs.stream().anyMatch(com.dominionmod.dominion.entity.wild.Orc::isChief));
+            }
+            Kingdom found = null;
+            for (Kingdom wk : d.all()) if (wk.wild && wk.name.startsWith("Kingdom of")) found = wk;
+            final Kingdom wildK = found;
+            if (wildK != null && k != null && wildK.hall.isPresent()) {
+                int defenders = com.dominionmod.dominion.kingdom.Settlements.defenders(level, wildK, wildK.hall.get());
+                int buildings = d.progress(wildK).buildings.size();
+                int claimsBefore = d.claimCount(k);
+                for (Citizen c : level.getEntitiesOfClass(Citizen.class, new net.minecraft.world.phys.AABB(wildK.hall.get()).inflate(64),
+                        c -> c.sameKingdom(wildK.id) && c.job().soldier)) c.discard();
+                com.dominionmod.dominion.kingdom.Settlements.conquer(level, wildK, k);
+                log("conquest: " + wildK.name + " defenders=" + defenders + " buildings=" + buildings + " claims " + claimsBefore + " -> " + d.claimCount(k)
+                        + " castle hall=" + level.getBlockState(wildK.hall.get()).getBlock());
+            } else log("conquest: no wild kingdom found");
+            Citizen wiz = null;
+            for (UUID id : citizens) if (level.getEntity(id) instanceof Citizen c) wiz = c;
+            if (wiz != null) {
+                wiz.train(com.dominionmod.dominion.entity.Job.WIZARD);
+                boolean ok = com.dominionmod.dominion.magic.Spells.cast(level, wiz, com.dominionmod.dominion.magic.Spell.FIREBALL,
+                        new net.minecraft.world.phys.Vec3(1, 0, 0), null);
+                boolean heal = com.dominionmod.dominion.magic.Spells.cast(level, wiz, com.dominionmod.dominion.magic.Spell.HEAL,
+                        new net.minecraft.world.phys.Vec3(1, 0, 0), null);
+                log("wizard " + wiz.job() + " holds " + wiz.getMainHandItem().getItem() + " fireball=" + ok + " heal=" + heal);
+                java.util.List<BlockPos> route = List.of(center.offset(-6, 0, -6), center.offset(6, 0, -6), center.offset(6, 0, 6));
+                wiz.train(com.dominionmod.dominion.entity.Job.BARBARIAN);
+                wiz.patrol(route);
+                log("patrol order=" + wiz.order() + " waypoints=" + wiz.patrolRoute().size());
+            }
+            ItemStack pouch = new ItemStack(ModContent.AMMO_POUCH.get());
+            com.dominionmod.dominion.item.AmmoPouchItem.setCount(pouch, 40);
+            log("pouch holds " + com.dominionmod.dominion.item.AmmoPouchItem.count(pouch));
+        } catch (RuntimeException e) {
+            log("wild check FAILED: " + e);
+            DominionMod.LOGGER.error("wild check", e);
+        }
         log("wheat ripe=" + ripe + " replanted=" + young);
         BlockPos tree = center.offset(-8, 0, 8);
         int logs = 0;

@@ -71,6 +71,8 @@ public final class Events {
         long t = level.getGameTime();
         if (level.dimension() == Level.OVERWORLD && t % 1200 == 0) Realm.minuteTick(level);
         if (level.dimension() == Level.OVERWORLD) com.dominionmod.dominion.debug.SelfTest.tick(level);
+        com.dominionmod.dominion.kingdom.Settlements.tick(level);
+        com.dominionmod.dominion.entity.wild.WildLife.tick(level);
         if (level.dimension() == Level.OVERWORLD && t % 20 == 0) com.dominionmod.dominion.kingdom.Scholarship.tick(level);
         if (t % 2400 == 1200) Realm.birthTick(level);
         if (t % 10 != 0) return;

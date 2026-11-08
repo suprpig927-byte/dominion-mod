@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "ingredient": "dominion:venison",
+  "result": {
+    "id": "dominion:cooked_venison"
+  },
+  "experience": 0.35,
+  "cookingtime": 200
+}

@@ -118,6 +118,12 @@ public final class Palette {
                         .setValue(StairBlock.HALF, c == 'w' ? net.minecraft.world.level.block.state.properties.Half.BOTTOM
                                 : net.minecraft.world.level.block.state.properties.Half.TOP);
             }
+            case '%' -> Blocks.BROWN_WOOL.defaultBlockState();
+            case '#' -> Blocks.COARSE_DIRT.defaultBlockState();
+            case '@' -> Blocks.SKELETON_SKULL.defaultBlockState();
+            case '=' -> Blocks.HAY_BLOCK.defaultBlockState();
+            case '!' -> Blocks.BONE_BLOCK.defaultBlockState();
+            case '&' -> com.dominionmod.dominion.registry.ModContent.ORC_TOTEM.get().defaultBlockState();
             case 'v' -> Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState().setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true);
             case 'd' -> Blocks.DIRT_PATH.defaultBlockState();
             case 'e' -> Blocks.CAMPFIRE.defaultBlockState();

@@ -23,5 +23,16 @@
   "item.dominion.flintlock": "Flintlock",
   "item.dominion.musket": "Musket",
   "item.dominion.bullet": "Bullet",
-  "entity.dominion.bullet": "Bullet"
+  "entity.dominion.bullet": "Bullet",
+  "entity.dominion.deer": "Deer",
+  "entity.dominion.orc": "Orc",
+  "entity.dominion.centaur": "Centaur",
+  "entity.dominion.clydesdale": "Clydesdale",
+  "entity.dominion.mustang": "Mustang",
+  "entity.dominion.shetland_pony": "Shetland Pony",
+  "item.dominion.spell_book": "Spell Book",
+  "item.dominion.ammo_pouch": "Ammo Pouch",
+  "item.dominion.venison": "Raw Venison",
+  "item.dominion.cooked_venison": "Cooked Venison",
+  "block.dominion.orc_totem": "War Totem"
 }

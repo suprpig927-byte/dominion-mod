@@ -620,6 +620,8 @@ if __name__ == "__main__":
         fn().save(os.path.join(ITEM, name + ".png"))
     import gen_weapons  # the weapons are painted at 64x64
     gen_weapons.write()
+    import gen_wild  # wild creatures, the war totem, spell book, ammo pouch, venison
+    gen_wild.write()
     town_hall()
     market()
     research_table()

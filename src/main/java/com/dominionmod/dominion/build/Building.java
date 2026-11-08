@@ -9,7 +9,7 @@ import net.minecraft.core.UUIDUtil;
 /** A finished building: what it is, where, its tier, and the sign out front you click to upgrade it. */
 public final class Building {
     public final UUID id;
-    public final String structure;
+    public String structure;
     public final String dim;
     public final BlockPos origin;
     public final int rotation;

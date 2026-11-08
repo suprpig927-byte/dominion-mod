@@ -29,6 +29,7 @@ public final class Orders {
         RALLY("Rally", "fall in behind you"),
         HOLD("Hold", "hold where they stand"),
         DUTY("Return to duty", "go back to their posts"),
+        PATROL("Patrol route", "walk the route you marked (right-click blocks to mark waypoints)"),
         CLEAR("Clear selection", "");
 
         public final String label, desc;
@@ -42,6 +43,7 @@ public final class Orders {
     private static final class State {
         final Set<UUID> selected = new LinkedHashSet<>();
         Mode mode = Mode.RALLY;
+        final List<BlockPos> route = new ArrayList<>();
     }
 
     private static final Map<UUID, State> STATES = new HashMap<>();
@@ -128,6 +130,22 @@ public final class Orders {
                 for (Citizen c : sel) c.hold(c.blockPosition());
                 p.sendOverlayMessage(Component.literal(sel.size() + " hold their ground.").withStyle(ChatFormatting.YELLOW));
             }
+            case PATROL -> {
+                List<Citizen> soldiers = sel.stream().filter(c -> c.job().soldier).toList();
+                if (s.route.size() < 2) {
+                    p.sendOverlayMessage(Component.literal("Mark at least two waypoints first: right-click blocks with the baton.").withStyle(ChatFormatting.RED));
+                    return;
+                }
+                if (soldiers.isEmpty()) {
+                    p.sendOverlayMessage(Component.literal("Only soldiers can patrol.").withStyle(ChatFormatting.RED));
+                    return;
+                }
+                for (Citizen c : soldiers) c.patrol(s.route);
+                p.sendOverlayMessage(Component.literal(soldiers.size() + " soldiers patrol a route of " + s.route.size() + " waypoints.")
+                        .withStyle(ChatFormatting.GOLD));
+                s.route.clear();
+                horn(p);
+            }
             case DUTY -> {
                 for (Citizen c : sel) c.returnToDuty();
                 p.sendOverlayMessage(Component.literal(sel.size() + " return to their posts.").withStyle(ChatFormatting.YELLOW));
@@ -138,6 +156,25 @@ public final class Orders {
 
     /** Right-click a block: soldiers march there and hold it; workers make it their new work spot. */
     public static void orderTo(ServerPlayer p, BlockPos pos) {
+        State st = state(p);
+        if (st.mode == Mode.PATROL) {
+            BlockPos wp = pos.above().immutable();
+            if (!st.route.isEmpty() && st.route.get(st.route.size() - 1).equals(wp)) {
+                st.route.remove(st.route.size() - 1);
+                p.sendOverlayMessage(Component.literal("Removed the last waypoint (" + st.route.size() + " left).").withStyle(ChatFormatting.GRAY));
+                return;
+            }
+            if (st.route.size() >= 16) {
+                p.sendOverlayMessage(Component.literal("A route can have 16 waypoints at most.").withStyle(ChatFormatting.RED));
+                return;
+            }
+            st.route.add(wp);
+            ((ServerLevel) p.level()).sendParticles(p, ParticleTypes.END_ROD, true, false, wp.getX() + 0.5, wp.getY() + 0.5, wp.getZ() + 0.5,
+                    10, 0.2, 0.4, 0.2, 0.01);
+            p.sendOverlayMessage(Component.literal("Waypoint " + st.route.size() + " marked. Right-click the air to send your soldiers on patrol"
+                    + " (click the same spot again to undo).").withStyle(ChatFormatting.YELLOW));
+            return;
+        }
         List<Citizen> sel = selectedCitizens(p);
         if (sel.isEmpty()) {
             p.sendOverlayMessage(Component.literal("Nobody selected.").withStyle(ChatFormatting.RED));
@@ -208,6 +245,26 @@ public final class Orders {
 
     /** Every second, players holding the baton see markers over who they've selected. */
     public static void showSelection(ServerPlayer p) {
+        State st = state(p);
+        ServerLevel sl = (ServerLevel) p.level();
+        if (st.mode == Mode.PATROL) {
+            for (int i = 0; i < st.route.size(); i++) {
+                BlockPos a = st.route.get(i), b = st.route.get((i + 1) % st.route.size());
+                sl.sendParticles(p, ParticleTypes.END_ROD, true, false, a.getX() + 0.5, a.getY() + 0.6, a.getZ() + 0.5, 2, 0.1, 0.3, 0.1, 0);
+                if (st.route.size() > 1) {
+                    for (int k = 1; k < 6; k++) {
+                        double t = k / 6.0;
+                        sl.sendParticles(p, ParticleTypes.ELECTRIC_SPARK, true, false, a.getX() + 0.5 + (b.getX() - a.getX()) * t,
+                                a.getY() + 0.3 + (b.getY() - a.getY()) * t, a.getZ() + 0.5 + (b.getZ() - a.getZ()) * t, 1, 0, 0, 0, 0);
+                    }
+                }
+            }
+        }
+        // soldiers already patrolling show their routes too
+        for (Citizen c : selectedCitizens(p)) {
+            if (c.order() != com.dominionmod.dominion.entity.Order.PATROL) continue;
+            for (BlockPos w : c.patrolRoute()) sl.sendParticles(p, ParticleTypes.COMPOSTER, true, false, w.getX() + 0.5, w.getY() + 0.4, w.getZ() + 0.5, 1, 0.1, 0.1, 0.1, 0);
+        }
         for (Citizen c : selectedCitizens(p)) {
             ((ServerLevel) p.level()).sendParticles(p, ParticleTypes.HAPPY_VILLAGER, true, false, c.getX(), c.getY() + 2.3, c.getZ(), 1, 0.05, 0.05, 0.05, 0);
         }

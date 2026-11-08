@@ -73,6 +73,8 @@ public class TownHallBlock extends Block {
         Kingdom owner = d.ownerAt(sl, pos);
         if (owner == null && d.byPlayer(p.getUUID()) == null) {
             PacketDistributor.sendToPlayer(p, new Payloads.OpenFounding(pos));
+        } else if (owner != null && owner.wild && owner.hall.isPresent() && owner.hall.get().equals(pos)) {
+            com.dominionmod.dominion.kingdom.Settlements.tryConquer(p, owner, pos);
         } else if (owner != null && owner.isMember(p.getUUID())) {
             Payloads.sendRealm(p, true);
         } else if (owner != null) {

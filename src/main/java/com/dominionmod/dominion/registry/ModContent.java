@@ -51,6 +51,25 @@ public final class ModContent {
     public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.Bullet>> BULLET_ENTITY = ENTITIES.registerEntityType("bullet",
             com.dominionmod.dominion.entity.Bullet::new, MobCategory.MISC, b -> b.noLootTable().sized(0.15f, 0.15f).clientTrackingRange(6).updateInterval(2));
 
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.Deer>> DEER = ENTITIES.registerEntityType("deer",
+            com.dominionmod.dominion.entity.wild.Deer::new, MobCategory.CREATURE, b -> b.sized(0.9f, 1.5f).eyeHeight(1.35f).clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.Orc>> ORC = ENTITIES.registerEntityType("orc",
+            com.dominionmod.dominion.entity.wild.Orc::new, MobCategory.MONSTER, b -> b.sized(0.6f, 1.95f).eyeHeight(1.62f).clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.Centaur>> CENTAUR = ENTITIES.registerEntityType("centaur",
+            com.dominionmod.dominion.entity.wild.Centaur::new, MobCategory.CREATURE, b -> b.sized(1.2f, 2.3f).eyeHeight(2.05f).clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.BreedHorse>> CLYDESDALE = horse("clydesdale",
+            com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE);
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.BreedHorse>> MUSTANG = horse("mustang",
+            com.dominionmod.dominion.entity.wild.BreedHorse.Breed.MUSTANG);
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.BreedHorse>> SHETLAND_PONY = horse("shetland_pony",
+            com.dominionmod.dominion.entity.wild.BreedHorse.Breed.SHETLAND);
+
+    private static DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.BreedHorse>> horse(
+            String id, com.dominionmod.dominion.entity.wild.BreedHorse.Breed breed) {
+        return ENTITIES.registerEntityType(id, (type, level) -> new com.dominionmod.dominion.entity.wild.BreedHorse(type, level, breed),
+                MobCategory.CREATURE, b -> b.sized(1.3964844f, 1.6f).eyeHeight(1.52f).passengerAttachments(1.44375f).clientTrackingRange(10));
+    }
+
     // ---------------------------------------------------------------- blocks
 
     public static final DeferredBlock<TownHallBlock> TOWN_HALL = BLOCKS.registerBlock("town_hall", TownHallBlock::new,
@@ -77,6 +96,18 @@ public final class ModContent {
             com.dominionmod.dominion.item.BlueprintItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<BlockItem> TOWN_HALL_ITEM = ITEMS.registerSimpleBlockItem("town_hall", TOWN_HALL);
     public static final DeferredItem<BlockItem> MARKET_ITEM = ITEMS.registerSimpleBlockItem("market", MARKET);
+
+    public static final DeferredBlock<com.dominionmod.dominion.block.OrcTotemBlock> ORC_TOTEM = BLOCKS.registerBlock("orc_totem",
+            com.dominionmod.dominion.block.OrcTotemBlock::new, p -> p.mapColor(MapColor.COLOR_BROWN).strength(-1f, 3600000f).sound(SoundType.WOOD));
+    public static final DeferredItem<BlockItem> ORC_TOTEM_ITEM = ITEMS.registerSimpleBlockItem("orc_totem", ORC_TOTEM);
+    public static final DeferredItem<com.dominionmod.dominion.item.SpellBookItem> SPELL_BOOK = ITEMS.registerItem("spell_book",
+            com.dominionmod.dominion.item.SpellBookItem::new, p -> p.stacksTo(1).rarity(Rarity.RARE));
+    public static final DeferredItem<com.dominionmod.dominion.item.AmmoPouchItem> AMMO_POUCH = ITEMS.registerItem("ammo_pouch",
+            com.dominionmod.dominion.item.AmmoPouchItem::new, p -> p.stacksTo(1));
+    public static final DeferredItem<Item> VENISON = ITEMS.registerSimpleItem("venison",
+            p -> p.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(3).saturationModifier(0.3f).build()));
+    public static final DeferredItem<Item> COOKED_VENISON = ITEMS.registerSimpleItem("cooked_venison",
+            p -> p.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(8).saturationModifier(0.85f).build()));
 
     // ---------------------------------------------------------------- weapons
 
@@ -145,6 +176,10 @@ public final class ModContent {
                 out.accept(FLINTLOCK.get());
                 out.accept(MUSKET.get());
                 out.accept(BULLET.get());
+                out.accept(AMMO_POUCH.get());
+                out.accept(SPELL_BOOK.get());
+                out.accept(VENISON.get());
+                out.accept(COOKED_VENISON.get());
             }).build());
 
     public static void register(IEventBus modBus) {
@@ -152,6 +187,14 @@ public final class ModContent {
         ITEMS.register(modBus);
         ENTITIES.register(modBus);
         TABS.register(modBus);
-        modBus.addListener((EntityAttributeCreationEvent e) -> e.put(CITIZEN.get(), Citizen.createAttributes().build()));
+        modBus.addListener((EntityAttributeCreationEvent e) -> {
+            e.put(CITIZEN.get(), Citizen.createAttributes().build());
+            e.put(DEER.get(), com.dominionmod.dominion.entity.wild.Deer.createAttributes().build());
+            e.put(ORC.get(), com.dominionmod.dominion.entity.wild.Orc.createAttributes().build());
+            e.put(CENTAUR.get(), com.dominionmod.dominion.entity.wild.Centaur.createAttributes().build());
+            e.put(CLYDESDALE.get(), com.dominionmod.dominion.entity.wild.BreedHorse.createAttributes(com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE).build());
+            e.put(MUSTANG.get(), com.dominionmod.dominion.entity.wild.BreedHorse.createAttributes(com.dominionmod.dominion.entity.wild.BreedHorse.Breed.MUSTANG).build());
+            e.put(SHETLAND_PONY.get(), com.dominionmod.dominion.entity.wild.BreedHorse.createAttributes(com.dominionmod.dominion.entity.wild.BreedHorse.Breed.SHETLAND).build());
+        });
     }
 }

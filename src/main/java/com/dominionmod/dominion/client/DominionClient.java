@@ -26,8 +26,15 @@ public class DominionClient {
         modBus.addListener((EntityRenderersEvent.RegisterRenderers e) -> {
             e.registerEntityRenderer(ModContent.CITIZEN.get(), CitizenRenderer::new);
             e.registerEntityRenderer(ModContent.BULLET_ENTITY.get(), ctx -> new net.minecraft.client.renderer.entity.ThrownItemRenderer<>(ctx, 0.5f, false));
+            e.registerEntityRenderer(ModContent.DEER.get(), com.dominionmod.dominion.client.render.wild.DeerRenderer::new);
+            e.registerEntityRenderer(ModContent.CENTAUR.get(), com.dominionmod.dominion.client.render.wild.CentaurRenderer::new);
+            e.registerEntityRenderer(ModContent.ORC.get(), com.dominionmod.dominion.client.render.wild.OrcRenderer::new);
+            e.registerEntityRenderer(ModContent.CLYDESDALE.get(), net.minecraft.client.renderer.entity.HorseRenderer::new);
+            e.registerEntityRenderer(ModContent.MUSTANG.get(), net.minecraft.client.renderer.entity.HorseRenderer::new);
+            e.registerEntityRenderer(ModContent.SHETLAND_PONY.get(), net.minecraft.client.renderer.entity.HorseRenderer::new);
         });
         modBus.addListener(CitizenModels::register);
+        modBus.addListener(com.dominionmod.dominion.client.render.wild.WildModels::register);
         modBus.addListener((RegisterKeyMappingsEvent e) -> {
             e.registerCategory(CATEGORY);
             e.register(OPEN_REALM);

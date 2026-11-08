@@ -54,7 +54,7 @@ public class FirearmItem extends Item {
             player.getCooldowns().addCooldown(gun, 10);
             return InteractionResult.CONSUME;
         }
-        if (player.getAbilities().instabuild || !findBullet(player).isEmpty()) {
+        if (player.getAbilities().instabuild || hasBullet(player)) {
             player.startUsingItem(hand);
             level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CROSSBOW_LOADING_MIDDLE.value(), SoundSource.PLAYERS, 0.6f, 0.7f);
             return InteractionResult.CONSUME;
@@ -65,9 +65,7 @@ public class FirearmItem extends Item {
     @Override
     public ItemStack finishUsingItem(ItemStack gun, Level level, LivingEntity entity) {
         if (entity instanceof Player player && !loaded(gun)) {
-            ItemStack bullet = findBullet(player);
-            if (player.getAbilities().instabuild || !bullet.isEmpty()) {
-                if (!player.getAbilities().instabuild) bullet.shrink(1);
+            if (player.getAbilities().instabuild || takeBullet(player)) {
                 gun.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(ItemStackTemplate.fromNonEmptyStack(new ItemStack(ModContent.BULLET.get()))));
                 level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.CROSSBOW_LOADING_END.value(), SoundSource.PLAYERS, 1.0f, 0.8f);
             }
@@ -83,6 +81,33 @@ public class FirearmItem extends Item {
     @Override
     public ItemUseAnimation getUseAnimation(ItemStack stack) {
         return ItemUseAnimation.CROSSBOW;
+    }
+
+    private static boolean hasBullet(Player player) {
+        if (!findBullet(player).isEmpty()) return true;
+        var inv = player.getInventory();
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            if (inv.getItem(i).getItem() instanceof AmmoPouchItem && AmmoPouchItem.count(inv.getItem(i)) > 0) return true;
+        }
+        return false;
+    }
+
+    /** Uses up one bullet: loose bullets first, then from an Ammo Pouch. */
+    private static boolean takeBullet(Player player) {
+        ItemStack loose = findBullet(player);
+        if (!loose.isEmpty()) {
+            loose.shrink(1);
+            return true;
+        }
+        var inv = player.getInventory();
+        for (int i = 0; i < inv.getContainerSize(); i++) {
+            ItemStack s = inv.getItem(i);
+            if (s.getItem() instanceof AmmoPouchItem && AmmoPouchItem.count(s) > 0) {
+                AmmoPouchItem.setCount(s, AmmoPouchItem.count(s) - 1);
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ItemStack findBullet(Player player) {

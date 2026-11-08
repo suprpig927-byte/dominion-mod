@@ -176,7 +176,13 @@ public class BuildGoal extends Goal {
         int guard = 0;
         // Upgrades and repairs leave the inside alone: they only replace the building's own blocks.
         while (site.cursor < steps.size() && guard++ < 64
-                && (done(level, steps.get(site.cursor)) || site.building != null && steps.get(site.cursor).isClear())) site.cursor++;
+                && (done(level, steps.get(site.cursor)) || site.building != null && steps.get(site.cursor).isClear()
+                && !storeyClear(steps.get(site.cursor)))) site.cursor++;
+    }
+
+    /** Adding a storey does clear the old roof (everything from the old eaves up). */
+    private boolean storeyClear(Plans.Step s) {
+        return site.structure.endsWith("_2") && s.pos().getY() >= site.origin.getY() + 4;
     }
 
     private static boolean done(ServerLevel level, Plans.Step s) {

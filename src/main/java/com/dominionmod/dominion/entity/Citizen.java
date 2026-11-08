@@ -163,6 +163,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         });
         this.goalSelector.addGoal(3, new FormationGoal(this));
         this.goalSelector.addGoal(4, new HoldGoal(this));
+        this.goalSelector.addGoal(4, new com.dominionmod.dominion.entity.goal.PatrolGoal(this));
         this.goalSelector.addGoal(5, new FarmGoal(this));
         this.goalSelector.addGoal(5, new LumberGoal(this));
         this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.BuildGoal(this));
@@ -199,6 +200,21 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.playSound(SoundEvents.SKELETON_SHOOT, 1.0f, 1.0f / (this.getRandom().nextFloat() * 0.4f + 0.8f));
     }
 
+    /** When one of a kingdom's people is attacked, its soldiers nearby turn on the attacker. */
+    @Override
+    public boolean hurtServer(ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
+        boolean hurt = super.hurtServer(level, source, amount);
+        if (hurt && kingdomId != null && source.getEntity() instanceof LivingEntity attacker && attacker.isAlive()
+                && !(attacker instanceof Citizen c && c.sameKingdom(kingdomId))
+                && !(attacker instanceof Player p && kingdom() != null && kingdom().isMember(p.getUUID()))) {
+            for (Citizen ally : level.getEntitiesOfClass(Citizen.class, getBoundingBox().inflate(24),
+                    c -> c != this && c.sameKingdom(kingdomId) && c.job().soldier && c.getTarget() == null)) {
+                ally.setTarget(attacker);
+            }
+        }
+        return hurt;
+    }
+
     @Override
     public void aiStep() {
         super.aiStep();
@@ -226,6 +242,10 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (order == Order.RALLY && getTarget() != null) {
             Player cmd = commanderPlayer();
             if (cmd == null || getTarget().distanceToSqr(cmd) > 20 * 20) setTarget(null);
+        }
+        if (order == Order.PATROL && getTarget() != null && !patrol.isEmpty()
+                && getTarget().distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(patrol.get(patrolIndex))) > 24 * 24) {
+            setTarget(null);
         }
         if (order == Order.HOLD && anchor != null && getTarget() != null && getTarget().distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(anchor)) > 14 * 14) {
             setTarget(null);
@@ -282,7 +302,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (cls == Job.WIZARD) {
             ItemStack old = getMainHandItem();
             if (!old.isEmpty() && this.level() instanceof ServerLevel level) spawnAtLocation(level, old.copy());
-            setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BLAZE_ROD));
+            setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(com.dominionmod.dominion.registry.ModContent.SPELL_BOOK.get()));
         }
         applyStats();
         if (this.level() instanceof ServerLevel level) onJobChanged(level, job());
@@ -375,7 +395,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     private void upkeep(ServerLevel level, long day) {
         Kingdom k = kingdom();
         lastUpkeepDay = day;
-        if (k == null) return;
+        if (k == null || k.wild) return; // wild kingdoms look after their own
         var store = Storehouse.containers(level, k);
         if (store.isEmpty() && k.hall.isPresent() && !level.isLoaded(k.hall.get())) return; // can't reach the town right now
 
@@ -578,6 +598,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         String orderText = switch (order) {
             case RALLY -> "rallied to their commander";
             case HOLD -> "holding position";
+            case PATROL -> "patrolling a route of " + patrol.size() + " waypoints";
             default -> job().worker() ? "working" : "on duty";
         };
         return Component.literal(baseName + " the " + job().title).withStyle(s -> s.withColor(colorOf(getPrimary())).withBold(true))
@@ -663,7 +684,33 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         getNavigation().stop();
     }
 
+    private final java.util.List<BlockPos> patrol = new java.util.ArrayList<>();
+    private int patrolIndex;
+
+    /** Walk this route, waypoint to waypoint, looping forever (or until given another order). */
+    public void patrol(java.util.List<BlockPos> route) {
+        this.patrol.clear();
+        for (BlockPos p : route) this.patrol.add(p.immutable());
+        this.order = Order.PATROL;
+        this.anchor = null;
+        this.commander = null;
+        // start at the nearest waypoint
+        double best = Double.MAX_VALUE;
+        for (int i = 0; i < patrol.size(); i++) {
+            double d = distanceToSqr(net.minecraft.world.phys.Vec3.atCenterOf(patrol.get(i)));
+            if (d < best) {
+                best = d;
+                patrolIndex = i;
+            }
+        }
+    }
+
+    public java.util.List<BlockPos> patrolRoute() { return patrol; }
+    public int patrolIndex() { return patrolIndex; }
+    public void nextWaypoint() { if (!patrol.isEmpty()) patrolIndex = (patrolIndex + 1) % patrol.size(); }
+
     public void returnToDuty() {
+        this.patrol.clear();
         this.order = Order.DUTY;
         this.anchor = null;
         this.commander = null;
@@ -722,6 +769,12 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (post != null) out.putLong("Post", post.asLong());
         out.putInt("Order", order.ordinal());
         if (anchor != null) out.putLong("Anchor", anchor.asLong());
+        if (!patrol.isEmpty()) {
+            StringBuilder sb = new StringBuilder();
+            for (BlockPos p : patrol) sb.append(sb.length() == 0 ? "" : ",").append(p.asLong());
+            out.putString("Patrol", sb.toString());
+            out.putInt("PatrolIndex", patrolIndex);
+        }
         out.putLong("LastUpkeep", lastUpkeepDay);
         out.putInt("Hungry", hungryDays);
         out.putInt("Unpaid", unpaidDays);
@@ -751,6 +804,15 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (order == Order.RALLY) order = Order.DUTY; // the commander may be gone after a reload
         in.getLong("Anchor").ifPresent(l -> anchor = BlockPos.of(l));
         if (order == Order.HOLD && anchor == null) order = Order.DUTY;
+        patrol.clear();
+        for (String part : in.getStringOr("Patrol", "").split(",")) {
+            try {
+                if (!part.isEmpty()) patrol.add(BlockPos.of(Long.parseLong(part)));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        patrolIndex = patrol.isEmpty() ? 0 : Math.floorMod(in.getIntOr("PatrolIndex", 0), patrol.size());
+        if (order == Order.PATROL && patrol.isEmpty()) order = Order.DUTY;
         lastUpkeepDay = in.getLongOr("LastUpkeep", -1);
         hungryDays = in.getIntOr("Hungry", 0);
         unpaidDays = in.getIntOr("Unpaid", 0);

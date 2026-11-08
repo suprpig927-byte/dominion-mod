@@ -29,11 +29,32 @@ public final class KingdomData extends SavedData {
         ).apply(i, Claim::new));
     }
 
+    /** An orc village found in the wild: its War Totem, and whether it's been conquered. */
+    public static final class OrcVillage {
+        public final String dim;
+        public final BlockPos totem;
+        public boolean conquered;
+
+        public OrcVillage(String dim, BlockPos totem, boolean conquered) {
+            this.dim = dim;
+            this.totem = totem;
+            this.conquered = conquered;
+        }
+
+        static final Codec<OrcVillage> CODEC = RecordCodecBuilder.create(i -> i.group(
+                Codec.STRING.fieldOf("dim").forGetter(v -> v.dim),
+                BlockPos.CODEC.fieldOf("totem").forGetter(v -> v.totem),
+                Codec.BOOL.optionalFieldOf("conquered", false).forGetter(v -> v.conquered)
+        ).apply(i, OrcVillage::new));
+    }
+
     public static final Codec<KingdomData> CODEC = RecordCodecBuilder.create(i -> i.group(
             Kingdom.CODEC.listOf().optionalFieldOf("kingdoms", List.of()).forGetter(d -> new ArrayList<>(d.kingdoms.values())),
             Claim.CODEC.listOf().optionalFieldOf("claims", List.of()).forGetter(KingdomData::claimList),
             com.dominionmod.dominion.build.Site.CODEC.listOf().optionalFieldOf("sites", List.of()).forGetter(d -> new ArrayList<>(d.sites)),
-            Progress.CODEC.listOf().optionalFieldOf("progress", List.of()).forGetter(d -> new ArrayList<>(d.progress.values()))
+            Progress.CODEC.listOf().optionalFieldOf("progress", List.of()).forGetter(d -> new ArrayList<>(d.progress.values())),
+            Codec.LONG.listOf().optionalFieldOf("settled", List.of()).forGetter(d -> new ArrayList<>(d.settled)),
+            OrcVillage.CODEC.listOf().optionalFieldOf("orc_villages", List.of()).forGetter(d -> new ArrayList<>(d.orcVillages))
     ).apply(i, KingdomData::new));
 
     public static final SavedDataType<KingdomData> TYPE = new SavedDataType<>(DominionMod.id("kingdoms"), KingdomData::new, CODEC);
@@ -48,7 +69,14 @@ public final class KingdomData extends SavedData {
 
     private final Map<UUID, Progress> progress = new HashMap<>();
 
-    private KingdomData(List<Kingdom> list, List<Claim> claimList, List<com.dominionmod.dominion.build.Site> siteList, List<Progress> progressList) {
+    /** Wild regions already looked at for settlements (see Settlements). */
+    public final java.util.Set<Long> settled = new java.util.HashSet<>();
+    public final List<OrcVillage> orcVillages = new ArrayList<>();
+
+    private KingdomData(List<Kingdom> list, List<Claim> claimList, List<com.dominionmod.dominion.build.Site> siteList, List<Progress> progressList,
+                        List<Long> settledList, List<OrcVillage> villages) {
+        settled.addAll(settledList);
+        orcVillages.addAll(villages);
         for (var site : siteList) sites.add(site);
         for (var pr : progressList) progress.put(pr.kingdom, pr);
         for (Kingdom k : list) kingdoms.put(k.id, k);
