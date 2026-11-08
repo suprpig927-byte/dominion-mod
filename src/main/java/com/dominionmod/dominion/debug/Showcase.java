@@ -148,23 +148,6 @@ public final class Showcase {
             cit.setNoAi(true);
             level.addFreshEntity(cit);
         }
-        // Gun orientation test row (east of the armory): flintlocks tagged a..f.
-        String[] variants = {"a", "b", "c", "d", "e", "f"};
-        for (int i = 0; i < variants.length; i++) {
-            Citizen cit = ModContent.CITIZEN.get().create(level, EntitySpawnReason.COMMAND);
-            if (cit == null) continue;
-            cit.snapTo(center.getX() + 12 + i * 2 + 0.5, center.getY(), center.getZ() + 8.5, 90, 0);
-            cit.setYHeadRot(90);
-            cit.setYBodyRot(90);
-            cit.joinKingdom(k, level);
-            cit.setLeftHanded(false);
-            ItemStack gun = new ItemStack(ModContent.FLINTLOCK.get());
-            gun.set(net.minecraft.core.component.DataComponents.CUSTOM_MODEL_DATA,
-                    new net.minecraft.world.item.component.CustomModelData(List.of(), List.of(), List.of(variants[i]), List.of()));
-            cit.setItemSlot(EquipmentSlot.MAINHAND, gun);
-            cit.setNoAi(true);
-            level.addFreshEntity(cit);
-        }
         // The player's hotbar: every new weapon, with a musket in hand and an iron shield on the arm.
         var inv = p.getInventory();
         ItemStack[] bar = {new ItemStack(ModContent.MUSKET.get()), new ItemStack(ModContent.FLINTLOCK.get()), new ItemStack(ModContent.LONGSWORD.get()),
