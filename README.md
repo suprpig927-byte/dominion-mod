@@ -42,6 +42,8 @@ All crafted from iron ingots and sticks (see the recipe book):
 - **Flintlock** and **Musket**: hold use to load a **Bullet** (2 iron nuggets + gunpowder + paper makes 8), use again to fire. The Flintlock loads fast and hits for 10; the Musket takes longer, flies farther and straighter, and hits for 16.
 
 ## Houses
+Four house designs to choose from on the Build tab: the **Cottage**, the long three-bed **Longhouse**, the wide **Farmhouse** with a covered porch, and the narrow, steep-roofed **Townhouse**. They come in every tier. After researching **Upper Storeys**, hold a Builder's Hammer and right-click a house's sign: your builders add a second storey with a ladder up, two more beds and a chest (they take the old roof off first).
+
 Every house gets open shutters beside its windows, flowering planters under the ground-floor windows, lanterns and a path at the front door, and a chimney with a smoking fire. Decorations are free: builders bring their own trim.
 
 ## Storage labels
@@ -54,10 +56,25 @@ Every house gets open shutters beside its windows, flowering planters under the 
 
 ## University classes
 - After Higher Learning, build a University (or craft a Training Desk). Select citizens with the Command Baton, bring them within 12 blocks of the desk and click it to choose a class (paid from the storehouse):
-  - **Wizard**: keeps their distance and conjures lines of fangs under enemies.
+  - **Wizard**: carries a Spell Book and casts from it: fireballs, lines of fangs, lightning at far targets, Frost Nova when enemies crowd in, and Healing Light when friends are hurt.
   - **Barbarian**: 40 health, hits hard, and goes berserk when wounded.
   - **Monk**: fights barehanded, heals nearby allies and steadies them in battle.
   - **Engineer**: builds twice as fast, and inspects finished buildings and repairs any damage.
+
+## Spells
+Craft a **Spell Book** (book, 2 lapis, blaze powder, amethyst shard). Right-click to cast; sneak + right-click to turn to the next spell. Spells cost experience points and each has its own cooldown:
+Fireball (3 XP), Evoker Fangs (4), Frost Nova (6: freezes and slows enemies around you), Lightning (8, strikes where you look), Healing Light (5: heals you and your people nearby), Blink (4: teleport a short way forward).
+
+## Ammo Pouch
+Craft one from leather, string and an iron nugget. It holds 512 Bullets: right-click it to sweep the loose bullets in your inventory into it, sneak + right-click to take 64 out. Flintlocks and Muskets load straight from a pouch anywhere in your inventory.
+
+## The wild
+- **Horses**: three new breeds roam the plains, meadows and taiga. The **Clydesdale** is huge and tough but slow; the **Mustang** is fast and a great jumper; the **Shetland Pony** is tiny and sturdy. Tame, saddle and breed them like horses; foals take after their parents.
+- **Deer** live in forests, taiga and meadows. They bolt unless you sneak; tempt and breed them with apples or berries. Stags carry antlers. They drop venison (cook it) and leather.
+- **Centaurs** roam the grasslands in bands. They leave you alone unless you hurt one (then the band shoots back), and they hunt orcs.
+- **Orcs** live in villages of hide huts around a War Totem, led by a chieftain with a battle axe. They attack players, villagers and citizens. Kill every orc in a village, then right-click the War Totem: the 3x3 chunks around it become yours, with 25 gold coins of plunder.
+- **Wild kingdoms**: small towns and great kingdoms are scattered through the world, each with its own name, colours, flag, buildings, people and soldiers (some on patrol). Great kingdoms are built around a **Castle**. Their soldiers defend each other. Defeat every soldier near the Town Hall, then right-click it: the kingdom's land, buildings, storehouse and surviving people become yours.
+- Settlements appear in 512-block regions as you explore (none near the world spawn). Operators can raise one with `/dominion admin settle orc|town|kingdom`.
 
 ## Children
 - When there's a free bed and the storehouse has food to spare, two citizens near the Town Hall may have a child. Children join the kingdom, can't work, and grow up after one Minecraft day.
@@ -75,7 +92,8 @@ Every house gets open shutters beside its windows, flowering planters under the 
 
 ## Command Baton
 - Right-click a citizen: select or deselect. Sneak + right-click a citizen: select every soldier within 24 blocks.
-- Right-click the air: give the current order. Sneak + right-click: switch order (**Rally**, **Hold**, **Return to duty**, **Clear selection**).
+- Right-click the air: give the current order. Sneak + right-click: switch order (**Rally**, **Hold**, **Return to duty**, **Patrol route**, **Clear selection**).
+- **Patrol route**: in this mode, right-click blocks to mark up to 16 waypoints (click the last one again to undo), then right-click the air to send your selected soldiers round the route, forever, fighting anything they meet on the way. Give them any other order to stop.
 - **Rally**: soldiers fall in behind you, two abreast while you move and in a battle line when you stop.
 - Right-click a block: soldiers march there and hold it; selected workers make it their new work spot.
 - Right-click an enemy: selected soldiers **charge** it.
@@ -83,7 +101,7 @@ Every house gets open shutters beside its windows, flowering planters under the 
 
 ## Commands
 `/dominion claim | unclaim | realm | list | invite <player> | join | leave | crown <player>`
-Operators: `/dominion admin influence <amount>`, `/dominion admin disband <kingdom>`
+Operators: `/dominion admin influence <amount>`, `/dominion admin disband <kingdom>`, `/dominion admin settle orc|town|kingdom`
 
 ## Building
-Pushes build the jar on GitHub Actions (Build workflow, artifact `dominion-mod`). Textures are painted by `tools/gen_textures.py`.
+Pushes build the jar on GitHub Actions (Build workflow, artifact `dominion-mod`). Textures are painted by `tools/gen_textures.py` and `tools/gen_hd.py` (which also runs `gen_weapons.py` and `gen_wild.py`).
