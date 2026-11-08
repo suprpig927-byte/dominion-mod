@@ -1,6 +1,55 @@
 {
   "model": {
-    "type": "minecraft:model",
-    "model": "dominion:item/flintlock"
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {
+        "when": "a",
+        "model": {
+          "type": "minecraft:model",
+          "model": "dominion:item/flintlock_test_a"
+        }
+      },
+      {
+        "when": "b",
+        "model": {
+          "type": "minecraft:model",
+          "model": "dominion:item/flintlock_test_b"
+        }
+      },
+      {
+        "when": "c",
+        "model": {
+          "type": "minecraft:model",
+          "model": "dominion:item/flintlock_test_c"
+        }
+      },
+      {
+        "when": "d",
+        "model": {
+          "type": "minecraft:model",
+          "model": "dominion:item/flintlock_test_d"
+        }
+      },
+      {
+        "when": "e",
+        "model": {
+          "type": "minecraft:model",
+          "model": "dominion:item/flintlock_test_e"
+        }
+      },
+      {
+        "when": "f",
+        "model": {
+          "type": "minecraft:model",
+          "model": "dominion:item/flintlock_test_f"
+        }
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "dominion:item/flintlock"
+    }
   }
 }
