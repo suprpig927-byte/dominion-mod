@@ -136,9 +136,9 @@ public final class Showcase {
         for (int i = 0; i < armory.length; i++) {
             Citizen cit = ModContent.CITIZEN.get().create(level, EntitySpawnReason.COMMAND);
             if (cit == null) continue;
-            cit.snapTo(center.getX() - 7 + i * 2 + 0.5, center.getY(), center.getZ() + 8.5, 180, 0);
-            cit.setYHeadRot(180);
-            cit.setYBodyRot(180);
+            cit.snapTo(center.getX() - 7 + i * 2 + 0.5, center.getY(), center.getZ() + 8.5, 90, 0);
+            cit.setYHeadRot(90);
+            cit.setYBodyRot(90);
             cit.joinKingdom(k, level);
             cit.setVillagerTypeForDebug(types[i % types.length]);
             cit.setItemSlot(EquipmentSlot.MAINHAND, armory[i][0]);

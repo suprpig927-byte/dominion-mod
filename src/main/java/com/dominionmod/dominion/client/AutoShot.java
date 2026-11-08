@@ -83,7 +83,7 @@ public final class AutoShot {
         if (t == 622) look(mc, bx, by + 0.3, bz - 0.5, 0f, 8f);
         if (t == 660) shot(mc, "armory");
         if (t == 662) look(mc, bx, by + 0.3, bz + 2.5, 0f, 8f);
-        if (t == 676) look(mc, bx + 1, by + 4.5, bz + 5.5, 180f, 85f);
+        if (t == 676) look(mc, bx + 1, by + 10, bz + 5.5, 180f, 89f);
         if (t == 690) shot(mc, "armory_side");
         if (t == 692) {
             look(mc, bx, by, bz, 0f, 10f);
