@@ -179,7 +179,7 @@ public final class Showcase {
             m.setYHeadRot(90);
             m.setYBodyRot(90);
             m.setNoAi(true);
-            m.setInvulnerable(true);
+            m.setPermanentlyInvulnerable(true);
             m.setPersistenceRequired();
             level.addFreshEntity(m);
         }
