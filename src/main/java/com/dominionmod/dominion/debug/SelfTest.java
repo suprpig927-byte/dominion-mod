@@ -182,8 +182,12 @@ public final class SelfTest {
             var rs = net.minecraft.util.RandomSource.create(42);
             orcCenter = surfaceAt(level, center.offset(0, 0, -160));
             // No player stands near the village during the test: keep its chunks loaded so the orcs stay countable.
-            for (int dx = -2; dx <= 2; dx++) for (int dz = -2; dz <= 2; dz++)
-                level.setChunkForced((orcCenter.getX() >> 4) + dx, (orcCenter.getZ() >> 4) + dz, true);
+            // Done a few ticks later so the RCON command returns first (loading 25 chunks takes a while).
+            final BlockPos oc = orcCenter;
+            level.getServer().schedule(new net.minecraft.server.TickTask(level.getServer().getTickCount() + 5, () -> {
+                for (int dx = -2; dx <= 2; dx++) for (int dz = -2; dz <= 2; dz++)
+                    level.setChunkForced((oc.getX() >> 4) + dx, (oc.getZ() >> 4) + dz, true);
+            }));
             com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.ORC_VILLAGE, orcCenter, rs);
             townCenter = surfaceAt(level, center.offset(170, 0, 0));
             com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_TOWN, townCenter, rs);
