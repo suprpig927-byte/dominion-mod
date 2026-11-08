@@ -615,12 +615,11 @@ def training_desk():
 
 
 if __name__ == "__main__":
-    for name, fn in (("longsword", longsword), ("greatsword", greatsword), ("battle_axe", battle_axe), ("halberd", halberd),
-                     ("glaive", glaive), ("flail", flail), ("flintlock", flintlock), ("musket", musket), ("bullet", bullet),
-                     ("gold_coin", gold_coin), ("command_baton", command_baton), ("builders_hammer", builders_hammer),
+    for name, fn in (("gold_coin", gold_coin), ("command_baton", command_baton), ("builders_hammer", builders_hammer),
                      ("blueprint", blueprint), ("blacksmith_tongs", blacksmith_tongs), ("storage_label", storage_label)):
         fn().save(os.path.join(ITEM, name + ".png"))
-    iron_shield_texture().save(os.path.join(ITEM, "iron_shield.png"))
+    import gen_weapons  # the weapons are painted at 64x64
+    gen_weapons.write()
     town_hall()
     market()
     research_table()
