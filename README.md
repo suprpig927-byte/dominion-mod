@@ -9,8 +9,9 @@ A NeoForge 26.3 Minecraft mod: found a kingdom, recruit villagers, put your peop
 4. Hand a citizen a tool to give them a job, right where they stand:
    - Hoe: **Farmer** (harvests and replants crops nearby, sows empty farmland)
    - Axe: **Lumberjack** (fells whole trees nearby and replants them)
-   - Sword or spear: **Militia**
+   - Sword, spear or any Dominion melee weapon: **Militia**
    - Bow: **Archer**
+   - Flintlock or Musket: **Musketeer** (holds at range and fires, then reloads; the kingdom supplies the powder)
    - Builder's Hammer (3 iron ingots over 2 sticks): **Builder**
    Hand them armor and they wear it. Sneak + right-click with an empty hand takes their gear back. Right-click with an empty hand shows their status.
 5. Every Minecraft day each citizen eats one food item from the storehouse. Workers pay 1 coin in tax, soldiers draw 1 coin in wages. Three days hungry or unpaid and they leave.
@@ -28,6 +29,20 @@ A NeoForge 26.3 Minecraft mod: found a kingdom, recruit villagers, put your peop
 - Research unlocks better building materials, in 5 tiers: **Thatch** (mud and hay, available from the start) → **Timber** (Carpentry) → **Stone** (Masonry) → **Brick** (Brickworks) → **Royal** (Royal Architecture: deepslate and copper). It also unlocks the **Blacksmith** (Blacksmithing) and the **University** (Higher Learning).
 - Pick the tier in the Build tab before taking a blueprint.
 - Every finished building gets a sign by its door. Sneak + right-click the sign to have your builders rebuild it in your best tier. Furniture and chests stay put, and the old materials go to the storehouse.
+
+## Weapons
+All crafted from iron ingots and sticks (see the recipe book):
+- **Longsword**: a step up from the iron sword, still quick.
+- **Greatsword**: slow, huge hits, a little extra reach.
+- **Battle Axe**: brutal chops that knock a shield aside for 5 seconds.
+- **Halberd**: an axe on a pole: 4.5 block reach, heavy, beats shields.
+- **Glaive**: a curved blade on a pole: 4.5 block reach, quicker than the halberd.
+- **Flail**: a spiked ball on a chain (iron block + chain) that stuns shields.
+- **Iron Shield**: blocks like a shield, lasts twice as long, recovers faster when axed. Blacksmiths now forge these for your soldiers.
+- **Flintlock** and **Musket**: hold use to load a **Bullet** (2 iron nuggets + gunpowder + paper makes 8), use again to fire. The Flintlock loads fast and hits for 10; the Musket takes longer, flies farther and straighter, and hits for 16.
+
+## Houses
+Every house gets open shutters beside its windows, flowering planters under the ground-floor windows, lanterns and a path at the front door, and a chimney with a smoking fire. Decorations are free: builders bring their own trim.
 
 ## Storage labels
 - Craft Storage Labels (paper + string). Right-click a storehouse chest or barrel with one to cycle its category: Food, Farming, Wood, Mining, Building, Armory, Coins & Research, or Anything.
