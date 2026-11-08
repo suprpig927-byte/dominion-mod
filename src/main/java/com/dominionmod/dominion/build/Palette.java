@@ -118,7 +118,7 @@ public final class Palette {
                         .setValue(StairBlock.HALF, c == 'w' ? net.minecraft.world.level.block.state.properties.Half.BOTTOM
                                 : net.minecraft.world.level.block.state.properties.Half.TOP);
             }
-            case '%' -> Blocks.BROWN_WOOL.defaultBlockState();
+            case '%' -> Blocks.WOOL.pick(DyeColor.BROWN).defaultBlockState();
             case '#' -> Blocks.COARSE_DIRT.defaultBlockState();
             case '@' -> Blocks.SKELETON_SKULL.defaultBlockState();
             case '=' -> Blocks.HAY_BLOCK.defaultBlockState();

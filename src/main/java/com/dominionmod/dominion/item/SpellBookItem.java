@@ -48,7 +48,6 @@ public class SpellBookItem extends Item {
             return InteractionResult.SUCCESS_SERVER;
         }
         Spells.playerCast(sp, spell(book));
-        sp.swingForAttack(hand);
         return InteractionResult.SUCCESS_SERVER;
     }
 
