@@ -34,5 +34,12 @@
   "item.dominion.ammo_pouch": "Ammo Pouch",
   "item.dominion.venison": "Raw Venison",
   "item.dominion.cooked_venison": "Cooked Venison",
-  "block.dominion.orc_totem": "War Totem"
+  "block.dominion.orc_totem": "War Totem",
+  "item.dominion.citizen_spawn_egg": "Citizen Spawn Egg",
+  "item.dominion.deer_spawn_egg": "Deer Spawn Egg",
+  "item.dominion.orc_spawn_egg": "Orc Spawn Egg",
+  "item.dominion.centaur_spawn_egg": "Centaur Spawn Egg",
+  "item.dominion.clydesdale_spawn_egg": "Clydesdale Spawn Egg",
+  "item.dominion.mustang_spawn_egg": "Mustang Spawn Egg",
+  "item.dominion.shetland_pony_spawn_egg": "Shetland Pony Spawn Egg"
 }

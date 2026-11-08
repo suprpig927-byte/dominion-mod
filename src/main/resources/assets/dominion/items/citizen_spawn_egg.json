@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "dominion:item/citizen_spawn_egg"
+  }
+}

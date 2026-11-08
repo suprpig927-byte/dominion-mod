@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dominion:item/shetland_pony_spawn_egg"
+  }
+}

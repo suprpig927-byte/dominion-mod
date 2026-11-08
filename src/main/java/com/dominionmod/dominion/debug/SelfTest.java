@@ -283,6 +283,16 @@ public final class SelfTest {
             ItemStack pouch = new ItemStack(ModContent.AMMO_POUCH.get());
             com.dominionmod.dominion.item.AmmoPouchItem.setCount(pouch, 40);
             log("pouch holds " + com.dominionmod.dominion.item.AmmoPouchItem.count(pouch));
+            // Every spawn egg should hatch its own mob.
+            StringBuilder eggs = new StringBuilder();
+            for (var en : ModContent.SPAWN_EGGS.entrySet()) {
+                ItemStack egg = new ItemStack(en.getValue().get());
+                var type = net.minecraft.world.item.SpawnEggItem.getType(egg);
+                var mob = type == null ? null : type.create(level, net.minecraft.world.entity.EntitySpawnReason.SPAWN_ITEM_USE);
+                eggs.append(en.getKey()).append('=').append(type == null ? "NONE" : net.minecraft.world.entity.EntityType.getKey(type).getPath())
+                        .append(mob == null ? "(FAIL)" : "").append(' ');
+            }
+            log("spawn eggs: " + eggs.toString().trim());
         } catch (RuntimeException e) {
             log("wild check FAILED: " + e);
             DominionMod.LOGGER.error("wild check", e);

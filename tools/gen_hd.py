@@ -622,6 +622,10 @@ if __name__ == "__main__":
     gen_weapons.write()
     import gen_wild  # wild creatures, the war totem, spell book, ammo pouch, venison
     gen_wild.write()
+    import gen_beasts  # breed horses and deer: meshes + coats
+    gen_beasts.write()
+    import gen_eggs  # spawn eggs
+    gen_eggs.write()
     town_hall()
     market()
     research_table()

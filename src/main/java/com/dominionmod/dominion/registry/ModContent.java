@@ -109,6 +109,29 @@ public final class ModContent {
     public static final DeferredItem<Item> COOKED_VENISON = ITEMS.registerSimpleItem("cooked_venison",
             p -> p.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(8).saturationModifier(0.85f).build()));
 
+    // ---------------------------------------------------------------- spawn eggs
+
+    /** One spawn egg per mob the mod adds. Which mob each egg hatches is attached once the entity types exist (see register). */
+    public static final java.util.Map<String, DeferredItem<net.minecraft.world.item.SpawnEggItem>> SPAWN_EGGS = new java.util.LinkedHashMap<>();
+
+    static {
+        for (String mob : List.of("citizen", "deer", "orc", "centaur", "clydesdale", "mustang", "shetland_pony"))
+            SPAWN_EGGS.put(mob, ITEMS.registerItem(mob + "_spawn_egg", net.minecraft.world.item.SpawnEggItem::new, p -> p));
+    }
+
+    private static EntityType<?> eggMob(String mob) {
+        return switch (mob) {
+            case "citizen" -> CITIZEN.get();
+            case "deer" -> DEER.get();
+            case "orc" -> ORC.get();
+            case "centaur" -> CENTAUR.get();
+            case "clydesdale" -> CLYDESDALE.get();
+            case "mustang" -> MUSTANG.get();
+            case "shetland_pony" -> SHETLAND_PONY.get();
+            default -> throw new IllegalArgumentException(mob);
+        };
+    }
+
     // ---------------------------------------------------------------- weapons
 
     private static Item.Properties reach(Item.Properties p, float reach) {
@@ -180,6 +203,7 @@ public final class ModContent {
                 out.accept(SPELL_BOOK.get());
                 out.accept(VENISON.get());
                 out.accept(COOKED_VENISON.get());
+                SPAWN_EGGS.values().forEach(egg -> out.accept(egg.get()));
             }).build());
 
     public static void register(IEventBus modBus) {
@@ -187,6 +211,12 @@ public final class ModContent {
         ITEMS.register(modBus);
         ENTITIES.register(modBus);
         TABS.register(modBus);
+        modBus.addListener((net.neoforged.neoforge.event.ModifyDefaultComponentsEvent e) ->
+                SPAWN_EGGS.forEach((mob, egg) -> e.modify(egg.get(), b -> b.set(DataComponents.ENTITY_DATA,
+                        net.minecraft.world.item.component.TypedEntityData.of(eggMob(mob), new net.minecraft.nbt.CompoundTag())))));
+        modBus.addListener((net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent e) -> {
+            if (e.getTabKey() == net.minecraft.world.item.CreativeModeTabs.SPAWN_EGGS) SPAWN_EGGS.values().forEach(egg -> e.accept(egg.get()));
+        });
         modBus.addListener((EntityAttributeCreationEvent e) -> {
             e.put(CITIZEN.get(), Citizen.createAttributes().build());
             e.put(DEER.get(), com.dominionmod.dominion.entity.wild.Deer.createAttributes().build());
