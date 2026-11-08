@@ -179,12 +179,12 @@ public final class Showcase {
         var east = List.of(new Sitter(ModContent.CLYDESDALE.get(), 0), new Sitter(ModContent.CLYDESDALE.get(), 1), new Sitter(ModContent.CLYDESDALE.get(), 2),
                 new Sitter(ModContent.MUSTANG.get(), 0), new Sitter(ModContent.MUSTANG.get(), 1), new Sitter(ModContent.MUSTANG.get(), 2),
                 new Sitter(ModContent.MUSTANG.get(), 3), new Sitter(ModContent.MUSTANG.get(), 4));
-        for (int row = 0; row < 2; row++) {
-            var sitters = row == 0 ? west : east;
+        for (int lineup = 0; lineup < 2; lineup++) {
+            var sitters = lineup == 0 ? west : east;
             for (int i = 0; i < sitters.size(); i++) {
                 Sitter st = sitters.get(i);
                 if (!(st.type().create(level, EntitySpawnReason.COMMAND) instanceof net.minecraft.world.entity.Mob m)) continue;
-                double x = row == 0 ? center.getX() - 31.5 + i * 2.8 : center.getX() + 3.5 + i * 3.0;
+                double x = lineup == 0 ? center.getX() - 31.5 + i * 2.8 : center.getX() + 3.5 + i * 3.0;
                 m.snapTo(x, center.getY(), center.getZ() + 8.5, 90, 0);
                 m.finalizeSpawn(level, level.getCurrentDifficultyAt(center), EntitySpawnReason.COMMAND, null);
                 if (m instanceof com.dominionmod.dominion.entity.wild.Deer deer) {
