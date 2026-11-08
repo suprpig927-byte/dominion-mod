@@ -157,7 +157,7 @@ public final class Spells {
                     .withStyle(net.minecraft.ChatFormatting.GRAY));
             return;
         }
-        if (!p.getAbilities().instabuild && p.totalExperience < spell.cost) {
+        if (!p.getAbilities().instabuild && availableXp(p) < spell.cost) {
             p.sendOverlayMessage(net.minecraft.network.chat.Component.literal("Not enough experience to cast " + spell.title
                     + " (needs " + spell.cost + " XP)").withStyle(net.minecraft.ChatFormatting.RED));
             return;
@@ -181,5 +181,13 @@ public final class Spells {
             }
         }
         return found;
+    }
+
+    /** XP points the player could spend: the bar plus every whole level (totalExperience misses /xp levels). */
+    static int availableXp(net.minecraft.world.entity.player.Player p) {
+        int xp = Math.round(p.experienceProgress * p.getXpNeededForNextLevel());
+        for (int lv = 0; lv < p.experienceLevel && xp < 100000; lv++)
+            xp += lv >= 30 ? 112 + (lv - 30) * 9 : lv >= 15 ? 37 + (lv - 15) * 5 : 7 + lv * 2;
+        return xp;
     }
 }

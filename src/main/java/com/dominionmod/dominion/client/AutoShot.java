@@ -142,7 +142,7 @@ public final class AutoShot {
         if (t == 1182) look(mc, bx - 20.5, by + 1.2, bz - 4.5, 0f, 6f);
         if (t == 1220) shot(mc, "creatures");
         // the orc village to the east
-        if (t == 1222) look(mc, bx + 38, by + 6, bz - 3.5, -90f, 12f);
+        if (t == 1222) look(mc, bx + 52, by + 9, bz - 3.5, -90f, 20f);
         if (t == 1280) shot(mc, "orc_village");
         // the wild kingdom and its castle to the south
         if (t == 1282) look(mc, bx, by + 16, bz + 14, 0f, 20f);
