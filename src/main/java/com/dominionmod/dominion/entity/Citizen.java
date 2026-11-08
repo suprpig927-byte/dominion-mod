@@ -155,6 +155,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             @Override public boolean canContinueToUse() { return job().melee() && super.canContinueToUse(); }
         });
         this.goalSelector.addGoal(2, new com.dominionmod.dominion.entity.goal.WizardGoal(this));
+        this.goalSelector.addGoal(2, new com.dominionmod.dominion.entity.goal.MusketeerGoal(this));
         this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.ScholarGoal(this));
         this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.SmithGoal(this));
         this.goalSelector.addGoal(2, new AvoidEntityGoal<>(this, Monster.class, 8.0f, 0.6, 0.8) {
@@ -494,7 +495,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             player.sendOverlayMessage(Component.literal(baseName + " puts on the " + getItemBySlot(eq.slot()).getHoverName().getString() + "."));
             return InteractionResult.SUCCESS_SERVER;
         }
-        if (held.is(Items.SHIELD)) {
+        if (held.has(net.minecraft.core.component.DataComponents.BLOCKS_ATTACKS)) {
             swapInto(player, hand, EquipmentSlot.OFFHAND);
             return InteractionResult.SUCCESS_SERVER;
         }
@@ -546,6 +547,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         return switch (job) {
             case FARMER -> "They'll harvest and replant crops around this spot.";
             case LUMBERJACK -> "They'll fell and replant trees around this spot.";
+            case MUSKETEER -> "They'll guard this spot and fire on enemies from range. No bullets needed: the kingdom supplies powder.";
             case MILITIA, ARCHER -> "They'll guard this spot. Use the Command Baton to lead them.";
             case BUILDER -> "They'll build your construction sites. Get blueprints from the Build tab of your Realm screen (K).";
             case SCHOLAR -> "They'll work at your Research Table, speeding up research.";

@@ -1,0 +1,76 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "dominion:item/musket"
+  },
+  "display": {
+    "thirdperson_righthand": {
+      "rotation": [
+        0,
+        90,
+        -45
+      ],
+      "translation": [
+        0,
+        0.04,
+        -2.55
+      ],
+      "scale": [
+        1.1,
+        1.1,
+        1.1
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        0,
+        -90,
+        45
+      ],
+      "translation": [
+        0,
+        0.04,
+        -2.55
+      ],
+      "scale": [
+        1.1,
+        1.1,
+        1.1
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        90,
+        -40
+      ],
+      "translation": [
+        1.13,
+        0.22,
+        -3.37
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        -90,
+        40
+      ],
+      "translation": [
+        1.13,
+        0.22,
+        -3.37
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "  I",
+    " IF",
+    "PP "
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "F": "minecraft:flint",
+    "P": "#minecraft:planks"
+  },
+  "result": {
+    "id": "dominion:musket",
+    "count": 1
+  }
+}

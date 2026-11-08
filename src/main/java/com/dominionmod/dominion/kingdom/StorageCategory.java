@@ -45,7 +45,7 @@ public enum StorageCategory {
         if (s.is(Items.WHEAT) || s.is(Items.WHEAT_SEEDS) || s.is(Items.BEETROOT_SEEDS) || s.is(Items.MELON_SEEDS) || s.is(Items.PUMPKIN_SEEDS)
                 || s.is(Items.BONE_MEAL) || s.is(Items.HAY_BLOCK) || s.is(Items.SUGAR_CANE) || s.is(Items.LEATHER) || s.is(ItemTags.WOOL)
                 || s.is(Items.EGG) || s.is(Items.FEATHER)) return FARMING;
-        if (s.has(DataComponents.EQUIPPABLE) || s.is(ItemTags.SWORDS) || s.getItem() instanceof BowItem || s.is(Items.ARROW) || s.is(Items.SHIELD)
+        if (s.has(DataComponents.EQUIPPABLE) || s.is(ItemTags.SWORDS) || s.getItem() instanceof BowItem || s.is(Items.ARROW) || s.has(DataComponents.BLOCKS_ATTACKS) || s.is(com.dominionmod.dominion.registry.ModContent.BULLET.get()) || s.getItem() instanceof com.dominionmod.dominion.item.FirearmItem
                 || s.is(ItemTags.SPEARS)) return ARMORY;
         if (s.is(ItemTags.COALS) || s.is(Items.RAW_IRON) || s.is(Items.RAW_GOLD) || s.is(Items.RAW_COPPER) || s.is(Items.IRON_INGOT)
                 || s.is(Items.GOLD_INGOT) || s.is(Items.COPPER_INGOT) || s.is(Items.DIAMOND) || s.is(Items.REDSTONE) || s.is(Items.FLINT)

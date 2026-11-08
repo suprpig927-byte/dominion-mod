@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
  *  K chest  R barrel  Q crafting table  A ladder  B bookshelf  E lectern  Y anvil  U blast furnace  S smithing table
  *  H Research Table  J Training Desk  T Market  N kingdom flag  X/Z wool in primary/secondary color
  *  f farmland  ~ water  y wheat  g fence gate  O spruce log  o spruce fence  s oak slab  c campfire
+ *  decorations (free): 1-4 open shutter facing N/E/S/W   v flowering planter   d path   e chimney fire
  * </pre>
  */
 public final class Structures {
@@ -90,7 +91,55 @@ public final class Structures {
             out.add(rows);
         }
         for (String[] e : extra) out.add(e);
-        return out.toArray(new String[0][]);
+        return decorate(out, walls.length, W, D);
+    }
+
+    /**
+     * Dresses a house up: open shutters beside every window, flowering planters under the ground-floor
+     * windows, a path and lanterns at the front door, and a smoking chimney up the back gable.
+     * (Decorations cost nothing: builders bring their own trim.)
+     */
+    private static String[][] decorate(List<String[]> layers, int wallLayers, int W, int D) {
+        char[][][] g = new char[layers.size()][][];
+        for (int y = 0; y < g.length; y++) {
+            g[y] = new char[D][];
+            for (int z = 0; z < D; z++) g[y][z] = layers.get(y)[z].toCharArray();
+        }
+        for (int y = 1; y < wallLayers; y++) {
+            for (int z = 1; z < D - 1; z++) {
+                for (int x = 1; x < W - 1; x++) {
+                    char c = g[y][z][x];
+                    int dx = x == 1 ? -1 : x == W - 2 ? 1 : 0, dz = z == 1 ? -1 : z == D - 2 ? 1 : 0;
+                    if ((dx == 0) == (dz == 0)) continue; // not on a wall, or a corner
+                    char shutter = dz < 0 ? '1' : dx > 0 ? '2' : dz > 0 ? '3' : '4';
+                    if (c == 'G') {
+                        for (int t = -1; t <= 1; t += 2) {
+                            int wx = x + (dz != 0 ? t : 0), wz = z + (dx != 0 ? t : 0);
+                            char wall = g[y][wz][wx];
+                            if ((wall == 'W' || wall == 'L' || wall == 'M') && g[y][wz + dz][wx + dx] == ' ') g[y][wz + dz][wx + dx] = shutter;
+                        }
+                        if (y == 2 && g[1][z + dz][x + dx] == ' ') g[1][z + dz][x + dx] = 'v';
+                    } else if (c == 'D' && dz > 0) {
+                        if (g[0][z + 1][x] == ' ') g[0][z + 1][x] = 'd';
+                        for (int t = -2; t <= 2; t += 4) {
+                            if (x + t > 0 && x + t < W - 1 && g[y][z + 1][x + t] == ' ') g[y][z + 1][x + t] = 'l';
+                        }
+                    }
+                }
+            }
+        }
+        // the chimney: up the back, beside the east slope, poking above the roof with a fire on top
+        if (W >= 9 && g.length >= wallLayers + 5) {
+            int xc = W - 3;
+            for (int y = 1; y <= wallLayers + 3; y++) g[y][0][xc] = 'C';
+            g[wallLayers + 4][0][xc] = 'e';
+        }
+        String[][] out = new String[g.length][];
+        for (int y = 0; y < g.length; y++) {
+            out[y] = new String[D];
+            for (int z = 0; z < D; z++) out[y][z] = new String(g[y][z]);
+        }
+        return out;
     }
 
     /** A padded layer that's empty except one character in the middle (for a flag on the ridge). */

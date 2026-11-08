@@ -45,6 +45,7 @@ public final class SelfTest {
     private static BlockPos center;
     private static final List<UUID> citizens = new ArrayList<>();
     private static UUID zombie;
+    private static UUID musketTarget;
     private static UUID kingdom;
     private static com.dominionmod.dominion.build.Site cottage;
 
@@ -157,6 +158,19 @@ public final class SelfTest {
             level.addFreshEntity(z);
             zombie = z.getUUID();
         }
+        // A Musketeer on the far side, with its own zombie to shoot.
+        spawn(level, k, center.offset(16, 0, 4), new ItemStack(ModContent.MUSKET.get()), null);
+        Zombie z2 = EntityTypes.ZOMBIE.create(level, EntitySpawnReason.COMMAND);
+        if (z2 != null) {
+            z2.snapTo(center.getX() + 16.5, center.getY(), center.getZ() - 12.5, 0, 0);
+            z2.setPersistenceRequired();
+            level.addFreshEntity(z2);
+            musketTarget = z2.getUUID();
+        }
+        StringBuilder deco = new StringBuilder();
+        for (String[] layer : com.dominionmod.dominion.build.Structures.get("cottage").layers())
+            for (String row : layer) for (char ch : row.toCharArray()) if ("1234vde".indexOf(ch) >= 0) deco.append(ch);
+        log("cottage decorations: " + deco);
         checkAt = level.getGameTime() + 3000;
         log("started at " + center + ", citizens: " + citizens.size() + ", kingdom citizens: " + k.citizens);
     }
@@ -191,6 +205,8 @@ public final class SelfTest {
                 else young++;
             }
         }
+        var mz = musketTarget == null ? null : level.getEntity(musketTarget);
+        log("musket target " + (mz == null || !mz.isAlive() ? "dead" : "alive hp=" + ((net.minecraft.world.entity.LivingEntity) mz).getHealth()));
         log("beds now: " + (k == null ? -1 : Realm.beds(level, k)));
         log("wheat ripe=" + ripe + " replanted=" + young);
         BlockPos tree = center.offset(-8, 0, 8);

@@ -12,5 +12,16 @@
   "block.dominion.research_table": "Research Table",
   "block.dominion.training_desk": "Training Desk",
   "item.dominion.blacksmith_tongs": "Blacksmith's Tongs",
-  "item.dominion.storage_label": "Storage Label"
+  "item.dominion.storage_label": "Storage Label",
+  "item.dominion.longsword": "Longsword",
+  "item.dominion.greatsword": "Greatsword",
+  "item.dominion.battle_axe": "Battle Axe",
+  "item.dominion.halberd": "Halberd",
+  "item.dominion.glaive": "Glaive",
+  "item.dominion.flail": "Flail",
+  "item.dominion.iron_shield": "Iron Shield",
+  "item.dominion.flintlock": "Flintlock",
+  "item.dominion.musket": "Musket",
+  "item.dominion.bullet": "Bullet",
+  "entity.dominion.bullet": "Bullet"
 }

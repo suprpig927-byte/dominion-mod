@@ -62,7 +62,7 @@ public class CitizenModel extends HumanoidModel<CitizenRenderState> {
     /** Fighters who take off the robe and wear a tabard over armor. Wizards and Monks keep their robes. */
     public static boolean armored(com.dominionmod.dominion.entity.Job job) {
         return job == com.dominionmod.dominion.entity.Job.MILITIA || job == com.dominionmod.dominion.entity.Job.ARCHER
-                || job == com.dominionmod.dominion.entity.Job.BARBARIAN;
+                || job == com.dominionmod.dominion.entity.Job.BARBARIAN || job == com.dominionmod.dominion.entity.Job.MUSKETEER;
     }
 
     /**

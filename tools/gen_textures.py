@@ -530,8 +530,6 @@ def new_items_and_blocks():
 
 
 if __name__ == "__main__":
-    new_items_and_blocks()
+    # Item and block textures are now painted at 32x32 by gen_hd.py (the 16x16 painters above are kept for reference).
     sash()
-    items()
-    blocks()
     print("textures written to", os.path.abspath(ROOT))

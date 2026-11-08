@@ -92,6 +92,20 @@ public final class Palette {
             case 'T' -> ModContent.MARKET.get().defaultBlockState();
             case 'X' -> Blocks.WOOL.pick(DyeColor.byId(primary)).defaultBlockState();
             case 'Z' -> Blocks.WOOL.pick(DyeColor.byId(secondary)).defaultBlockState();
+            // decorations
+            case '1', '2', '3', '4' -> {
+                Direction d = c == '1' ? Direction.NORTH : c == '2' ? Direction.EAST : c == '3' ? Direction.SOUTH : Direction.WEST;
+                Block shutter = switch (tier) {
+                    case THATCH, TIMBER -> Blocks.SPRUCE_TRAPDOOR;
+                    case STONE -> Blocks.OAK_TRAPDOOR;
+                    default -> Blocks.DARK_OAK_TRAPDOOR;
+                };
+                yield shutter.defaultBlockState().setValue(net.minecraft.world.level.block.TrapDoorBlock.FACING, d)
+                        .setValue(net.minecraft.world.level.block.TrapDoorBlock.OPEN, true);
+            }
+            case 'v' -> Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState().setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true);
+            case 'd' -> Blocks.DIRT_PATH.defaultBlockState();
+            case 'e' -> Blocks.CAMPFIRE.defaultBlockState();
             // farming
             case 'f' -> Blocks.FARMLAND.defaultBlockState();
             case '~' -> Blocks.WATER.defaultBlockState();
@@ -102,6 +116,6 @@ public final class Palette {
 
     /** Characters whose block is placed for free (no material needed). */
     public static boolean free(char c) {
-        return c == 'f' || c == '~' || c == 'N';
+        return c == 'f' || c == '~' || c == 'N' || (c >= '1' && c <= '4') || c == 'v' || c == 'd' || c == 'e';
     }
 }

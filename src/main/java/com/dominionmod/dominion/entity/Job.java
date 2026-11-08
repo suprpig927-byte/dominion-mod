@@ -18,7 +18,9 @@ public enum Job {
     WIZARD("Wizard", -2, true),
     BARBARIAN("Barbarian", -2, true),
     MONK("Monk", -2, true),
-    ENGINEER("Engineer", -1, false);
+    ENGINEER("Engineer", -1, false),
+    /** Carries a Flintlock or Musket. */
+    MUSKETEER("Musketeer", -2, true);
 
     public final String title;
     /** Coins paid in daily: positive = tax the citizen pays, negative = wage they're owed. */
@@ -59,6 +61,7 @@ public enum Job {
         if (held.is(ItemTags.AXES)) return LUMBERJACK;
         if (held.is(ItemTags.SWORDS) || held.is(ItemTags.SPEARS)) return MILITIA;
         if (held.getItem() instanceof BowItem) return ARCHER;
+        if (held.getItem() instanceof com.dominionmod.dominion.item.FirearmItem) return MUSKETEER;
         return UNASSIGNED;
     }
 

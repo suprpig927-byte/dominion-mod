@@ -1,0 +1,11 @@
+{
+  "replace": false,
+  "values": [
+    "dominion:longsword",
+    "dominion:greatsword",
+    "dominion:battle_axe",
+    "dominion:halberd",
+    "dominion:glaive",
+    "dominion:flail"
+  ]
+}

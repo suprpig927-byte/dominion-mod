@@ -141,7 +141,7 @@ public class SmithGoal extends Goal {
             new Recipe(Items.IRON_HELMET, 5, 0, EquipmentSlot.HEAD),
             new Recipe(Items.IRON_LEGGINGS, 7, 0, EquipmentSlot.LEGS),
             new Recipe(Items.IRON_BOOTS, 4, 0, EquipmentSlot.FEET),
-            new Recipe(Items.SHIELD, 1, 6, EquipmentSlot.OFFHAND)};
+            new Recipe(com.dominionmod.dominion.registry.ModContent.IRON_SHIELD.get(), 6, 1, EquipmentSlot.OFFHAND)};
 
     /** The first piece some soldier still lacks that we have the iron for. */
     private Recipe nextForge(List<Container> store) {

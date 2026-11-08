@@ -121,6 +121,40 @@ public final class Showcase {
             cit.setNoAi(true);
             level.addFreshEntity(cit);
         }
+        // Third row (behind the player): soldiers with the new weapons, facing north.
+        ItemStack[][] armory = {
+                {new ItemStack(ModContent.LONGSWORD.get()), new ItemStack(ModContent.IRON_SHIELD.get())},
+                {new ItemStack(ModContent.GREATSWORD.get()), null},
+                {new ItemStack(ModContent.BATTLE_AXE.get()), null},
+                {new ItemStack(ModContent.HALBERD.get()), null},
+                {new ItemStack(ModContent.GLAIVE.get()), null},
+                {new ItemStack(ModContent.FLAIL.get()), new ItemStack(ModContent.IRON_SHIELD.get())},
+                {new ItemStack(ModContent.FLINTLOCK.get()), null},
+                {new ItemStack(ModContent.MUSKET.get()), null},
+        };
+        for (int i = 0; i < armory.length; i++) {
+            Citizen cit = ModContent.CITIZEN.get().create(level, EntitySpawnReason.COMMAND);
+            if (cit == null) continue;
+            cit.snapTo(center.getX() - 7 + i * 2 + 0.5, center.getY(), center.getZ() + 8.5, 180, 0);
+            cit.setYHeadRot(180);
+            cit.setYBodyRot(180);
+            cit.joinKingdom(k, level);
+            cit.setVillagerTypeForDebug(types[i % types.length]);
+            cit.setItemSlot(EquipmentSlot.MAINHAND, armory[i][0]);
+            if (armory[i][1] != null) cit.setItemSlot(EquipmentSlot.OFFHAND, armory[i][1]);
+            cit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+            cit.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+            cit.setNoAi(true);
+            level.addFreshEntity(cit);
+        }
+        // The player's hotbar: every new weapon, with a musket in hand and an iron shield on the arm.
+        var inv = p.getInventory();
+        ItemStack[] bar = {new ItemStack(ModContent.MUSKET.get()), new ItemStack(ModContent.FLINTLOCK.get()), new ItemStack(ModContent.LONGSWORD.get()),
+                new ItemStack(ModContent.GREATSWORD.get()), new ItemStack(ModContent.BATTLE_AXE.get()), new ItemStack(ModContent.HALBERD.get()),
+                new ItemStack(ModContent.GLAIVE.get()), new ItemStack(ModContent.FLAIL.get()), new ItemStack(ModContent.BULLET.get(), 32)};
+        for (int i = 0; i < bar.length; i++) inv.setItem(i, bar[i]);
+        inv.setSelectedSlot(0);
+        p.setItemSlot(EquipmentSlot.OFFHAND, new ItemStack(ModContent.IRON_SHIELD.get()));
         p.teleportTo(level, center.getX() + 0.5, center.getY(), center.getZ() + 3.5, java.util.Set.of(), 180f, 10f, true);
     }
 

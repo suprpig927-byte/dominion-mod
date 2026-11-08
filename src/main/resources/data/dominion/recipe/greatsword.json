@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " II",
+    "III",
+    "SI "
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "dominion:greatsword",
+    "count": 1
+  }
+}

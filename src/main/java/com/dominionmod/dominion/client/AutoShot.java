@@ -80,22 +80,43 @@ public final class AutoShot {
         if (t == 580) shot(mc, "university");
         if (t == 582) look(mc, bx - 12, by + 6, bz - 44, 180f, 25f);
         if (t == 620) shot(mc, "farm_tower");
-        if (t == 642) {
+        if (t == 622) look(mc, bx, by + 0.3, bz - 0.5, 0f, 8f);
+        if (t == 660) shot(mc, "armory");
+        if (t == 662) look(mc, bx, by + 0.3, bz + 2.5, 0f, 8f);
+        if (t == 690) shot(mc, "armory_close");
+        if (t == 692) {
+            look(mc, bx, by, bz, 0f, 10f);
+            if (mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+        }
+        if (t == 720) shot(mc, "first_person");
+        if (t == 722) mc.player.startUsingItem(net.minecraft.world.InteractionHand.OFF_HAND);
+        if (t == 740) shot(mc, "blocking");
+        if (t == 742) {
+            mc.player.stopUsingItem();
+            if (!mc.gui.hud.isHidden()) mc.gui.hud.toggle();
+            mc.options.setCameraType(net.minecraft.client.CameraType.THIRD_PERSON_FRONT);
+        }
+        if (t == 770) shot(mc, "third_person");
+        if (t == 772) mc.player.startUsingItem(net.minecraft.world.InteractionHand.OFF_HAND);
+        if (t == 790) shot(mc, "third_person_block");
+        if (t == 792) {
+            mc.player.stopUsingItem();
+            mc.options.setCameraType(net.minecraft.client.CameraType.FIRST_PERSON);
             look(mc, bx, by, bz, 180f, 10f);
             if (mc.gui.hud.isHidden()) mc.gui.hud.toggle();
         }
-        if (t == 670) ClientPacketDistributor.sendToServer(new Payloads.RealmAction(Payloads.RealmAction.OPEN));
-        if (t == 730) shot(mc, "realm");
-        if (t == 731 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(1);
-        if (t == 750) shot(mc, "realm_citizens");
-        if (t == 751 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(2);
-        if (t == 770) shot(mc, "realm_build");
-        if (t == 771 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(3);
-        if (t == 790) shot(mc, "realm_research");
-        if (t == 791 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(0);
-        if (t == 795) mc.gui.setScreen(new FlagScreen(null, Showcase.FLAG, s -> {}, "Done"));
-        if (t == 830) shot(mc, "flag");
-        if (t == 850) {
+        if (t == 820) ClientPacketDistributor.sendToServer(new Payloads.RealmAction(Payloads.RealmAction.OPEN));
+        if (t == 880) shot(mc, "realm");
+        if (t == 881 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(1);
+        if (t == 900) shot(mc, "realm_citizens");
+        if (t == 901 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(2);
+        if (t == 920) shot(mc, "realm_build");
+        if (t == 921 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(3);
+        if (t == 940) shot(mc, "realm_research");
+        if (t == 941 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(0);
+        if (t == 945) mc.gui.setScreen(new FlagScreen(null, Showcase.FLAG, s -> {}, "Done"));
+        if (t == 980) shot(mc, "flag");
+        if (t == 1000) {
             mc.gui.setScreen(null);
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();

@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "dominion:iron_shield",
+    "dominion:flintlock",
+    "dominion:musket"
+  ]
+}

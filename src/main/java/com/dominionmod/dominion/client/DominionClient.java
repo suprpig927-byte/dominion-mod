@@ -23,7 +23,10 @@ public class DominionClient {
     public static final KeyMapping OPEN_REALM = new KeyMapping("key.dominion.open_realm", InputConstants.KEY_K, CATEGORY);
 
     public DominionClient(IEventBus modBus) {
-        modBus.addListener((EntityRenderersEvent.RegisterRenderers e) -> e.registerEntityRenderer(ModContent.CITIZEN.get(), CitizenRenderer::new));
+        modBus.addListener((EntityRenderersEvent.RegisterRenderers e) -> {
+            e.registerEntityRenderer(ModContent.CITIZEN.get(), CitizenRenderer::new);
+            e.registerEntityRenderer(ModContent.BULLET_ENTITY.get(), ctx -> new net.minecraft.client.renderer.entity.ThrownItemRenderer<>(ctx, 0.5f, false));
+        });
         modBus.addListener(CitizenModels::register);
         modBus.addListener((RegisterKeyMappingsEvent e) -> {
             e.registerCategory(CATEGORY);
