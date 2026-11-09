@@ -196,7 +196,7 @@ public class MarketBlock extends Block {
             return;
         }
         var level = p.level();
-        if (!(level.getBlockState(pos).getBlock() instanceof MarketBlock) || p.distanceToSqr(pos.getCenter()) > 10 * 10) return;
+        if (!(level.getBlockState(pos).getBlock() instanceof MarketBlock) || p.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) > 10 * 10) return;
         var m = matcher(f[0]);
         int sold = 0, coins = 0;
         String name = "";

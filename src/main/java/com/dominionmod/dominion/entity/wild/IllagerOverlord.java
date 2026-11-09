@@ -152,7 +152,7 @@ public class IllagerOverlord extends Evoker {
             spawnAtLocation(level, new ItemStack(ModContent.GOLD_COIN.get(), 50 + random.nextInt(31)));
             spawnAtLocation(level, new ItemStack(Items.EMERALD, 8 + random.nextInt(9)));
             spawnAtLocation(level, new ItemStack(Items.TOTEM_OF_UNDYING));
-            ItemStack banner = new ItemStack(Items.BLACK_BANNER);
+            ItemStack banner = new ItemStack(Items.BANNER.pick(net.minecraft.world.item.DyeColor.BLACK));
             banner.set(DataComponents.CUSTOM_NAME, Component.literal("Overlord's Banner").withStyle(ChatFormatting.DARK_PURPLE));
             banner.set(DataComponents.RARITY, Rarity.EPIC);
             spawnAtLocation(level, banner);
