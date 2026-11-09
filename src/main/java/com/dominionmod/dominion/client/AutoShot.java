@@ -122,8 +122,10 @@ public final class AutoShot {
         if (t == 920) shot(mc, "realm_build");
         if (t == 921 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(3);
         if (t == 940) shot(mc, "realm_research");
-        if (t == 941 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(0);
-        if (t == 945) mc.gui.setScreen(new FlagScreen(null, Showcase.FLAG, s -> {}, "Done"));
+        if (t == 941 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(4);
+        if (t == 960) shot(mc, "realm_diplomacy");
+        if (t == 961 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(0);
+        if (t == 962) mc.gui.setScreen(new FlagScreen(null, Showcase.FLAG, s -> {}, "Done"));
         if (t == 980) shot(mc, "flag");
         if (t == 1000) {
             mc.gui.setScreen(null);
@@ -173,7 +175,16 @@ public final class AutoShot {
         if (t == 1580) shot(mc, "interior_longhouse");
         if (t == 1582) look(mc, bx + 0.7, by + 1.0, bz + 12.0, 0f, 4f);
         if (t == 1620) shot(mc, "centaurs");
-        if (t == 1640) {
+        // the war camp to the west
+        if (t == 1622) look(mc, bx - 81, by + 3.5, bz + 15, 180f, 10f);
+        if (t == 1680) shot(mc, "siege_engines");
+        if (t == 1682) look(mc, bx - 58, by + 2.0, bz + 9.5, 180f, 7f);
+        if (t == 1720) shot(mc, "cavalry");
+        if (t == 1722) look(mc, bx - 68, by + 6, bz - 5, 180f, 18f);
+        if (t == 1760) shot(mc, "stables");
+        if (t == 1762) look(mc, bx - 44.5, by + 2.6, bz + 7, 180f, 6f);
+        if (t == 1800) shot(mc, "warlord");
+        if (t == 1820) {
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();
         }

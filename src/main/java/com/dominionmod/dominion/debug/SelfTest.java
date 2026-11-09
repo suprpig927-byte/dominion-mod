@@ -391,7 +391,7 @@ public final class SelfTest {
             cannon = cn.getUUID();
         }
         // a stretch of wall battered down by hand, to be rebuilt by the builder
-        ruinWall = center.offset(18, 0, -18);
+        ruinWall = center.offset(14, 0, -10);
         level.setBlock(ruinWall, Blocks.STONE_BRICKS.defaultBlockState(), Block.UPDATE_ALL);
         int blows = 0;
         while (!level.getBlockState(ruinWall).isAir() && blows < 40) {

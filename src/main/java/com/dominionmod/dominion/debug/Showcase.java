@@ -241,6 +241,12 @@ public final class Showcase {
         for (var orc : level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.Orc.class, new net.minecraft.world.phys.AABB(new BlockPos(ox, center.getY(), oz)).inflate(40))) {
             orc.setNoAi(true);
         }
+        // The orc village has grown into a stronghold with its Warlord.
+        for (var v : d.orcVillages) if (!v.conquered && v.totem.distSqr(new BlockPos(ox, v.totem.getY(), oz)) < 40 * 40)
+            com.dominionmod.dominion.kingdom.OrcWarbands.fastForward(level, v);
+        for (var orc : level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.Orc.class, new net.minecraft.world.phys.AABB(new BlockPos(ox, center.getY(), oz)).inflate(48)))
+            orc.setNoAi(true);
+        warCamp(level, k, center);
         p.teleportTo(level, center.getX() + 0.5, center.getY(), center.getZ() + 3.5, java.util.Set.of(), 180f, 10f, true);
     }
 
@@ -277,5 +283,90 @@ public final class Showcase {
         Plans.forget(site.id);
         if (structure.equals("storehouse")) k.storehouses.add(ground.above().asLong());
         com.dominionmod.dominion.build.Buildings.finished(level, k, site);
+    }
+
+    /** West of the town: stables, mounted soldiers, a supply cart, the three siege engines, a road and a Warlord. */
+    private static void warCamp(ServerLevel level, Kingdom k, BlockPos center) {
+        for (BlockPos q : BlockPos.betweenClosed(center.offset(-98, -1, -26), center.offset(-36, 20, 12))) {
+            int dy = q.getY() - center.getY();
+            level.setBlock(q, dy == -1 ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+        }
+        for (BlockPos q : BlockPos.betweenClosed(center.offset(-98, -4, -26), center.offset(-36, -2, 12)))
+            if (level.getBlockState(q).canBeReplaced()) level.setBlock(q, Blocks.DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
+        var pr = Realm.data(level).progress(k);
+        pr.researched.addAll(List.of("horsemanship", "siegecraft", "gunpowder"));
+        instant(level, k, "stables", center.offset(-74, -1, -22), 0, 2);
+        // a road along the front
+        BlockPos a = center.offset(-96, -1, 7), b = center.offset(-38, -1, 7);
+        var cols = Plans.line(a, b);
+        Site road = new Site(UUID.randomUUID(), k.id, "road", KingdomData.dim(level), a, b, 0, Plans.groundHeights(level, cols), 0);
+        road.tier = 1;
+        for (Plans.Step st : Plans.steps(level, road, k)) level.setBlock(st.pos(), st.isClear() ? Blocks.AIR.defaultBlockState() : st.state(), Block.UPDATE_CLIENTS);
+        Plans.forget(road.id);
+        // the siege engines, facing east
+        String[] engines = {"battering_ram", "trebuchet", "cannon"};
+        double[] ex = {-90.5, -81.5, -72.5};
+        for (int i = 0; i < 3; i++) {
+            var e = com.dominionmod.dominion.entity.siege.SiegeEngine.spawnFor(level, k, engines[i].equals("battering_ram") ? "ram" : engines[i],
+                    center.offset((int) ex[i], 0, 0), center.offset((int) ex[i], 0, 0));
+            if (e == null) continue;
+            e.snapTo(center.getX() + ex[i], center.getY(), center.getZ() + 0.5, -90, 0);
+            e.setYBodyRot(-90);
+            e.setYHeadRot(-90);
+            e.setNoAi(true);
+        }
+        // a Clydesdale knight and a Mustang horse archer
+        Object[][] riders = {{com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE, new ItemStack(ModContent.LONGSWORD.get()), -64.5},
+                {com.dominionmod.dominion.entity.wild.BreedHorse.Breed.MUSTANG, new ItemStack(Items.BOW), -59.5}};
+        for (Object[] r : riders) {
+            Citizen cit = ModContent.CITIZEN.get().create(level, EntitySpawnReason.COMMAND);
+            if (cit == null) continue;
+            cit.snapTo(center.getX() + (double) r[2], center.getY(), center.getZ() + 0.5, -90, 0);
+            cit.joinKingdom(k, level);
+            cit.setItemSlot(EquipmentSlot.MAINHAND, (ItemStack) r[1]);
+            cit.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
+            if (r[0] == com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE) cit.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.IRON_HELMET));
+            level.addFreshEntity(cit);
+            var h = com.dominionmod.dominion.entity.Cavalry.mountNew(level, cit, (com.dominionmod.dominion.entity.wild.BreedHorse.Breed) r[0]);
+            if (h != null) {
+                h.snapTo(cit.getX(), cit.getY(), cit.getZ(), -90, 0);
+                h.setYBodyRot(-90);
+                h.setYHeadRot(-90);
+                h.setNoAi(true);
+                h.setPermanentlyInvulnerable(true);
+            }
+            cit.setNoAi(true);
+        }
+        // a Shetland pony and its supply cart
+        var pony = ModContent.SHETLAND_PONY.get().create(level, EntitySpawnReason.COMMAND);
+        var cart = ModContent.SUPPLY_CART.get().create(level, EntitySpawnReason.COMMAND);
+        if (pony != null && cart != null) {
+            pony.snapTo(center.getX() - 52.5, center.getY(), center.getZ() + 0.5, -90, 0);
+            pony.finalizeSpawn(level, level.getCurrentDifficultyAt(center), EntitySpawnReason.COMMAND, null);
+            pony.setLook(pony.breed.coats[1], net.minecraft.world.entity.animal.equine.Markings.NONE);
+            pony.setTamed(true);
+            pony.setYBodyRot(-90);
+            pony.setYHeadRot(-90);
+            pony.setNoAi(true);
+            pony.setPersistenceRequired();
+            level.addFreshEntity(pony);
+            cart.snapTo(pony.getX() - 2, pony.getY(), pony.getZ(), -90, 0);
+            level.addFreshEntity(cart);
+            cart.hitch(pony, k.id);
+            cart.cargo().addItem(new ItemStack(Items.ARROW, 64));
+            cart.cargo().addItem(new ItemStack(Items.BREAD, 16));
+        }
+        // the Orc Warlord, standing still for his portrait
+        var lord = ModContent.ORC_WARLORD.get().create(level, EntitySpawnReason.COMMAND);
+        if (lord != null) {
+            lord.snapTo(center.getX() - 44.5, center.getY(), center.getZ() + 0.5, 0, 0);
+            lord.finalizeSpawn(level, level.getCurrentDifficultyAt(center), EntitySpawnReason.COMMAND, null);
+            lord.setYBodyRot(0);
+            lord.setYHeadRot(0);
+            lord.setNoAi(true);
+            lord.setPermanentlyInvulnerable(true);
+            lord.setPersistenceRequired();
+            level.addFreshEntity(lord);
+        }
     }
 }
