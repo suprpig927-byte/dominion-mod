@@ -61,7 +61,7 @@ public final class SelfTest {
 
     public static void start(ServerLevel level) {
         int bx = 4000, bz = 4000;
-        for (int cx = -2; cx <= 2; cx++) for (int cz = -2; cz <= 5; cz++) level.setChunkForced((bx >> 4) + cx, (bz >> 4) + cz, true);
+        for (int cx = -2; cx <= 2; cx++) for (int cz = -2; cz <= 2; cz++) level.setChunkForced((bx >> 4) + cx, (bz >> 4) + cz, true);
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, bx, bz);
         center = new BlockPos(bx, y, bz);
         // flat grass platform, air above
@@ -559,6 +559,7 @@ public final class SelfTest {
         // a row of workshops south of the platform, each with an idle citizen at its door
         String[] shops = {"mine", "mill", "bakery", "lumber_mill", "butcher", "tavern", "chapel", "harbor"};
         BlockPos row = center.offset(-30, 0, 40);
+        for (int cx = -3; cx <= 3; cx++) for (int cz = 3; cz <= 5; cz++) level.setChunkForced((center.getX() >> 4) + cx, (center.getZ() >> 4) + cz, true);
         for (BlockPos p : BlockPos.betweenClosed(row.offset(-8, -1, -10), row.offset(68, 14, 22))) {
             int dy = p.getY() - row.getY();
             level.setBlock(p, dy == -1 ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
