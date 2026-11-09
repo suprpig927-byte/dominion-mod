@@ -88,7 +88,7 @@ public final class Payloads {
     /** Client -> server: a Realm screen button (or opening the screen, which asks for fresh info). */
     public record RealmAction(int action, String arg) implements CustomPacketPayload {
         public static final int REFRESH = 0, CLAIM = 1, UNCLAIM = 2, TOGGLE_PEACEFUL = 3, OPEN = 4, BLUEPRINT = 5, CANCEL_SITE = 6, SET_FLAG = 7, MAP = 8,
-                START_RESEARCH = 9, TRAIN = 10, DIPLOMACY = 11, TOGGLE_SHOP = 12, MARKET_SELL = 13, MARKET_GUARDS = 14;
+                START_RESEARCH = 9, TRAIN = 10, DIPLOMACY = 11, TOGGLE_SHOP = 12, MARKET_SELL = 13, MARKET_GUARDS = 14, CLAIM_AT = 15, UNCLAIM_AT = 16;
 
         public RealmAction(int action) {
             this(action, "");
@@ -314,6 +314,17 @@ public final class Payloads {
                 case RealmAction.TRAIN -> msg = com.dominionmod.dominion.kingdom.Scholarship.train(sp, p.arg()).getString();
                 case RealmAction.BLUEPRINT -> msg = com.dominionmod.dominion.build.Construction.giveBlueprint(sp, p.arg()).getString();
                 case RealmAction.CANCEL_SITE -> msg = com.dominionmod.dominion.build.Construction.cancel(sp, p.arg()).getString();
+                case RealmAction.CLAIM_AT, RealmAction.UNCLAIM_AT -> {
+                    String[] f = p.arg().split(",");
+                    try {
+                        var chunk = new ChunkPos(Integer.parseInt(f[0].trim()), Integer.parseInt(f[1].trim()));
+                        var here = ChunkPos.containing(sp.blockPosition());
+                        if (Math.max(Math.abs(chunk.x() - here.x()), Math.abs(chunk.z() - here.z())) > MAP_RADIUS) msg = "That's off the map.";
+                        else msg = (p.action() == RealmAction.CLAIM_AT ? Realm.claimChunk(sp, chunk) : Realm.unclaimChunk(sp, chunk)).getString();
+                    } catch (RuntimeException e) {
+                        msg = "";
+                    }
+                }
                 case RealmAction.TOGGLE_SHOP -> {
                     Kingdom k = Realm.of(sp);
                     msg = k == null || !k.owner.equals(sp.getUUID()) ? "Only the ruler can do that."

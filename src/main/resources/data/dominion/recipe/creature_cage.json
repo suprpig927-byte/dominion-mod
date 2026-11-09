@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SBS",
+    "B B",
+    "PPP"
+  ],
+  "key": {
+    "S": "minecraft:stick",
+    "B": "minecraft:iron_bars",
+    "P": "#minecraft:planks"
+  },
+  "result": {
+    "id": "dominion:creature_cage",
+    "count": 1
+  }
+}

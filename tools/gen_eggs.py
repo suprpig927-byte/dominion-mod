@@ -17,6 +17,7 @@ N = 32
 EGGS = {
     "citizen": ((190, 142, 98), (64, 86, 156), "band"),        # villager skin, kingdom-blue tabard band
     "deer": ((156, 104, 62), (238, 230, 216), "spots"),        # fawn spots
+    "otter": ((104, 70, 44), (214, 192, 158), "band"),         # brown with a cream throat
     "orc": ((84, 116, 54), (46, 34, 26), "tusks"),             # green hide, war paint
     "orc_warlord": ((58, 66, 44), (150, 22, 18), "tusks"),     # ash hide, red war paint
     "illager_overlord": ((70, 30, 96), (236, 190, 54), "band"),  # purple robes, gold trim

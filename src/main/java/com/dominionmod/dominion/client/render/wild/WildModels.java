@@ -17,6 +17,8 @@ public final class WildModels {
     public static final ModelLayerLocation DEER_BABY = new ModelLayerLocation(DominionMod.id("deer"), "baby");
     public static final ModelLayerLocation CENTAUR = new ModelLayerLocation(DominionMod.id("centaur"), "main");
     public static final ModelLayerLocation ORC = new ModelLayerLocation(DominionMod.id("orc"), "main");
+    public static final ModelLayerLocation OTTER = new ModelLayerLocation(DominionMod.id("otter"), "main");
+    public static final ModelLayerLocation OTTER_BABY = new ModelLayerLocation(DominionMod.id("otter"), "baby");
 
     private static final java.util.Map<String, ModelLayerLocation> HORSES = new java.util.HashMap<>();
 
@@ -37,6 +39,8 @@ public final class WildModels {
         e.registerLayerDefinition(DEER_BABY, DeerModel::createBabyLayer);
         e.registerLayerDefinition(CENTAUR, CentaurModel::createBodyLayer);
         e.registerLayerDefinition(ORC, WildModels::orc);
+        e.registerLayerDefinition(OTTER, OtterModel::createBodyLayer);
+        e.registerLayerDefinition(OTTER_BABY, OtterModel::createBabyLayer);
     }
 
     /** A player-shaped body with tusks jutting up from the lower jaw and a heavier brow. */

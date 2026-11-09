@@ -132,35 +132,42 @@ public final class Realm {
 
     /** Claims the chunk the player stands in. Returns a message to show. */
     public static Component claimHere(ServerPlayer p) {
+        return claimChunk(p, ChunkPos.containing(p.blockPosition()));
+    }
+
+    /** Claims a chunk (from where you stand, or clicked on the Realm map). */
+    public static Component claimChunk(ServerPlayer p, ChunkPos chunk) {
         ServerLevel level = (ServerLevel) p.level();
         KingdomData d = data(level);
         Kingdom k = d.byPlayer(p.getUUID());
         if (k == null) return err("You don't belong to a kingdom. Place a Town Hall to found one.");
-        ChunkPos chunk = ChunkPos.containing(p.blockPosition());
         Kingdom owner = d.ownerAt(level, chunk);
-        if (owner == k) return err("This chunk is already yours.");
-        if (owner != null) return err("This land belongs to " + owner.name + ". Taking land by force comes with war (coming soon).");
+        if (owner == k) return err("That chunk is already yours.");
+        if (owner != null) return err("That land belongs to " + owner.name + ". Conquer them to take it.");
         if (!d.touches(level, chunk, k) && !Watchtowers.covers(level, d, k, chunk))
             return err("New land has to border land you already own (or lie within sight of one of your watchtowers).");
         int cost = claimCost(d, k);
-        if (k.influence < cost) return err(String.format("You need %d Influence to claim this (you have %.0f).", cost, k.influence));
+        if (k.influence < cost) return err(String.format("You need %d Influence to claim that (you have %.0f).", cost, k.influence));
         k.influence -= cost;
         d.claim(level, chunk, k);
-        return Component.literal("Claimed this chunk for ").withStyle(ChatFormatting.GREEN).append(title(k))
+        return Component.literal("Claimed chunk " + chunk.x() + ", " + chunk.z() + " for ").withStyle(ChatFormatting.GREEN).append(title(k))
                 .append(Component.literal(String.format(" (-%d Influence, %.0f left)", cost, k.influence)).withStyle(ChatFormatting.GRAY));
     }
 
     public static Component unclaimHere(ServerPlayer p) {
+        return unclaimChunk(p, ChunkPos.containing(p.blockPosition()));
+    }
+
+    public static Component unclaimChunk(ServerPlayer p, ChunkPos chunk) {
         ServerLevel level = (ServerLevel) p.level();
         KingdomData d = data(level);
         Kingdom k = d.byPlayer(p.getUUID());
         if (k == null) return err("You don't belong to a kingdom.");
-        ChunkPos chunk = ChunkPos.containing(p.blockPosition());
-        if (d.ownerAt(level, chunk) != k) return err("This chunk isn't yours.");
+        if (d.ownerAt(level, chunk) != k) return err("That chunk isn't yours.");
         if (k.hall.isPresent() && k.hallDim.equals(KingdomData.dim(level)) && ChunkPos.containing(k.hall.get()).equals(chunk))
             return err("You can't give up the chunk your Town Hall stands in.");
         d.unclaim(level, chunk);
-        return Component.literal("You released this chunk. Its Influence is not refunded.").withStyle(ChatFormatting.YELLOW);
+        return Component.literal("You released chunk " + chunk.x() + ", " + chunk.z() + ". Its Influence is not refunded.").withStyle(ChatFormatting.YELLOW);
     }
 
     /** Can this player build, break and use things here? */

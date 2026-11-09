@@ -58,6 +58,8 @@ public final class Events {
         bus.addListener((net.neoforged.neoforge.event.entity.EntityJoinLevelEvent e) -> {
             if (!e.getLevel().isClientSide() && e.getEntity() instanceof net.minecraft.world.entity.Mob m)
                 com.dominionmod.dominion.kingdom.IllagerEmpire.onJoin(m);
+            if (!e.getLevel().isClientSide() && e.getEntity() instanceof net.minecraft.world.entity.TamableAnimal pet)
+                com.dominionmod.dominion.entity.PetBeds.onJoin(pet);
         });
         bus.addListener((PlayerEvent.PlayerLoggedOutEvent e) -> {
             Orders.forget(e.getEntity().getUUID());
@@ -214,6 +216,11 @@ public final class Events {
     // ------------------------------------------------------------------ recruiting
 
     private static void onEntityInteract(PlayerInteractEvent.EntityInteract e) {
+        if (e.getItemStack().is(ModContent.CREATURE_CAGE.get()) && e.getTarget() instanceof LivingEntity living && e.getHand() == InteractionHand.MAIN_HAND) {
+            e.setCanceled(true);
+            e.setCancellationResult(com.dominionmod.dominion.item.CreatureCageItem.tryCapture(e.getEntity(), e.getItemStack(), living));
+            return;
+        }
         if (!(e.getTarget() instanceof Villager v) || !(e.getEntity() instanceof ServerPlayer p) || e.getHand() != InteractionHand.MAIN_HAND) return;
         ItemStack held = p.getMainHandItem();
         if (!held.is(ModContent.GOLD_COIN.get())) return;

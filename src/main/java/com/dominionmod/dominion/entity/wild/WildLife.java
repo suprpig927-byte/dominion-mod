@@ -38,6 +38,10 @@ public final class WildLife {
             int x = p.getBlockX() + (int) (Math.cos(a) * dist), z = p.getBlockZ() + (int) (Math.sin(a) * dist);
             if (!level.hasChunk(x >> 4, z >> 4)) continue;
             BlockPos ground = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z), z);
+            if (level.getFluidState(ground.below()).isSource()) {
+                otters(level, ground, r);
+                continue;
+            }
             if (!level.getBlockState(ground.below()).is(Blocks.GRASS_BLOCK) && !level.getBlockState(ground.below()).is(Blocks.PODZOL)
                     && !level.getBlockState(ground.below()).is(Blocks.SNOW_BLOCK)) continue;
             List<Kind> kinds = kindsFor(level.getBiome(ground));
@@ -66,6 +70,27 @@ public final class WildLife {
                 m.finalizeSpawn(level, level.getCurrentDifficultyAt(at), EntitySpawnReason.NATURAL, null);
                 level.addFreshEntity(m);
             }
+        }
+    }
+
+    /** Otter families live along rivers, in swamps and mangroves, and on the shores of lakes in the forest. */
+    private static void otters(ServerLevel level, BlockPos surface, RandomSource r) {
+        Holder<Biome> b = level.getBiome(surface);
+        boolean home = b.is(BiomeTags.IS_RIVER) || b.is(Biomes.SWAMP) || b.is(Biomes.MANGROVE_SWAMP)
+                || (b.is(BiomeTags.IS_FOREST) || b.is(BiomeTags.IS_TAIGA)) && r.nextInt(3) == 0;
+        if (!home || b.is(Biomes.FROZEN_RIVER) || r.nextInt(3) != 0) return;
+        if (level.getEntities(ModContent.OTTER.get(), new AABB(surface).inflate(96), e -> true).size() >= 6) return;
+        int n = 2 + r.nextInt(2);
+        for (int i = 0; i < n; i++) {
+            BlockPos at = surface.offset(r.nextInt(5) - 2, 0, r.nextInt(5) - 2);
+            at = new BlockPos(at.getX(), level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, at.getX(), at.getZ()), at.getZ());
+            if (!level.getFluidState(at.below()).isSource() || !level.getBlockState(at).isAir()) continue;
+            var o = ModContent.OTTER.get().create(level, EntitySpawnReason.NATURAL);
+            if (o == null) continue;
+            o.snapTo(at.getX() + 0.5, at.getY() - 0.4, at.getZ() + 0.5, r.nextFloat() * 360, 0);
+            o.finalizeSpawn(level, level.getCurrentDifficultyAt(at), EntitySpawnReason.NATURAL, null);
+            if (i == n - 1 && r.nextBoolean()) o.setAge(-24000);
+            level.addFreshEntity(o);
         }
     }
 

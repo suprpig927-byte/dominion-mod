@@ -53,6 +53,8 @@ public final class ModContent {
 
     public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.Deer>> DEER = ENTITIES.registerEntityType("deer",
             com.dominionmod.dominion.entity.wild.Deer::new, MobCategory.CREATURE, b -> b.sized(0.9f, 1.5f).eyeHeight(1.35f).clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.Otter>> OTTER = ENTITIES.registerEntityType("otter",
+            com.dominionmod.dominion.entity.wild.Otter::new, MobCategory.CREATURE, b -> b.sized(0.6f, 0.55f).eyeHeight(0.45f).clientTrackingRange(10));
     public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.Orc>> ORC = ENTITIES.registerEntityType("orc",
             com.dominionmod.dominion.entity.wild.Orc::new, MobCategory.MONSTER, b -> b.sized(0.6f, 1.95f).eyeHeight(1.62f).clientTrackingRange(10));
     public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.Centaur>> CENTAUR = ENTITIES.registerEntityType("centaur",
@@ -120,6 +122,11 @@ public final class ModContent {
     public static final DeferredBlock<com.dominionmod.dominion.block.IllagerStandardBlock> ILLAGER_STANDARD = BLOCKS.registerBlock("illager_standard",
             com.dominionmod.dominion.block.IllagerStandardBlock::new, p -> p.mapColor(MapColor.COLOR_GRAY).strength(-1f, 3600000f).sound(SoundType.WOOD).noOcclusion());
     public static final DeferredItem<BlockItem> ILLAGER_STANDARD_ITEM = ITEMS.registerSimpleBlockItem("illager_standard", ILLAGER_STANDARD);
+    public static final DeferredBlock<com.dominionmod.dominion.block.PetBedBlock> PET_BED = BLOCKS.registerBlock("pet_bed",
+            com.dominionmod.dominion.block.PetBedBlock::new, p -> p.mapColor(MapColor.WOOL).strength(0.4f).sound(SoundType.WOOL).noOcclusion());
+    public static final DeferredItem<BlockItem> PET_BED_ITEM = ITEMS.registerSimpleBlockItem("pet_bed", PET_BED);
+    public static final DeferredItem<com.dominionmod.dominion.item.CreatureCageItem> CREATURE_CAGE = ITEMS.registerItem("creature_cage",
+            com.dominionmod.dominion.item.CreatureCageItem::new, p -> p.stacksTo(16));
     public static final DeferredItem<Item> FLOUR = ITEMS.registerSimpleItem("flour", p -> p.stacksTo(64));
     public static final DeferredItem<com.dominionmod.dominion.item.SpellBookItem> SPELL_BOOK = ITEMS.registerItem("spell_book",
             com.dominionmod.dominion.item.SpellBookItem::new, p -> p.stacksTo(1).rarity(Rarity.RARE));
@@ -148,7 +155,7 @@ public final class ModContent {
     public static final java.util.Map<String, DeferredItem<net.minecraft.world.item.SpawnEggItem>> SPAWN_EGGS = new java.util.LinkedHashMap<>();
 
     static {
-        for (String mob : List.of("citizen", "deer", "orc", "orc_warlord", "illager_overlord", "centaur", "clydesdale", "mustang", "shetland_pony"))
+        for (String mob : List.of("citizen", "deer", "orc", "orc_warlord", "illager_overlord", "centaur", "otter", "clydesdale", "mustang", "shetland_pony"))
             SPAWN_EGGS.put(mob, ITEMS.registerItem(mob + "_spawn_egg", net.minecraft.world.item.SpawnEggItem::new, p -> p.spawnEgg(eggMob(mob))));
     }
 
@@ -159,6 +166,7 @@ public final class ModContent {
             case "orc" -> ORC.get();
             case "orc_warlord" -> ORC_WARLORD.get();
             case "illager_overlord" -> ILLAGER_OVERLORD.get();
+            case "otter" -> OTTER.get();
             case "centaur" -> CENTAUR.get();
             case "clydesdale" -> CLYDESDALE.get();
             case "mustang" -> MUSTANG.get();
@@ -244,6 +252,8 @@ public final class ModContent {
                 out.accept(CANNON_ITEM.get());
                 out.accept(CANNONBALL.get());
                 out.accept(FLOUR.get());
+                out.accept(CREATURE_CAGE.get());
+                out.accept(PET_BED_ITEM.get());
                 SPAWN_EGGS.values().forEach(egg -> out.accept(egg.get()));
             }).build());
 
@@ -260,6 +270,7 @@ public final class ModContent {
             e.put(DEER.get(), com.dominionmod.dominion.entity.wild.Deer.createAttributes().build());
             e.put(ORC.get(), com.dominionmod.dominion.entity.wild.Orc.createAttributes().build());
             e.put(CENTAUR.get(), com.dominionmod.dominion.entity.wild.Centaur.createAttributes().build());
+            e.put(OTTER.get(), com.dominionmod.dominion.entity.wild.Otter.createAttributes().build());
             e.put(ILLAGER_OVERLORD.get(), com.dominionmod.dominion.entity.wild.IllagerOverlord.createOverlordAttributes().build());
             e.put(ORC_WARLORD.get(), com.dominionmod.dominion.entity.wild.OrcWarlord.createWarlordAttributes().build());
             e.put(BATTERING_RAM.get(), com.dominionmod.dominion.entity.siege.SiegeEngine.createAttributes(com.dominionmod.dominion.entity.siege.SiegeEngine.Kind.RAM).build());

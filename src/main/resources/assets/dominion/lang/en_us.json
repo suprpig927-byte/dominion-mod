@@ -58,5 +58,9 @@
   "entity.dominion.illager_overlord": "Illager Overlord",
   "item.dominion.illager_overlord_spawn_egg": "Illager Overlord Spawn Egg",
   "block.dominion.illager_standard": "Illager Standard",
-  "item.dominion.flour": "Flour"
+  "item.dominion.flour": "Flour",
+  "entity.dominion.otter": "Otter",
+  "item.dominion.otter_spawn_egg": "Otter Spawn Egg",
+  "item.dominion.creature_cage": "Creature Cage",
+  "block.dominion.pet_bed": "Pet Bed"
 }

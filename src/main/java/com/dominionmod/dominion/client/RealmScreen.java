@@ -256,6 +256,7 @@ public class RealmScreen extends Screen {
         int wy = t + 38;
         int wx = l + W - 14 - MAP;
         drawMap(g, wx, t + 20);
+        hoverMap(g, wx, t + 20, mx, my);
         wy = t + 20 + MAP + 18;
         List<String[]> warns = new ArrayList<>();
         if (threats > 0) warns.add(new String[]{"warn", threats + (threats == 1 ? " army marches" : " armies march") + " on you! See Defense."});
@@ -270,6 +271,45 @@ public class RealmScreen extends Screen {
             }
             wy += 2;
         }
+    }
+
+    /** The map chunk under the mouse: {col, row}, or null. */
+    private int[] mapCell(int mapX, int mapY, double mx, double my) {
+        int n = Payloads.MAP_RADIUS * 2 + 1, cell = MAP / n;
+        if (mx < mapX || my < mapY || mx >= mapX + n * cell || my >= mapY + n * cell) return null;
+        return new int[]{(int) ((mx - mapX) / cell), (int) ((my - mapY) / cell)};
+    }
+
+    private void hoverMap(GuiGraphicsExtractor g, int mapX, int mapY, int mx, int my) {
+        int[] c = mapCell(mapX, mapY, mx, my);
+        if (c == null || !info.has() || !RealmMap.ready) return;
+        int n = Payloads.MAP_RADIUS * 2 + 1, cell = MAP / n;
+        int x = mapX + c[0] * cell, y = mapY + c[1] * cell;
+        int v = info.map().size() > c[1] * n + c[0] ? info.map().get(c[1] * n + c[0]) : -1;
+        g.outline(x, y, cell, cell, 0xFFFFFFFF);
+        int cx = Math.floorDiv(RealmMap.x0, 16) + c[0], cz = Math.floorDiv(RealmMap.z0, 16) + c[1];
+        List<String> tip = new ArrayList<>();
+        tip.add("Chunk " + cx + ", " + cz + "  (blocks " + cx * 16 + ", " + cz * 16 + ")");
+        if (v < 0) tip.add("Wilderness. Click to claim it (" + info.claimCost() + " Influence).");
+        else if (v >= 100) tip.add("Yours. Right-click to release it.");
+        else tip.add("Another kingdom's land.");
+        Theme.tooltip(g, tip, mx, my);
+    }
+
+    @Override
+    public boolean mouseClicked(net.minecraft.client.input.MouseButtonEvent event, boolean doubleClick) {
+        if (tab == OVERVIEW && info.has() && RealmMap.ready) {
+            int[] c = mapCell(left() + W - 14 - MAP, top() + 20, event.x(), event.y());
+            if (c != null) {
+                int cx = Math.floorDiv(RealmMap.x0, 16) + c[0], cz = Math.floorDiv(RealmMap.z0, 16) + c[1];
+                boolean release = event.button() == 1;
+                send(release ? Payloads.RealmAction.UNCLAIM_AT : Payloads.RealmAction.CLAIM_AT, cx + "," + cz);
+                Minecraft.getInstance().getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
+                        net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK, 1.0f));
+                return true;
+            }
+        }
+        return super.mouseClicked(event, doubleClick);
     }
 
     /** The live map: real terrain from the server, each kingdom's land tinted, and your watchtowers. */
@@ -325,7 +365,7 @@ public class RealmScreen extends Screen {
                 g.fill(ax - 1, az - 1, ax + 1, az + 1, 0xFFFFFFFF);
             }
         }
-        String here = info.here().isEmpty() ? "Here: wilderness" : "Here: " + info.here();
+        String here = info.has() ? "Click a chunk to claim it" : info.here().isEmpty() ? "Here: wilderness" : "Here: " + info.here();
         Theme.text(g, here, mx, my + px + 5, Theme.INK_SOFT);
         Theme.textRight(g, "N ^", mx + px, my + px + 5, Theme.INK_FAINT);
     }

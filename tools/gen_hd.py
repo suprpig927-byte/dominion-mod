@@ -635,6 +635,8 @@ if __name__ == "__main__":
     gen_factions.write()
     import gen_gui  # the parchment-and-wood UI theme
     gen_gui.write()
+    import gen_pets  # otters, creature cages, pet beds
+    gen_pets.write()
     town_hall()
     market()
     research_table()
