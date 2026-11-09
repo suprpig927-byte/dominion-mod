@@ -15,7 +15,7 @@ A NeoForge 26.3 Minecraft mod: found a kingdom, recruit villagers, put your peop
    - Builder's Hammer (3 iron ingots over 2 sticks): **Builder**
    Hand them armor and they wear it. Sneak + right-click with an empty hand takes their gear back. Right-click with an empty hand shows their status.
 5. Every Minecraft day each citizen eats one food item from the storehouse. Workers pay 1 coin in tax, soldiers draw 1 coin in wages. Three days hungry or unpaid and they leave.
-6. Sell surplus at a **Market** block for Gold Coins (right-click it with a stack; right-click empty-handed for prices).
+6. Sell surplus at a **Market** block for Gold Coins (right-click it with a stack, or empty-handed for the Market screen).
 
 ## Building
 - Open the **Build** tab of the Realm screen, pick a structure and take its blueprint: Cottage (2 beds), Barracks (4 beds, flies your flag), Wheat Farm, Watchtower, Storehouse, Market Stall, Wall Gate, Stone Wall, Palisade.
@@ -70,13 +70,43 @@ Craft one from leather, string and an iron nugget. It holds 512 Bullets: right-c
 
 ## The wild
 
-Every mob has a spawn egg (Citizen, Deer, Orc, Orc Warlord, Centaur, Clydesdale, Mustang, Shetland Pony), in the Dominion tab and the Spawn Eggs tab. They work on spawners too.
+Every mob has a spawn egg (Citizen, Deer, Orc, Orc Warlord, Illager Overlord, Centaur, Clydesdale, Mustang, Shetland Pony), in the Dominion tab and the Spawn Eggs tab. They work on spawners too.
 - **Horses**: three new breeds roam the plains, meadows and taiga. The **Clydesdale** is huge and tough but slow; the **Mustang** is fast and a great jumper; the **Shetland Pony** is tiny and sturdy. Tame, saddle and breed them like horses; foals take after their parents.
 - **Deer** live in forests, taiga and meadows. They bolt unless you sneak; tempt and breed them with apples or berries. Stags carry antlers. They drop venison (cook it) and leather.
 - **Centaurs** roam the grasslands in bands. They leave you alone unless you hurt one (then the band shoots back), and they hunt orcs.
 - **Orcs** live in villages of hide huts around a War Totem, led by a chieftain with a battle axe. They attack players, villagers and citizens. Kill every orc in a village, then right-click the War Totem: the 3x3 chunks around it become yours, with 25 gold coins of plunder.
 - **Wild kingdoms**: small towns and great kingdoms are scattered through the world, each with its own name, colours, flag, buildings, people and soldiers (some on patrol). Great kingdoms are built around a **Castle**. Their soldiers defend each other. Defeat every soldier near the Town Hall, then right-click it: the kingdom's land, buildings, storehouse and surviving people become yours.
 - Settlements appear in 512-block regions as you explore (none near the world spawn). Operators can raise one with `/dominion admin settle orc|town|kingdom`.
+
+## Workshops
+Workshops hire an idle citizen (anyone with empty hands and no University class) and, every minute their worker is on the job in daylight, make goods for your storehouse. Stone and better workshops take two hands, Royal ones three. The **Industry** tab of the Realm screen shows who works where, what each made last and what it's short of, and lets the ruler close a workshop (its workers are let go).
+- **Mine** (Mining): stone, coal, iron, copper, lapis, redstone, sometimes gold; now and then a diamond in Stone or better.
+- **Lumber Mill** (Carpentry): logs from the storehouse into 6 planks each, plus sticks.
+- **Mill** (Milling): 3 wheat into 2 Flour (3 in Stone). **Bakery** (Milling): 1 Flour into 2 bread (3 in Brick), or 3 wheat into 1 bread.
+- **Butcher** (Animal Husbandry): breeds the cows, pigs, sheep and chickens within 24 blocks with feed from the storehouse and culls the biggest herd into cooked meat, leather, wool and feathers. Named animals are never touched.
+- **Harbor** (Seafaring): fish, and more beside open water; cooked in Stone or better; now and then a treasure.
+- **Tavern**: +3 Influence a day, and most mornings a traveller stays on and joins you (if there's a free bed and 10 food in store).
+- **Chapel** (Faith): +2 Influence a day; the Priest heals and cures your people within 32 blocks.
+- **Archery Range** (Archery): no workers needed. Every archer in the kingdom hits 25% harder (40% in Stone or better).
+
+## Watchtowers
+Three levels: the log **Lookout Tower** (no research), the **Stone Watchtower** (Masonry) and the **Fortified Tower** (Fortification). Sneak + right-click a tower's sign to raise it to the next level.
+- **Garrison**: 1, 2 or 4 of your archers climb up and keep watch. From the top they shoot further and 25% harder.
+- **Early warning**: enemies within 40, 56 or 72 blocks glow, and the bell rings with a message saying what's coming and from where. Armies and war parties marching on you are spotted three times further out.
+- **Land**: you can claim chunks up to 1, 2 or 3 chunks around a tower even where they don't touch your borders.
+- The **Defense** tab lists your towers and garrisons, every army marching on you, and the orc and Illager camps nearby; towers and their land show on the map.
+
+## The Illager empire
+Illager outposts (a dark oak tower, tents and a cage of captive villagers round an **Illager Standard**) appear in the wild. Left alone they grow into walled **forts** (evokers, witches, a ravager pen) and then **citadels**, ruled from a great hall by the **Illager Overlord**, a crowned evoker boss with 300 health who raises rings of fangs, calls vindicator bodyguards and blinks away when cornered.
+- At first light a camp may send a **war party** at the nearest town: pillagers and vindicators, then evokers and witches, then a ravager with a rider, and rarely the Overlord himself. They hunt your citizens.
+- Clear a camp, then right-click its Standard: the land around it (more for a citadel), coins and emeralds, and the caged captives swear fealty to you (if you have beds).
+- Operators: `/dominion admin settle illager`, `/dominion admin citadel`, `/dominion admin illagerraid`.
+
+## The screens
+Every screen got a new look (parchment in a dark wood frame, wooden buttons, cloth title ribbons) and more on it:
+- **Realm**: Overview with stat cards and warnings; Citizens with jobs and workplaces; Build sorted into Homes, Work, Civic, Military and Walls, with each material shown against what's in your storehouse; Research as cards with costs and progress; the new Industry and Defense tabs; Diplomacy.
+- **Market**: right-click a Market with an empty hand for every good's price today (and whether your stores make it a glut or scarce), what you carry and what's in store, a Sell button for each, and your caravans and hired guards.
+- **University**, **Founding** and **Flag** screens in the same style.
 
 ## Rival kingdoms and diplomacy
 - Wild kingdoms are alive: once a day each one may claim more land, put up a new building and train another soldier from its treasury.
@@ -104,7 +134,7 @@ Every mob has a spawn egg (Citizen, Deer, Orc, Orc Warlord, Centaur, Clydesdale,
 ## Trade and roads
 - **Roads** are a new wall type in the Build tab: draw a line and builders lay a 3-wide path at ground level (dirt path, coarse dirt, andesite, polished andesite or deepslate by tier). Everyone moves faster on roads.
 - With a Market Stall, your kingdom sends **caravans** twice a day to kingdoms you trade with or are allied to, and to your outposts. A merchant leads a pony and cart carrying your surplus; it earns coins at the other end and brings goods home. Caravans travel faster on roads.
-- **Bandits** ambush caravans on the open road. Hire guards (2 coins each per trip) from the Market screen with [+1] and [-1].
+- **Bandits** ambush caravans on the open road. Hire guards (2 coins each per trip) on the Market screen with + and -.
 - **Market prices follow supply**: whatever your storehouse already has plenty of fetches less, and anything scarce fetches more. The market screen marks each good as glut or scarce.
 
 ## Children
@@ -133,7 +163,7 @@ Every mob has a spawn egg (Citizen, Deer, Orc, Orc Warlord, Centaur, Clydesdale,
 ## Commands
 `/dominion claim | unclaim | realm | list | invite <player> | join | leave | crown <player>`
 `/dominion diplomacy <war|peace|trade|alliance|tribute|break> <kingdom>` · `/dominion caravan guards <0-6>`
-Operators: `/dominion admin influence <amount>`, `/dominion admin disband <kingdom>`, `/dominion admin settle orc|town|kingdom`, `/dominion admin war <kingdom>`, `/dominion admin envoy <kind> <kingdom>`, `/dominion admin armies`, `/dominion admin raid`, `/dominion admin stronghold`
+Operators: `/dominion admin influence <amount>`, `/dominion admin disband <kingdom>`, `/dominion admin settle orc|town|kingdom`, `/dominion admin war <kingdom>`, `/dominion admin envoy <kind> <kingdom>`, `/dominion admin armies`, `/dominion admin raid`, `/dominion admin stronghold`, `/dominion admin settle illager`, `/dominion admin citadel`, `/dominion admin illagerraid`
 
 ## Building
 Pushes build the jar on GitHub Actions (Build workflow, artifact `dominion-mod`). Textures are painted by `tools/gen_textures.py` and `tools/gen_hd.py` (which also runs `gen_weapons.py` and `gen_wild.py`).

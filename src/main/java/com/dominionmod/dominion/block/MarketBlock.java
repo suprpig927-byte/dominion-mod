@@ -32,6 +32,7 @@ public class MarketBlock extends Block {
     /** How many of an item buy one Gold Coin. */
     private static final Map<Item, Integer> PER_COIN = new LinkedHashMap<>();
     private static final Map<TagKey<Item>, Integer> TAG_PER_COIN = new LinkedHashMap<>();
+    private static final int FLOUR_PER_COIN = 6;
 
     static {
         PER_COIN.put(Items.WHEAT, 8);
@@ -52,7 +53,6 @@ public class MarketBlock extends Block {
         PER_COIN.put(Items.EMERALD, 1);
         PER_COIN.put(Items.GOLD_INGOT, 1);
         PER_COIN.put(Items.DIAMOND, 1);
-        PER_COIN.put(ModContent.FLOUR.get(), 6);
         PER_COIN.put(Items.COOKED_BEEF, 3);
         PER_COIN.put(Items.COOKED_PORKCHOP, 3);
         PER_COIN.put(Items.COOKED_MUTTON, 3);
@@ -88,6 +88,7 @@ public class MarketBlock extends Block {
     }
 
     public static int perCoin(ItemStack s) {
+        if (s.is(ModContent.FLOUR.get())) return FLOUR_PER_COIN; // registered after this block, so not in the static table
         Integer n = PER_COIN.get(s.getItem());
         if (n != null) return n;
         for (var e : TAG_PER_COIN.entrySet()) if (s.is(e.getKey())) return e.getValue();
@@ -166,7 +167,9 @@ public class MarketBlock extends Block {
         var owner = d.ownerAt(level, pos);
         var store = owner == null ? java.util.List.<net.minecraft.world.Container>of() : com.dominionmod.dominion.kingdom.Storehouse.containers(level, owner);
         java.util.List<String> rows = new java.util.ArrayList<>();
-        PER_COIN.forEach((item, base) -> {
+        java.util.Map<Item, Integer> goods = new LinkedHashMap<>(PER_COIN);
+        goods.put(ModContent.FLOUR.get(), FLOUR_PER_COIN);
+        goods.forEach((item, base) -> {
             String key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).toString();
             int stock = com.dominionmod.dominion.kingdom.Storehouse.count(store, s -> s.is(item));
             rows.add(key + "|" + base + "|" + priceAt(level, pos, new ItemStack(item)) + "|" + bonus(item) + "|" + carried(p, s -> s.is(item)) + "|" + stock);
