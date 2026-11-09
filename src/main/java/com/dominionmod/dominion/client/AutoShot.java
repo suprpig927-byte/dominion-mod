@@ -223,7 +223,26 @@ public final class AutoShot {
         if (t == 2340) shot(mc, "otters");
         if (t == 2342) look(mc, bx - 58.5, by + 1.8, bz - 34.0, 180f, 22f);
         if (t == 2380) shot(mc, "pet_beds");
-        if (t == 2400) {
+        // every Dominion item in the inventory, so the icons can be checked at their real size
+        for (int page = 0; page < 3; page++) {
+            final int from = page * 36;
+            if (t == 2382 + page * 30) {
+                mc.gui.setScreen(null);
+                onServer(mc, sp -> {
+                    sp.setGameMode(net.minecraft.world.level.GameType.SURVIVAL);
+                    sp.getInventory().clearContent();
+                    var items = net.minecraft.core.registries.BuiltInRegistries.ITEM.stream()
+                            .filter(i -> net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(i).getNamespace().equals(DominionMod.MODID))
+                            .sorted(java.util.Comparator.comparing(i -> net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(i).getPath()))
+                            .toList();
+                    for (int i = 0; i < 36 && from + i < items.size(); i++)
+                        sp.getInventory().setItem(i, new net.minecraft.world.item.ItemStack(items.get(from + i)));
+                });
+            }
+            if (t == 2392 + page * 30) mc.gui.setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(mc.player));
+            if (t == 2408 + page * 30) shot(mc, "items_" + (page + 1));
+        }
+        if (t == 2480) {
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();
         }

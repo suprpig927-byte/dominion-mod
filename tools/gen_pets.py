@@ -179,33 +179,58 @@ DYES = {"white": (233, 236, 236), "orange": (240, 118, 19), "magenta": (189, 68,
 
 
 def bed_tex(dye, part):
+    """32x32 (the model's UVs stay in 0-16 space): a quilted cushion, a rolled fabric rim, a woven wicker basket."""
+    S = 32
     base = np.array(DYES[dye], float)
-    img = np.zeros((16, 16, 4), np.uint8)
-    for y in range(16):
-        for x in range(16):
+    lum = base.mean()
+    # dark dyes get lifted highlights, pale dyes get deeper shadows, so the quilting reads on every colour
+    hi, lo = (1.10, 0.80) if lum > 150 else (1.28, 0.70)
+    img = np.zeros((S, S, 4), np.uint8)
+
+    def wicker(x, y):
+        # classic basket weave: 8 px cells alternating horizontal and vertical reeds, each reed 2 px wide and rounded
+        w = np.array([164, 120, 70], float)
+        horiz = ((x // 8) + (y // 8)) % 2 == 0
+        a = (y if horiz else x) % 2           # which half of a reed
+        along = (x if horiz else y) % 8       # position along the reed: darker where it dives under the next cell
+        v = (1.04 if a == 0 else 0.86) * (0.78 + 0.22 * np.sin(np.pi * (along + 0.5) / 8))
+        return w * v
+
+    for y in range(S):
+        for x in range(S):
             h = zlib.crc32(bytes([x, y, len(dye), ord(part[0])])) / 0xFFFFFFFF
             if part == "cushion":
-                # quilted squares with stitched seams and a soft paler middle
-                seam = (x % 8 == 0) or (y % 8 == 0)
-                d = ((x - 7.5) ** 2 + (y - 7.5) ** 2) ** 0.5
-                c = base * (1.12 - d / 50)
-                if seam:
-                    c = base * 0.78
-                if (x % 8 == 4 and y % 8 == 4):
-                    c = base * 0.7  # button
+                # four puffy quilted pillows, lit from the top-left, with a stitched seam and a tufting button
+                qx, qy = x % 16, y % 16
+                dx, dy = (qx - 7.5) / 8, (qy - 7.5) / 8
+                puff = 1 - 0.55 * (dx * dx + dy * dy)
+                light = 1 + 0.12 * (-dx - dy)
+                c = base * (lo + (hi - lo) * puff) * light
+                if qx in (0, 15) or qy in (0, 15):
+                    c = base * (lo - 0.08)
+                    if (qx + qy) % 3 == 0:
+                        c = base * min(hi + 0.1, 1.4)          # stitches
+                if qx in (7, 8) and qy in (7, 8):
+                    c = base * (lo - 0.12) if (qx, qy) != (7, 7) else base * hi
             elif part == "rim":
-                # rolled fabric edge: light top, darker underside
-                c = base * (1.15 - 0.05 * abs(y - 4))
-                if y >= 9:
-                    # wicker base
-                    w = np.array([150, 110, 64])
-                    c = w * (0.85 + 0.25 * ((x + (y // 2) * 2) % 4 < 2))
-                if y == 8:
-                    c = base * 0.7
-            else:  # bottom: wicker
-                w = np.array([140, 100, 58])
-                c = w * (0.85 + 0.25 * (((x // 2) + (y // 2)) % 2))
-            c = c * (0.94 + 0.1 * h)
+                if y < 16:
+                    # rolled fabric bolster: a round highlight near the top, shading underneath
+                    t = (y - 5) / 8
+                    c = base * (hi - (hi - lo) * min(1, t * t))
+                    if (x + y // 2) % 8 == 0 and 2 < y < 13:
+                        c = c * 0.9                             # soft folds
+                    if y >= 14:
+                        c = base * (lo - 0.1)
+                else:
+                    c = wicker(x, y)
+                    if y == 16:
+                        c = c * 0.6
+            else:
+                c = wicker(x, y)
+                d = max(abs(x - 15.5), abs(y - 15.5))
+                if d > 13.5:
+                    c = c * 0.75                                # bound rim
+            c = c * (0.96 + 0.07 * h)
             img[y, x] = list(np.clip(c, 0, 255).astype(int)) + [255]
     return Image.fromarray(img, "RGBA")
 

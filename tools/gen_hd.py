@@ -637,6 +637,8 @@ if __name__ == "__main__":
     gen_gui.write()
     import gen_pets  # otters, creature cages, pet beds
     gen_pets.write()
+    import gen_icons  # hand-drawn siege, flour and venison icons (overrides the older renders above)
+    gen_icons.main()
     town_hall()
     market()
     research_table()
