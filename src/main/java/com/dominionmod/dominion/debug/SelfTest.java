@@ -214,7 +214,15 @@ public final class SelfTest {
         }
         try {
             warfareSetup(level, k);
-            economySetup(level, k);
+            // the workshops take a while to build: after the RCON command has returned
+            level.getServer().schedule(new net.minecraft.server.TickTask(level.getServer().getTickCount() + 10, () -> {
+                try {
+                    economySetup(level, k);
+                } catch (RuntimeException e) {
+                    log("economy setup FAILED: " + e);
+                    DominionMod.LOGGER.error("economy setup", e);
+                }
+            }));
         } catch (RuntimeException e) {
             log("warfare setup FAILED: " + e);
             DominionMod.LOGGER.error("warfare setup", e);
