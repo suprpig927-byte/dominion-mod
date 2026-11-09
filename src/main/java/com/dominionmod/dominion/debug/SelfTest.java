@@ -61,7 +61,7 @@ public final class SelfTest {
 
     public static void start(ServerLevel level) {
         int bx = 4000, bz = 4000;
-        for (int cx = -2; cx <= 2; cx++) for (int cz = -2; cz <= 2; cz++) level.setChunkForced((bx >> 4) + cx, (bz >> 4) + cz, true);
+        for (int cx = -2; cx <= 2; cx++) for (int cz = -2; cz <= 5; cz++) level.setChunkForced((bx >> 4) + cx, (bz >> 4) + cz, true);
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, bx, bz);
         center = new BlockPos(bx, y, bz);
         // flat grass platform, air above
@@ -192,6 +192,10 @@ public final class SelfTest {
                 com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_TOWN, townCenter, rs);
                 castleCenter = surfaceAt(level, center.offset(-220, 0, 0));
                 com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.WILD_KINGDOM, castleCenter, rs);
+                illagerCenter = surfaceAt(level, center.offset(0, 0, 170));
+                for (int dx = -3; dx <= 3; dx++) for (int dz = -3; dz <= 3; dz++)
+                    level.setChunkForced((illagerCenter.getX() >> 4) + dx, (illagerCenter.getZ() >> 4) + dz, true);
+                com.dominionmod.dominion.kingdom.Settlements.enqueue(level, com.dominionmod.dominion.kingdom.Settlements.Type.ILLAGER_CAMP, illagerCenter, rs);
                 log("wild settlements queued");
             } catch (RuntimeException e) {
                 log("wild generation FAILED: " + e);
@@ -210,6 +214,7 @@ public final class SelfTest {
         }
         try {
             warfareSetup(level, k);
+            economySetup(level, k);
         } catch (RuntimeException e) {
             log("warfare setup FAILED: " + e);
             DominionMod.LOGGER.error("warfare setup", e);
@@ -265,6 +270,7 @@ public final class SelfTest {
             final Kingdom wildK = found;
             try {
                 warfareCheck(level, d, k, wildK);
+                economyCheck(level, d, k);
             } catch (RuntimeException e) {
                 log("warfare check FAILED: " + e);
                 DominionMod.LOGGER.error("warfare check", e);
@@ -532,6 +538,101 @@ public final class SelfTest {
             log("orc raid: " + (raid != null) + " " + com.dominionmod.dominion.kingdom.Armies.describe(level));
             com.dominionmod.dominion.kingdom.Armies.recall(level, k, k);
             d.armies.removeIf(a -> a.kingdom.equals(com.dominionmod.dominion.kingdom.Armies.ORCS));
+        }
+    }
+
+    // ------------------------------------------------------------------ workshops, towers, Illagers
+
+    private static BlockPos illagerCenter;
+    private static final java.util.Map<String, UUID> SHOP_HANDS = new java.util.LinkedHashMap<>();
+    private static UUID towerArcher;
+
+    private static void economySetup(ServerLevel level, Kingdom k) {
+        // a row of workshops south of the platform, each with an idle citizen at its door
+        String[] shops = {"mine", "mill", "bakery", "lumber_mill", "butcher", "tavern", "chapel", "harbor"};
+        BlockPos row = center.offset(-30, 0, 40);
+        for (BlockPos p : BlockPos.betweenClosed(row.offset(-8, -1, -10), row.offset(68, 14, 22))) {
+            int dy = p.getY() - row.getY();
+            level.setBlock(p, dy == -1 ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+        }
+        for (BlockPos p : BlockPos.betweenClosed(row.offset(-8, -3, -10), row.offset(68, -2, 22))) level.setBlock(p, Blocks.DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
+        KingdomData d = Realm.data(level);
+        ChunkPos cc = ChunkPos.containing(row);
+        for (int cx = -1; cx <= 5; cx++) for (int cz = -1; cz <= 1; cz++) {
+            ChunkPos cp = new ChunkPos(cc.x() + cx, cc.z() + cz);
+            if (d.ownerId(level, cp) == null) d.claim(level, cp, k);
+        }
+        d.progress(k).researched.addAll(List.of("timber", "stone", "milling", "mining", "husbandry", "seafaring", "faith", "archery"));
+        SHOP_HANDS.clear();
+        for (int i = 0; i < shops.length; i++) {
+            BlockPos at = row.offset((i % 4) * 16, -1, (i / 4) * 16);
+            com.dominionmod.dominion.debug.Showcase.instant(level, k, shops[i], at, 0, 1);
+            Citizen c = spawn(level, k, at.above().offset(0, 0, 0), ItemStack.EMPTY, null);
+            if (c != null) {
+                citizens.removeLast();
+                SHOP_HANDS.put(shops[i], c.getUUID());
+            }
+        }
+        // grain, logs and livestock for them to work with
+        if (level.getBlockEntity(center.offset(2, 0, 0)) instanceof ChestBlockEntity be) {
+            be.setItem(10, new ItemStack(Items.WHEAT, 64));
+            be.setItem(11, new ItemStack(Items.OAK_LOG, 32));
+            be.setItem(12, new ItemStack(Items.WHEAT_SEEDS, 32));
+        }
+        BlockPos pen = row.offset(16 * 0, 0, 16 + 8);
+        for (int i = 0; i < 5; i++) {
+            var cow = EntityTypes.COW.create(level, EntitySpawnReason.COMMAND);
+            if (cow == null) continue;
+            cow.snapTo(pen.getX() + i + 0.5, pen.getY(), pen.getZ() + 0.5, 0, 0);
+            cow.setPersistenceRequired();
+            level.addFreshEntity(cow);
+        }
+        // a lookout tower with an archer to post on it
+        BlockPos tower = center.offset(-16, -1, 16);
+        com.dominionmod.dominion.debug.Showcase.instant(level, k, "lookout", tower, 0, 0);
+        Citizen archer = spawn(level, k, tower.above().offset(3, 0, 3), new ItemStack(Items.BOW), null);
+        if (archer != null) {
+            citizens.removeLast();
+            towerArcher = archer.getUUID();
+        }
+        ChunkPos tc = ChunkPos.containing(tower);
+        log("watchtower: built " + d.progress(k).buildings.stream().filter(b -> com.dominionmod.dominion.kingdom.Watchtowers.level(b) > 0).count()
+                + " covers 1 chunk out=" + com.dominionmod.dominion.kingdom.Watchtowers.covers(level, d, k, new ChunkPos(tc.x() - 1, tc.z() + 1))
+                + " covers 2 out=" + com.dominionmod.dominion.kingdom.Watchtowers.covers(level, d, k, new ChunkPos(tc.x() - 2, tc.z()))
+                + " lookout-research-free=" + (com.dominionmod.dominion.build.Structures.get("lookout").requires() == null));
+        log("industry: workshops=" + com.dominionmod.dominion.kingdom.Industry.rows(level, k).size() + " research has " + com.dominionmod.dominion.kingdom.Research.all().size() + " techs");
+    }
+
+    private static void economyCheck(ServerLevel level, KingdomData d, Kingdom k) {
+        if (k == null) return;
+        for (String row : com.dominionmod.dominion.kingdom.Industry.rows(level, k)) log("workshop " + row);
+        StringBuilder trades = new StringBuilder();
+        SHOP_HANDS.forEach((shop, id) -> trades.append(shop).append('=').append(level.getEntity(id) instanceof Citizen c ? c.job().title : "gone").append(' '));
+        log("trades: " + trades.toString().trim());
+        var store = Storehouse.containers(level, k);
+        log("store after work: flour=" + Storehouse.count(store, s -> s.is(ModContent.FLOUR.get())) + " bread=" + Storehouse.count(store, s -> s.is(Items.BREAD))
+                + " cobble=" + Storehouse.count(store, s -> s.is(Items.COBBLESTONE) || s.is(Items.COBBLED_DEEPSLATE))
+                + " planks=" + Storehouse.count(store, s -> s.is(Items.OAK_PLANKS)) + " beef=" + Storehouse.count(store, s -> s.is(Items.COOKED_BEEF))
+                + " fish=" + Storehouse.count(store, s -> s.is(Items.COD) || s.is(Items.SALMON) || s.is(Items.COOKED_COD))
+                + " wheat=" + Storehouse.count(store, s -> s.is(Items.WHEAT)) + " daily influence=" + Realm.dailyInfluence(d, k));
+        for (String row : com.dominionmod.dominion.kingdom.Watchtowers.rows(level, k)) if (row.startsWith("tower|")) log("defense " + row);
+        if (towerArcher != null && level.getEntity(towerArcher) instanceof Citizen a)
+            log("tower archer: garrisoned=" + com.dominionmod.dominion.kingdom.Watchtowers.garrisoned(a) + " y=" + a.getY() + " (ground " + center.getY() + ")");
+        // the Illager camp
+        log("illager camps=" + d.illagerCamps.size());
+        if (!d.illagerCamps.isEmpty()) {
+            var v = d.illagerCamps.get(0);
+            log("illager camp: " + com.dominionmod.dominion.kingdom.IllagerEmpire.title(v) + " members=" + com.dominionmod.dominion.kingdom.IllagerEmpire.members(level, v.totem).size()
+                    + " standard=" + level.getBlockState(v.totem).getBlock());
+            com.dominionmod.dominion.kingdom.IllagerEmpire.fastForward(level, v);
+            var members = com.dominionmod.dominion.kingdom.IllagerEmpire.members(level, v.totem);
+            log("illager citadel: stage=" + v.stage + " title=" + com.dominionmod.dominion.kingdom.IllagerEmpire.title(v) + " overlord="
+                    + members.stream().anyMatch(m -> m instanceof com.dominionmod.dominion.entity.wild.IllagerOverlord) + " members=" + members.size()
+                    + " kinds=" + members.stream().map(m -> m.getType().toShortString()).distinct().toList());
+            var raid = com.dominionmod.dominion.kingdom.IllagerEmpire.raid(level, v, k);
+            com.dominionmod.dominion.kingdom.Armies.debugMarch(level, raid, 20);
+            log("illager raid: " + com.dominionmod.dominion.kingdom.Armies.describe(level).stream().filter(x -> x.startsWith("illagers")).toList());
+            d.armies.removeIf(a -> a.illagers());
         }
     }
 }

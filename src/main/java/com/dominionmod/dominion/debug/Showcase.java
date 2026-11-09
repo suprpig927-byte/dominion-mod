@@ -42,6 +42,8 @@ public final class Showcase {
         for (String cmd : new String[]{"gamerule doMobSpawning false", "gamerule spawn_mobs false", "gamerule advance_time false", "kill @e[type=minecraft:slime]"})
             server.getCommands().performPrefixedCommand(server.createCommandSourceStack().withSuppressedOutput(), cmd);
         p.getAbilities().invulnerable = true;
+        p.getAbilities().mayfly = true;
+        p.getAbilities().flying = true;
         p.onUpdateAbilities();
         BlockPos c = p.blockPosition();
         int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, c.getX(), c.getZ());
@@ -245,6 +247,7 @@ public final class Showcase {
         for (var orc : level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.Orc.class, new net.minecraft.world.phys.AABB(new BlockPos(ox, center.getY(), oz)).inflate(48)))
             orc.setNoAi(true);
         warCamp(level, k, center);
+        townQuarter(level, k, center);
         p.teleportTo(level, center.getX() + 0.5, center.getY(), center.getZ() + 3.5, java.util.Set.of(), 180f, 10f, true);
     }
 
@@ -369,5 +372,73 @@ public final class Showcase {
             lord.setPersistenceRequired();
             level.addFreshEntity(lord);
         }
+    }
+
+    /** The market block the screenshot run opens. */
+    public static BlockPos MARKET = BlockPos.ZERO;
+    public static BlockPos ILLAGERS = BlockPos.ZERO;
+
+    /** North of the town: the new workshops, two watchtowers; far west, an Illager citadel. */
+    private static void townQuarter(ServerLevel level, Kingdom k, BlockPos center) {
+        for (BlockPos q : BlockPos.betweenClosed(center.offset(-40, -1, -118), center.offset(40, 22, -63))) {
+            int dy = q.getY() - center.getY();
+            level.setBlock(q, dy == -1 ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+        }
+        for (BlockPos q : BlockPos.betweenClosed(center.offset(-40, -4, -118), center.offset(40, -2, -63)))
+            if (level.getBlockState(q).canBeReplaced()) level.setBlock(q, Blocks.DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
+        KingdomData d = Realm.data(level);
+        ChunkPos hc = ChunkPos.containing(center);
+        for (int dx = -3; dx <= 3; dx++) for (int dz = -8; dz <= -3; dz++) {
+            ChunkPos cp = new ChunkPos(hc.x() + dx, hc.z() + dz);
+            if (d.ownerId(level, cp) == null) d.claim(level, cp, k);
+        }
+        d.progress(k).researched.addAll(List.of("milling", "mining", "faith", "husbandry", "fortification"));
+        Object[][] row1 = {{"mill", -30}, {"bakery", -17}, {"butcher", -3}, {"mine", 11}, {"lumber_mill", 26}};
+        Object[][] row2 = {{"tavern", -28}, {"chapel", -12}, {"harbor", 3}, {"archery_range", 16}};
+        for (Object[] b : row1) shop(level, k, (String) b[0], center.offset((int) b[1], -1, -74));
+        for (Object[] b : row2) shop(level, k, (String) b[0], center.offset((int) b[1], -1, -98));
+        instant(level, k, "lookout", center.offset(28, -1, -96), 0, 1);
+        instant(level, k, "fortified_tower", center.offset(30, -1, -110), 0, 3);
+        for (int i = 0; i < 4; i++) {
+            var cow = net.minecraft.world.entity.EntityTypes.COW.create(level, EntitySpawnReason.COMMAND);
+            if (cow == null) continue;
+            cow.snapTo(center.getX() - 3.5 + i * 1.5, center.getY(), center.getZ() - 66.5, 0, 0);
+            cow.setNoAi(true);
+            cow.setPersistenceRequired();
+            level.addFreshEntity(cow);
+        }
+        // a market by the town square for the Market screen
+        MARKET = center.offset(5, 0, 1);
+        level.setBlock(MARKET, ModContent.MARKET.get().defaultBlockState(), Block.UPDATE_ALL);
+        // an Illager citadel far to the west
+        ILLAGERS = new BlockPos(center.getX() - 170, 0, center.getZ() - 20);
+        int ix = ILLAGERS.getX(), iz = ILLAGERS.getZ();
+        BlockPos ground = new BlockPos(ix, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ix, iz) - 1, iz);
+        ILLAGERS = ground;
+        com.dominionmod.dominion.kingdom.Settlements.generateNow(level, com.dominionmod.dominion.kingdom.Settlements.Type.ILLAGER_CAMP, ground,
+                net.minecraft.util.RandomSource.create(11));
+        for (var v : d.illagerCamps) if (v.totem.distSqr(ground) < 30 * 30) com.dominionmod.dominion.kingdom.IllagerEmpire.fastForward(level, v);
+        for (var m : com.dominionmod.dominion.kingdom.IllagerEmpire.members(level, ground)) m.setNoAi(true);
+        // the Overlord in the war camp, for a portrait
+        var lord = ModContent.ILLAGER_OVERLORD.get().create(level, EntitySpawnReason.COMMAND);
+        if (lord != null) {
+            lord.snapTo(center.getX() - 39.5, center.getY(), center.getZ() + 0.5, 0, 0);
+            lord.finalizeSpawn(level, level.getCurrentDifficultyAt(center), EntitySpawnReason.COMMAND, null);
+            lord.setNoAi(true);
+            lord.setPermanentlyInvulnerable(true);
+            level.addFreshEntity(lord);
+        }
+    }
+
+    /** A workshop with a citizen at work inside (it hires them). */
+    private static void shop(ServerLevel level, Kingdom k, String id, BlockPos at) {
+        instant(level, k, id, at, 0, id.equals("archery_range") ? 2 : 1);
+        if (id.equals("archery_range")) return;
+        Citizen cit = ModContent.CITIZEN.get().create(level, EntitySpawnReason.COMMAND);
+        if (cit == null) return;
+        cit.snapTo(at.getX() + 0.5, at.getY() + 1, at.getZ() + 0.5, 180, 0);
+        cit.joinKingdom(k, level);
+        cit.setNoAi(true);
+        level.addFreshEntity(cit);
     }
 }

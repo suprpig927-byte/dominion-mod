@@ -116,15 +116,6 @@ public final class AutoShot {
         }
         if (t == 820) ClientPacketDistributor.sendToServer(new Payloads.RealmAction(Payloads.RealmAction.OPEN));
         if (t == 880) shot(mc, "realm");
-        if (t == 881 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(1);
-        if (t == 900) shot(mc, "realm_citizens");
-        if (t == 901 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(2);
-        if (t == 920) shot(mc, "realm_build");
-        if (t == 921 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(3);
-        if (t == 940) shot(mc, "realm_research");
-        if (t == 941 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(4);
-        if (t == 960) shot(mc, "realm_diplomacy");
-        if (t == 961 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(0);
         if (t == 962) mc.gui.setScreen(new FlagScreen(null, Showcase.FLAG, s -> {}, "Done"));
         if (t == 980) shot(mc, "flag");
         if (t == 1000) {
@@ -184,7 +175,46 @@ public final class AutoShot {
         if (t == 1760) shot(mc, "stables");
         if (t == 1762) look(mc, bx - 44.5, by + 2.6, bz + 7, 180f, 6f);
         if (t == 1800) shot(mc, "warlord");
-        if (t == 1820) {
+        // the new workshops and towers north of town
+        if (t == 1802) look(mc, bx, by + 7, bz - 58, 180f, 18f);
+        if (t == 1840) shot(mc, "workshops");
+        if (t == 1842) look(mc, bx, by + 7, bz - 82, 180f, 18f);
+        if (t == 1880) shot(mc, "workshops_2");
+        if (t == 1882) look(mc, bx + 18, by + 3, bz - 84, 160f, 12f);
+        if (t == 1920) shot(mc, "watchtowers");
+        // the Illager citadel, and the Overlord
+        if (t == 1922) look(mc, bx - 170, by + 26, bz + 26, 180f, 34f);
+        if (t == 1990) shot(mc, "illager_citadel");
+        if (t == 1992) look(mc, bx - 39.5, by + 3.0, bz + 7.5, 180f, 8f);
+        if (t == 2030) shot(mc, "overlord");
+        // every screen
+        if (t == 2032) {
+            look(mc, bx, by, bz + 3.5, 180f, 10f);
+            onServer(mc, sp -> {
+                var level = (net.minecraft.server.level.ServerLevel) sp.level();
+                var k = com.dominionmod.dominion.kingdom.Realm.of(sp);
+                var d = com.dominionmod.dominion.kingdom.Realm.data(level);
+                if (k != null && !d.illagerCamps.isEmpty())
+                    com.dominionmod.dominion.kingdom.Armies.illagerRaid(level, k.hall.get().offset(-600, 0, 300), k, java.util.List.of("pillager", "pillager", "vindicator", "evoker", "ravager"));
+            });
+        }
+        if (t == 2040) ClientPacketDistributor.sendToServer(new Payloads.RealmAction(Payloads.RealmAction.OPEN));
+        if (t == 2080) shot(mc, "ui_overview");
+        String[] tabs = {"ui_citizens", "ui_build", "ui_research", "ui_industry", "ui_defense", "ui_diplomacy"};
+        for (int i = 0; i < tabs.length; i++) {
+            if (t == 2081 + i * 20 && mc.gui.screen() instanceof RealmScreen r) r.debugTab(i + 1);
+            if (t == 2099 + i * 20) shot(mc, tabs[i]);
+        }
+        if (t == 2205) mc.gui.setScreen(null);
+        if (t == 2206) onServer(mc, sp -> com.dominionmod.dominion.block.MarketBlock.openFor(sp, Showcase.MARKET));
+        if (t == 2240) shot(mc, "ui_market");
+        if (t == 2242) TrainingScreen.open(new Payloads.OpenTraining(Showcase.MARKET, java.util.List.of("Arlo", "Bree", "Cato")));
+        if (t == 2260) shot(mc, "ui_training");
+        if (t == 2262) FoundingScreen.open(Showcase.MARKET);
+        if (t == 2280) shot(mc, "ui_founding");
+        if (t == 2282) mc.gui.setScreen(new FlagScreen(null, Showcase.FLAG, s -> {}, "Done"));
+        if (t == 2300) shot(mc, "ui_flag");
+        if (t == 2310) {
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();
         }
