@@ -1,0 +1,187 @@
+[09Nov2026 03:45:24.451] [main/INFO] [net.neoforged.fml.startup.Entrypoint/]: JVM Uptime at startup: 124ms
+[09Nov2026 03:45:24.466] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]: Starting FancyModLoader version 12.0.12 (DEDICATED_SERVER in DEV)
+[09Nov2026 03:45:24.467] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]: Game directory: /home/runner/work/dominion-mod/dominion-mod/run
+[09Nov2026 03:45:24.514] [main/INFO] [net.neoforged.fml.loading.EarlyServiceDiscovery/]: Found 2 early service jars (out of 98) in 20ms
+[09Nov2026 03:45:24.514] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]: Loading FML Early Services:
+[09Nov2026 03:45:24.515] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]:  - /home/runner/.gradle/caches/modules-2/files-2.1/net.neoforged.fancymodloader/loader/12.0.12/f097a25d6289aa0b289e7cdb6de83a5c8c72f77e/loader-12.0.12.jar
+[09Nov2026 03:45:24.516] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]:  - /home/runner/.gradle/caches/modules-2/files-2.1/net.neoforged.fancymodloader/earlydisplay/12.0.12/8437387fd35033b1ea0d3fac7cc28ced4efdc6b/earlydisplay-12.0.12.jar
+[09Nov2026 03:45:24.522] [main/INFO] [net.neoforged.fml.loading.ImmediateWindowHandler/]: Not loading early display in headless mode.
+[09Nov2026 03:45:24.585] [main/INFO] [net.neoforged.fml.loading.moddiscovery.locators.GameLocator/]: Detected a joined NeoForge and Minecraft configuration. Applying filtering...
+[09Nov2026 03:45:24.755] [main/INFO] [net.neoforged.fml.loading.moddiscovery.locators.InDevFolderLocator/CORE]: Got mod coordinates dominion%%/home/runner/work/dominion-mod/dominion-mod/build/classes/java/main:dominion%%/home/runner/work/dominion-mod/dominion-mod/build/resources/main from env
+[09Nov2026 03:45:24.918] [main/INFO] [net.neoforged.fml.loading.moddiscovery.locators.JarInJarDependencyLocator/]: Found 2 dependencies adding them to mods collection
+[09Nov2026 03:45:24.921] [main/INFO] [net.neoforged.fml.loading.moddiscovery.ModDiscoverer/]: 
+     Mod List:
+		Name Version (Mod Id)
+
+		Dominion 0.1.0 (dominion)
+		Minecraft 26.3 (minecraft)
+		NeoForge 26.3.0.95 (neoforge)
+[09Nov2026 03:45:26.208] [main/INFO] [mixin/]: SpongePowered MIXIN Subsystem Version=0.8.7 Source=file:/home/runner/.gradle/caches/modules-2/files-2.1/net.fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/5f66cc9f59b8efaa942155a3d5a30599bf6640dd/sponge-mixin-0.17.4+mixin.0.8.7.jar Service=FML Env=SERVER
+[09Nov2026 03:45:26.253] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]: Loading FML Plugins:
+[09Nov2026 03:45:26.256] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]:  - /home/runner/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/26.3.0.95/cd04422b412a6a61191f86505503e5abe0ed2abb/neoforge-26.3.0.95-universal.jar > net.neoforged.neoforge-coremods-26.3.0.95.jar
+[09Nov2026 03:45:26.402] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]: Building game content classloader:
+ - dominion (composite(folder(/home/runner/work/dominion-mod/dominion-mod/build/classes/java/main), folder(/home/runner/work/dominion-mod/dominion-mod/build/resources/main)))
+ - minecraft (composite(filtered(jar(/home/runner/work/dominion-mod/dominion-mod/build/moddev/artifacts/minecraft-patched-26.3.0.95.jar)), filtered(jar(/home/runner/work/dominion-mod/dominion-mod/build/moddev/artifacts/minecraft-patched-26.3.0.95.jar))))
+ - mixinextras.neoforge (jar(/home/runner/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/26.3.0.95/cd04422b412a6a61191f86505503e5abe0ed2abb/neoforge-26.3.0.95-universal.jar > mixinextras-neoforge-0.5.5.jar))
+ - neoforge (composite(filtered(jar(/home/runner/.gradle/caches/modules-2/files-2.1/net.neoforged/neoforge/26.3.0.95/cd04422b412a6a61191f86505503e5abe0ed2abb/neoforge-26.3.0.95-universal.jar))))
+ - net.neoforged.fml.generated (empty(VirtualJar/net.neoforged.fml.generated))
+[09Nov2026 03:45:26.425] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]: Built game content classloader in 43ms
+[09Nov2026 03:45:27.813] [main/INFO] [MixinExtras|Service/]: Initializing MixinExtras via com.llamalad7.mixinextras.service.MixinExtrasServiceImpl(version=0.5.5).
+[09Nov2026 03:45:34.547] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, location] and [teleport, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[09Nov2026 03:45:34.549] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, location] and [teleport, targets] with inputs: [0.1 -0.5 .9, 0 0 0]
+[09Nov2026 03:45:34.553] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, destination] and [teleport, targets] with inputs: [Player, 0123, @e, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[09Nov2026 03:45:34.555] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, targets] and [teleport, destination] with inputs: [Player, 0123, dd12be42-52a9-4a91-a8a1-11c01849e498]
+[09Nov2026 03:45:34.557] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [teleport, targets, location] and [teleport, targets, destination] with inputs: [0.1 -0.5 .9, 0 0 0]
+[09Nov2026 03:45:34.559] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [time, set, time] and [time, set, timemarker] with inputs: [0, 0s, 0d, 0t]
+[09Nov2026 03:45:34.560] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [time, set, timemarker] and [time, set, time] with inputs: [012]
+[09Nov2026 03:45:34.563] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [time, of, clock, set, time] and [time, of, clock, set, timemarker] with inputs: [0, 0s, 0d, 0t]
+[09Nov2026 03:45:34.564] [main/WARN] [net.minecraft.commands.Commands/]: Ambiguity between arguments [time, of, clock, set, timemarker] and [time, of, clock, set, time] with inputs: [012]
+[09Nov2026 03:45:34.633] [modloading-worker-0/INFO] [net.neoforged.neoforge.common.NeoForgeMod/NEOFORGE-MOD]: NeoForge mod loading, version 26.3.0.95, for MC 26.3
+[09Nov2026 03:45:35.062] [modloading-worker-0/INFO] [net.neoforged.neoforge.common.VersionChecker/]: No mods enabled for version check
+[09Nov2026 03:45:35.144] [main/INFO] [com.mojang.authlib.services.MinecraftServicesDiscoveryService/]: Environment: Environment[discoveryUrl=https://discovery.minecraftservices.com/minecraft/client, name=PROD]
+[09Nov2026 03:45:36.289] [Worker-Main-3/INFO] [net.minecraft.server.Main/]: No existing world data, creating new world
+[09Nov2026 03:45:37.063] [Worker-Main-2/INFO] [net.minecraft.advancements.AdvancementTree/]: Loaded 1866 advancements
+[09Nov2026 03:45:37.267] [main/INFO] [net.neoforged.neoforge.common.crafting.RecipePriorityManager/]: Loaded 0 recipe priority overrides
+[09Nov2026 03:45:37.402] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Starting minecraft server version 26.3
+[09Nov2026 03:45:37.403] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Loading properties
+[09Nov2026 03:45:37.403] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Default game type: SURVIVAL
+[09Nov2026 03:45:37.403] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Generating keypair
+[09Nov2026 03:45:37.545] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Starting Minecraft server on *:25565
+[09Nov2026 03:45:37.628] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: **** SERVER IS RUNNING IN OFFLINE/INSECURE MODE!
+[09Nov2026 03:45:37.628] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: The server will make no attempt to authenticate usernames. Beware.
+[09Nov2026 03:45:37.628] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: While this makes the game possible to play without internet access, it also opens up the ability for hackers to connect with any username they choose.
+[09Nov2026 03:45:37.629] [Server thread/WARN] [net.minecraft.server.dedicated.DedicatedServer/]: To change this, set "online-mode" to "true" in the server.properties file.
+[09Nov2026 03:45:37.685] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Preparing level "world"
+[09Nov2026 03:45:37.886] [Server thread/INFO] [net.minecraft.server.level.progress.LoggingLevelLoadListener/]: Selecting global world spawn...
+[09Nov2026 03:45:41.289] [Server thread/INFO] [net.minecraft.server.level.progress.LoggingLevelLoadListener/]: Loading 0 persistent chunks...
+[09Nov2026 03:45:41.290] [Server thread/INFO] [net.minecraft.server.level.progress.LoggingLevelLoadListener/]: Preparing spawn area: 100%
+[09Nov2026 03:45:41.291] [Server thread/INFO] [net.minecraft.server.level.progress.LoggingLevelLoadListener/]: Time elapsed: 3406 ms
+[09Nov2026 03:45:41.291] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Done (3.644s)! For help, type "help"
+[09Nov2026 03:45:41.291] [Server thread/INFO] [net.minecraft.server.dedicated.DedicatedServer/]: Starting remote control listener
+[09Nov2026 03:45:41.294] [Server thread/INFO] [net.minecraft.server.rcon.thread.GenericThread/]: Thread RCON Listener started
+[09Nov2026 03:45:41.294] [Server thread/INFO] [net.minecraft.server.rcon.thread.RconThread/]: RCON running on 0.0.0.0:25575
+[09Nov2026 03:45:41.297] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[09Nov2026 03:45:41.359] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[09Nov2026 03:45:41.363] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[09Nov2026 03:45:41.413] [Server thread/INFO] [net.neoforged.neoforge.server.permission.PermissionAPI/]: Successfully initialized permission handler neoforge:default_handler
+[09Nov2026 03:45:51.110] [RCON Listener #1/INFO] [net.minecraft.server.rcon.thread.GenericThread/]: Thread RCON Client /127.0.0.1 started
+[09Nov2026 03:45:54.917] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST flag raised: Block{minecraft:blue_banner}[rotation=8]
+[09Nov2026 03:45:54.932] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST beds counted: 0
+[09Nov2026 03:45:55.045] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST bed check: white beds in store=1 any beds=2 satisfies=true whiteIsBed=true
+[09Nov2026 03:45:55.062] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST stone_wall plan: 77 steps, line 17, materials {minecraft:cobblestone=4}
+[09Nov2026 03:45:55.063] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST palisade plan: 85 steps, line 17, materials {minecraft:spruce_log=4, minecraft:spruce_fence=1}
+[09Nov2026 03:45:55.066] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST watchtower plan: 234 steps, line 17, materials {minecraft:cobblestone=47, minecraft:oak_log=24, minecraft:ladder=7, minecraft:oak_door=1, minecraft:oak_planks=69, minecraft:oak_fence=8, minecraft:lantern=4}
+[09Nov2026 03:45:55.069] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST barracks plan: 564 steps, line 17, materials {minecraft:cobblestone=93, minecraft:oak_log=12, minecraft:white_bed=4, minecraft:spruce_stairs=91, minecraft:spruce_slab=2, minecraft:chest=2, minecraft:barrel=2, minecraft:oak_door=1, minecraft:lantern=3, minecraft:oak_planks=65, minecraft:glass_pane=8, minecraft:spruce_log=24, minecraft:spruce_planks=9}
+[09Nov2026 03:45:55.070] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST farm plan: 166 steps, line 17, materials {minecraft:cobblestone=32, minecraft:oak_fence=31, minecraft:wheat_seeds=48, minecraft:oak_fence_gate=1, minecraft:lantern=4}
+[09Nov2026 03:45:55.072] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST storehouse plan: 562 steps, line 17, materials {minecraft:cobblestone=93, minecraft:oak_log=12, minecraft:barrel=12, minecraft:chest=6, minecraft:spruce_stairs=90, minecraft:spruce_slab=1, minecraft:oak_door=1, minecraft:lantern=3, minecraft:oak_planks=67, minecraft:glass_pane=8, minecraft:spruce_log=22, minecraft:spruce_planks=9}
+[09Nov2026 03:45:55.073] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST market_stall plan: 75 steps, line 17, materials {minecraft:oak_fence=8, dominion:market=1, minecraft:white_wool=25}
+[09Nov2026 03:45:55.073] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST wall_gate plan: 23 steps, line 17, materials {minecraft:oak_log=2, minecraft:oak_fence_gate=3, minecraft:cobblestone=12}
+[09Nov2026 03:45:55.075] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST library plan: 425 steps, line 17, materials {minecraft:cobblestone=75, minecraft:oak_log=12, minecraft:bookshelf=12, dominion:research_table=1, minecraft:lectern=2, minecraft:spruce_stairs=73, minecraft:spruce_slab=1, minecraft:oak_door=1, minecraft:lantern=3, minecraft:oak_planks=45, minecraft:glass_pane=8, minecraft:spruce_log=18, minecraft:spruce_planks=9}
+[09Nov2026 03:45:55.077] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST smithy plan: 420 steps, line 17, materials {minecraft:cobblestone=73, minecraft:oak_log=12, minecraft:blast_furnace=2, minecraft:smithing_table=1, minecraft:barrel=3, minecraft:anvil=1, minecraft:chest=1, minecraft:oak_planks=43, minecraft:glass_pane=6, minecraft:spruce_log=20, minecraft:lantern=1, minecraft:spruce_stairs=71, minecraft:spruce_planks=9}
+[09Nov2026 03:45:55.081] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST university plan: 1018 steps, line 17, materials {minecraft:cobblestone=138, minecraft:oak_log=16, minecraft:bookshelf=20, dominion:training_desk=1, minecraft:lectern=4, minecraft:spruce_stairs=133, minecraft:spruce_slab=1, minecraft:barrel=2, minecraft:oak_door=1, minecraft:lantern=4, minecraft:oak_planks=125, minecraft:glass_pane=16, minecraft:spruce_log=26, minecraft:spruce_planks=11}
+[09Nov2026 03:45:55.083] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST cottage plan: 426 steps, line 17, materials {minecraft:cobblestone=75, minecraft:oak_log=12, minecraft:smoker=1, minecraft:white_bed=2, minecraft:spruce_stairs=73, minecraft:spruce_slab=2, minecraft:white_carpet=3, minecraft:crafting_table=1, minecraft:barrel=1, minecraft:chest=1, minecraft:oak_door=1, minecraft:lantern=3, minecraft:oak_planks=44, minecraft:glass_pane=7, minecraft:spruce_log=20, minecraft:spruce_planks=9}
+[09Nov2026 03:45:55.086] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST longhouse plan: 657 steps, line 17, materials {minecraft:cobblestone=111, minecraft:oak_log=12, minecraft:white_bed=3, minecraft:chest=2, minecraft:spruce_stairs=109, minecraft:spruce_slab=2, minecraft:barrel=2, minecraft:crafting_table=1, minecraft:white_carpet=2, minecraft:smoker=1, minecraft:oak_door=1, minecraft:lantern=4, minecraft:oak_planks=50, minecraft:glass_pane=9, minecraft:spruce_log=28, minecraft:spruce_planks=13}
+[09Nov2026 03:45:55.088] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST farmhouse plan: 629 steps, line 17, materials {minecraft:cobblestone=102, minecraft:oak_log=12, minecraft:chest=1, minecraft:barrel=2, minecraft:smoker=1, minecraft:white_bed=2, minecraft:spruce_stairs=102, minecraft:crafting_table=1, minecraft:spruce_slab=1, minecraft:oak_door=1, minecraft:spruce_log=30, minecraft:oak_planks=72, minecraft:glass_pane=8, minecraft:lantern=4, minecraft:spruce_planks=10}
+[09Nov2026 03:45:55.090] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST townhouse plan: 300 steps, line 17, materials {minecraft:cobblestone=50, minecraft:oak_log=12, minecraft:white_bed=2, minecraft:spruce_stairs=56, minecraft:spruce_slab=1, minecraft:chest=1, minecraft:crafting_table=1, minecraft:barrel=1, minecraft:oak_door=1, minecraft:lantern=3, minecraft:oak_planks=24, minecraft:glass_pane=9, minecraft:spruce_log=16, minecraft:spruce_planks=9}
+[09Nov2026 03:45:55.105] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST castle plan: 5086 steps, line 17, materials {minecraft:cobblestone=725, minecraft:oak_log=182, minecraft:ladder=67, minecraft:chest=4, minecraft:barrel=3, minecraft:crafting_table=1, minecraft:spruce_stairs=2, minecraft:spruce_slab=1, minecraft:anvil=1, minecraft:oak_door=1, minecraft:lantern=8, minecraft:campfire=1, minecraft:oak_planks=855, minecraft:glass_pane=28, minecraft:spruce_fence=3, minecraft:white_bed=6}
+[09Nov2026 03:45:55.109] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST cottage_2 plan: 747 steps, line 17, materials {minecraft:cobblestone=79, minecraft:oak_log=28, minecraft:ladder=4, minecraft:smoker=1, minecraft:white_bed=4, minecraft:spruce_stairs=73, minecraft:spruce_slab=2, minecraft:white_carpet=3, minecraft:crafting_table=1, minecraft:barrel=1, minecraft:chest=2, minecraft:oak_door=1, minecraft:lantern=4, minecraft:oak_planks=122, minecraft:glass_pane=13, minecraft:spruce_log=40, minecraft:spruce_planks=9}
+[09Nov2026 03:45:55.111] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST longhouse_2 plan: 1114 steps, line 17, materials {minecraft:cobblestone=115, minecraft:oak_log=28, minecraft:ladder=4, minecraft:white_bed=5, minecraft:chest=3, minecraft:spruce_stairs=109, minecraft:spruce_slab=2, minecraft:barrel=2, minecraft:crafting_table=1, minecraft:white_carpet=2, minecraft:smoker=1, minecraft:oak_door=1, minecraft:lantern=5, minecraft:oak_planks=170, minecraft:glass_pane=17, minecraft:spruce_log=56, minecraft:spruce_planks=13}
+[09Nov2026 03:45:55.113] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST farmhouse_2 plan: 1101 steps, line 17, materials {minecraft:cobblestone=106, minecraft:oak_log=26, minecraft:ladder=4, minecraft:chest=2, minecraft:barrel=2, minecraft:smoker=1, minecraft:white_bed=4, minecraft:spruce_stairs=102, minecraft:crafting_table=1, minecraft:spruce_slab=1, minecraft:oak_door=1, minecraft:spruce_log=58, minecraft:oak_planks=178, minecraft:glass_pane=15, minecraft:lantern=5, minecraft:spruce_planks=10}
+[09Nov2026 03:45:55.114] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST townhouse_2 plan: 536 steps, line 17, materials {minecraft:cobblestone=50, minecraft:oak_log=28, minecraft:ladder=4, minecraft:white_bed=4, minecraft:spruce_stairs=56, minecraft:spruce_slab=1, minecraft:chest=2, minecraft:crafting_table=1, minecraft:barrel=1, minecraft:oak_door=1, minecraft:lantern=4, minecraft:oak_planks=79, minecraft:glass_pane=16, minecraft:spruce_log=32, minecraft:spruce_planks=9}
+[09Nov2026 03:45:55.115] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST orc_hut plan: 106 steps, line 17, materials {minecraft:spruce_log=9, minecraft:brown_wool=42, minecraft:hay_block=1, minecraft:chest=1, minecraft:skeleton_skull=1}
+[09Nov2026 03:45:55.116] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST orc_totem plan: 125 steps, line 17, materials {minecraft:bone_block=4, minecraft:spruce_log=3, minecraft:campfire=1, minecraft:skeleton_skull=2, dominion:orc_totem=1}
+[09Nov2026 03:45:55.117] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST cottage steps=426
+[09Nov2026 03:45:55.124] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST cottage decorations: dvvvvv11G42GG42GG33[xxxxx][zz][zz][zz][zz][zz][xxxxx]wwwGGe
+[09Nov2026 03:45:55.128] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST spawned dominion:deer hp=12.0 scale=1.0
+[09Nov2026 03:45:55.129] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST spawned dominion:centaur hp=40.0 scale=1.0
+[09Nov2026 03:45:55.132] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST spawned dominion:clydesdale hp=36.023838 scale=1.25 coat=BLACK/NONE
+[09Nov2026 03:45:55.132] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST spawned dominion:mustang hp=22.974129 scale=1.0 coat=CHESTNUT/NONE
+[09Nov2026 03:45:55.132] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST spawned dominion:shetland_pony hp=13.595364 scale=0.62 coat=WHITE/NONE
+[09Nov2026 03:45:55.139] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST knight spawned=true added=true alive=true
+[09Nov2026 03:45:55.144] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST cavalry: knight mounted=true on clydesdale steed=true saddled=true
+[09Nov2026 03:45:55.151] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST supply cart hitched to pony=true archer ammo=0
+[09Nov2026 03:45:55.159] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST siege damage: stone bricks hp=47.5 fell after 3 blows, ruins recorded=1
+[09Nov2026 03:45:55.161] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST market: bread base=3 now=4 | wheat base=8 now=6
+[09Nov2026 03:45:55.167] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST road plan: 117 steps over 39 columns, isRoad=true materials={}
+[09Nov2026 03:45:55.174] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST house check: 30 buildings, problems=0
+[09Nov2026 03:45:55.176] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST started at BlockPos{x=4000, y=63, z=4000}, citizens: 6, kingdom citizens: {8d79a283-3d30-4e39-a80e-63d259ce2a50=0, ee638e9e-5727-465f-b906-412ce2a3d3ed=0, 96d02591-de66-40d1-b11a-bced055854cd=0, 565652b7-b747-4a17-a9b2-14332609587e=0, 374f8e20-007c-4f35-a093-28d0081baba6=0, 4d2909a0-e145-4282-806d-d5a8d541e803=0, 570618da-7f7b-4b87-ad02-3fe25f2984c0=0, 30db9455-7802-4444-95fa-24dddb6634b4=0}
+[09Nov2026 03:45:55.177] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: System chat: [Rcon: Self-test started at 4000, 4000. Results in the log in two minutes.]
+[09Nov2026 03:45:55.177] [Server thread/WARN] [net.minecraft.server.MinecraftServer/]: Can't keep up! Is the server overloaded? Running 4063ms or 81 ticks behind
+[09Nov2026 03:46:02.707] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST wild settlements queued
+[09Nov2026 03:46:03.119] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST watchtower: built 1 covers 1 chunk out=true covers 2 out=false lookout-research-free=true
+[09Nov2026 03:46:03.123] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST industry: workshops=8 research has 17 techs
+[09Nov2026 03:46:39.815] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: Builder Ingrid can't find Smoker for Cottage; storehouse has 0 matching, materials: [16xminecraft:cobblestone, 1xminecraft:red_bed, 1xminecraft:white_bed, 1xminecraft:crafting_table, 1xminecraft:chest, 4xminecraft:oak_log, 1xminecraft:oak_door, 2xminecraft:lantern, 12xminecraft:oak_planks, 3xminecraft:glass_pane]
+[09Nov2026 03:47:19.865] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: Builder Ingrid can't find Smoker for Cottage; storehouse has 0 matching, materials: [16xminecraft:cobblestone, 1xminecraft:red_bed, 1xminecraft:white_bed, 1xminecraft:crafting_table, 2xminecraft:chest, 8xminecraft:oak_log, 2xminecraft:oak_door, 2xminecraft:lantern, 24xminecraft:oak_planks, 6xminecraft:glass_pane]
+[09Nov2026 03:47:59.865] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: Builder Ingrid can't find Smoker for Cottage; storehouse has 0 matching, materials: [16xminecraft:cobblestone, 1xminecraft:red_bed, 1xminecraft:white_bed, 1xminecraft:crafting_table, 2xminecraft:chest, 12xminecraft:oak_log, 2xminecraft:oak_door, 2xminecraft:lantern, 36xminecraft:oak_planks, 8xminecraft:glass_pane]
+[09Nov2026 03:48:25.117] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST musket target dead
+[09Nov2026 03:48:25.119] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST beds now: 6
+[09Nov2026 03:48:25.119] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST wild: orc villages=1 wild kingdoms=2
+[09Nov2026 03:48:25.120] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST orc village at y=62; orcs still home=9 chief=true
+[09Nov2026 03:48:25.121] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST cavalry later: knight riding=true , riding a Clydesdale
+[09Nov2026 03:48:25.121] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST supply cart: archer ammo now=40 cart alive=true arrows left in cart=64
+[09Nov2026 03:48:25.121] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST cannon: alive=true pillar blocks left=1 of 3 fireAt=null
+[09Nov2026 03:48:25.122] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST ruin repair: wall now=Block{minecraft:stone_bricks} ruins pending=0
+[09Nov2026 03:48:25.124] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST diplomacy: start relation=NEUTRAL rival=true strength wild=18 mine=6
+[09Nov2026 03:48:25.126] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST diplomacy: offer #1 kind=TRADE still open=true
+[09Nov2026 03:48:25.126] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST diplomacy: rows=[ab63d991-f34e-4c39-b922-1b6e64360227|Rivmoor|0|NEUTRAL|6|170|true|0, c5692e2b-5ec0-4550-bc76-3fc429510323|Kingdom of Valstead|15|TRADING|18|216|true|0]
+[09Nov2026 03:48:25.127] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: System chat: WAR! Kingdom of Valstead has declared war on Testland: the self-test demands it
+[09Nov2026 03:48:25.127] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST diplomacy: after declaration relation=WAR hostile=true
+[09Nov2026 03:48:25.129] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST army raised=true [illagers -> Testland at 4001,4031 (marching) [pillager, vindicator, pillager, vindicator], Kingdom of Valstead -> Testland at 3785,4005 (marching) [knight, knight, archer, horse_archer, musketeer, musketeer, pikeman, militia, ram, trebuchet, cannon]]
+[09Nov2026 03:48:25.129] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST army marched 119 blocks toward BlockPos{x=4000, y=63, z=4000}
+[09Nov2026 03:48:25.129] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST army after marching: [illagers -> Testland at 4001,4031 (marching) [pillager, vindicator, pillager, vindicator], Kingdom of Valstead -> Testland at 3904,4002 (marching) [knight, knight, archer, horse_archer, musketeer, musketeer, pikeman, militia, ram, trebuchet, cannon]]
+[09Nov2026 03:48:25.129] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: System chat: Peace: Kingdom of Valstead and Testland have made peace.
+[09Nov2026 03:48:25.130] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST diplomacy: after peace relation=NEUTRAL
+[09Nov2026 03:48:25.130] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST rival growth: claims 25 -> 26 buildings=13
+[09Nov2026 03:48:25.145] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST orc stronghold: stage=2 title=orc stronghold warlords=1 hp=240.0
+[09Nov2026 03:48:25.146] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST orc raid: true [illagers -> Testland at 4001,4031 (marching) [pillager, vindicator, pillager, vindicator], Kingdom of Valstead -> Testland at 3904,4002 (marching) returning [knight, knight, archer, horse_archer, musketeer, musketeer, pikeman, militia, ram, trebuchet, cannon], orcs -> Testland at 4001,3841 (marching) [orc_chief, orc, orc, orc, orc]]
+[09Nov2026 03:48:25.146] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST workshop 0e148a4d-6614-4641-b357-0f32b0f6651c|Mine|Miner|Aldric|1|true|8 Cobblestone||3970 4040|stone, coal and ore
+[09Nov2026 03:48:25.146] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST workshop 94071fad-14e4-43ac-b2af-86d3b52208ef|Mill|Miller|Pell|1|true|2 Flour||3986 4040|flour from wheat
+[09Nov2026 03:48:25.146] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST workshop 70eac8f6-f68c-4223-adf8-8e7f05391ec7|Bakery|Baker|Kara|1|true|2 Bread||4002 4040|bread from flour (or wheat)
+[09Nov2026 03:48:25.146] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST workshop 842e4d25-3b1c-4c27-93c4-8263ad0ee2a1|Lumber Mill|Sawyer|Hilda|1|true|12 Oak Planks, 4 Stick||4018 4040|planks and sticks from logs
+[09Nov2026 03:48:25.147] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST workshop 05f31e97-57c8-410e-a1c2-aa408e651970|Butcher|Butcher|Dain|1|true|3 Steak, 1 Leather||3970 4056|meat, leather, wool and feathers from your herds
+[09Nov2026 03:48:25.147] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST workshop a4b44901-782a-4a28-a75f-450e965ed564|Tavern|Innkeeper|Nell|1|true|||3986 4056|Influence and new citizens
+[09Nov2026 03:48:25.147] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST workshop 01da1716-157a-47cf-90b9-49ac510765f6|Chapel|Priest|Tova|1|true|Tended the sick||4002 4056|Influence and healing
+[09Nov2026 03:48:25.147] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST workshop 63d7283c-feca-420a-892c-43cd58d1859f|Harbor|Fisher|Elric|1|true|1 Raw Salmon, 2 Raw Cod||4018 4056|fish
+[09Nov2026 03:48:25.147] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST trades: mine=Miner mill=Miller bakery=Baker lumber_mill=Sawyer butcher=Butcher tavern=Innkeeper chapel=Priest harbor=Fisher
+[09Nov2026 03:48:25.149] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST store after work: flour=3 bread=22 cobble=17 planks=128 beef=6 fish=8 wheat=73 daily influence=61.0
+[09Nov2026 03:48:25.152] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST defense tower|Lookout Tower|3984|4016|1|Gunnar|1|40|1
+[09Nov2026 03:48:25.153] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST tower garrison: Gunnar job=ARCHER garrisoned=true y=69.0 post=BlockPos{x=3983, y=69, z=4015} (ground 63)
+[09Nov2026 03:48:25.161] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST pets: otter hp=14.0 bedtime goal=true cage allowed=true captured=true released=otter name=Pebble tame=false variant=1 cage empty after=true
+[09Nov2026 03:48:25.161] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST pets: cage refuses zombie=true horse=true
+[09Nov2026 03:48:25.161] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST pets: pet bed placed=Block{dominion:pet_bed} color=red
+[09Nov2026 03:48:25.161] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST illager camps=1
+[09Nov2026 03:48:25.162] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST illager camp: Illager outpost members=6 standard=Block{dominion:illager_standard}
+[09Nov2026 03:48:25.194] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST illager citadel: stage=2 title=Illager citadel overlord=true members=7 kinds=[pillager, vindicator, illager_overlord]
+[09Nov2026 03:48:25.194] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST illager raid: [illagers -> Testland at 4001,4031 (marching) [pillager, vindicator, pillager, vindicator], illagers -> Testland at 4001,4111 (marching) [pillager, vindicator, pillager, vindicator, pillager, vindicator, pillager, vindicator, evoker, witch, ravager, overlord]]
+[09Nov2026 03:48:25.199] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST conquest: Kingdom of Valstead defenders=0 buildings=13 claims 27 -> 53 castle hall=Block{dominion:town_hall}
+[09Nov2026 03:48:25.205] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST wizard WIZARD holds dominion:spell_book fireball=true heal=true
+[09Nov2026 03:48:25.205] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST patrol order=PATROL waypoints=3
+[09Nov2026 03:48:25.206] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST pouch holds 40
+[09Nov2026 03:48:25.206] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST spawn eggs: citizen=citizen deer=deer orc=orc orc_warlord=orc_warlord illager_overlord=illager_overlord centaur=centaur otter=otter clydesdale=clydesdale mustang=mustang shetland_pony=shetland_pony
+[09Nov2026 03:48:25.207] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST wheat ripe=0 replanted=24
+[09Nov2026 03:48:25.207] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST tree logs left=0 base=Block{minecraft:oak_sapling}[stage=0]
+[09Nov2026 03:48:25.208] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST citizen Dain job=FARMER pos=BlockPos{x=4003, y=63, z=4002} hp=24.0 carrying=[37xminecraft:wheat_seeds]
+[09Nov2026 03:48:25.208] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST citizen Ivo job=LUMBERJACK pos=BlockPos{x=3998, y=63, z=4003} hp=24.0 carrying=[]
+[09Nov2026 03:48:25.208] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST citizen Ulric job=MILITIA pos=BlockPos{x=4003, y=63, z=3995} hp=24.0 carrying=[]
+[09Nov2026 03:48:25.208] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST citizen Sten job=ARCHER pos=BlockPos{x=4009, y=63, z=3994} hp=24.0 carrying=[]
+[09Nov2026 03:48:25.208] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST citizen Ingrid job=BUILDER pos=BlockPos{x=4002, y=63, z=3997} hp=24.0 carrying=[]
+[09Nov2026 03:48:25.208] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST citizen Arlo job=BARBARIAN pos=BlockPos{x=4016, y=63, z=4004} hp=24.0 carrying=[]
+[09Nov2026 03:48:25.208] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST zombie alive=false
+[09Nov2026 03:48:25.210] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST storehouse containers=2 bread=22 coins=20 wheat=73 logs=49 food=36
+[09Nov2026 03:48:25.214] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST after one upkeep: bread=21 coins=19
+[09Nov2026 03:48:25.214] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST beds assigned=6 names=[Osric, Nell, Arlo, Ulric, Sten, Elric, Pell, Hilda, Gunnar, Ingrid, Aldric, Tova, Dain, Ivo, Kara, Ivo, Dain]
+[09Nov2026 03:48:25.214] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST cottage progress 194/426 status=Waiting for Smoker
+[09Nov2026 03:48:25.214] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST cottage door block=Block{minecraft:air} above=Block{minecraft:air}
+[09Nov2026 03:48:25.215] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST influence=106.1 daily=56.0 claims=53 cost=142
+[09Nov2026 03:48:25.215] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: SELFTEST DONE
+[09Nov2026 03:48:39.189] [RCON Client /127.0.0.1 #2/INFO] [net.minecraft.server.rcon.thread.RconClient/]: Thread RCON Client /127.0.0.1 shutting down
+[09Nov2026 03:48:39.865] [Server thread/INFO] [com.dominionmod.dominion.DominionMod/]: Builder Ingrid can't find Smoker for Cottage; storehouse has 0 matching, materials: [24xminecraft:cobblestone, 1xminecraft:red_bed, 1xminecraft:white_bed, 1xminecraft:crafting_table, 2xminecraft:chest, 16xminecraft:oak_log, 2xminecraft:oak_door, 2xminecraft:lantern, 48xminecraft:oak_planks, 8xminecraft:glass_pane]
+[09Nov2026 03:48:54.215] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Stopping server
+[09Nov2026 03:48:54.216] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving players
+[09Nov2026 03:48:54.216] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving worlds
+[09Nov2026 03:48:54.662] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:overworld
+[09Nov2026 03:48:55.796] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_nether
+[09Nov2026 03:48:55.798] [Server thread/INFO] [net.minecraft.server.MinecraftServer/]: Saving chunks for level 'ServerLevel[world]'/minecraft:the_end
+[09Nov2026 03:48:55.819] [Server thread/INFO] [net.minecraft.server.rcon.thread.GenericThread/]: Thread RCON Listener stopped
+[09Nov2026 03:48:55.819] [main/INFO] [net.neoforged.fml.loading.FMLLoader/]: Closing FML Loader 232cb8e9
+[09Nov2026 03:48:55.819] [main/INFO] [net.neoforged.fml.ModLoader/]: Clearing ModLoader
