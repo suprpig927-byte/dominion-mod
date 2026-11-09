@@ -86,7 +86,7 @@ public class TrainingScreen extends Screen {
             for (int k = 0; k < Math.min(2, lines.size()); k++) Theme.text(g, lines.get(k), l + 40, y + 16 + k * 9, Theme.INK_SOFT);
             i++;
         }
-        Theme.text(g, "Paid from the storehouse for each citizen at the desk.", l + 16, t + H - 22, Theme.INK_FAINT);
+        Theme.text(g, "Paid from the storehouse, per citizen.", l + 16, t + H - 22, Theme.INK_FAINT);
         this.renderables.forEach(r -> r.extractRenderState(g, mouseX, mouseY, partialTick));
     }
 }

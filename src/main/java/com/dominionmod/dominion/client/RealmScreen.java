@@ -728,8 +728,9 @@ public class RealmScreen extends Screen {
         for (String[] f : threats) {
             if (f.length < 6) continue;
             Theme.icon(g, "warn", rx, y - 2);
-            Theme.text(g, this.font.plainSubstrByWidth(f[1], 180), rx + 15, y, Theme.RED);
-            Theme.text(g, f[4] + " strong, " + f[2] + " blocks " + f[3] + ", " + f[5], rx + 15, y + 10, Theme.INK_SOFT);
+            String who = Character.toUpperCase(f[1].charAt(0)) + f[1].substring(1);
+            Theme.text(g, this.font.plainSubstrByWidth(who, 180), rx + 15, y, Theme.RED);
+            Theme.text(g, this.font.plainSubstrByWidth(f[4] + " strong, " + f[2] + " blocks " + f[3] + ", " + f[5], 182), rx + 15, y + 10, Theme.INK_SOFT);
             y += 24;
         }
         y += 6;
@@ -744,7 +745,7 @@ public class RealmScreen extends Screen {
             Theme.textRight(g, f[2] + " blocks " + f[3], rx + 198, y, Theme.INK_SOFT);
             y += 12;
         }
-        Theme.text(g, "Archers garrison towers by themselves. Sneak + right-click a tower's sign to raise it.", l + 14, t + H - 22, Theme.INK_FAINT);
+        Theme.text(g, "Sneak + right-click a tower's sign to raise it a level.", l + 14, t + H - 22, Theme.INK_FAINT);
     }
 
     // ------------------------------------------------------------------ diplomacy

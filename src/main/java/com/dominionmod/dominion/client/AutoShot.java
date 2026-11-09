@@ -184,9 +184,9 @@ public final class AutoShot {
         if (t == 1882) look(mc, bx + 14, by + 6, bz - 86, 200f, 10f);
         if (t == 1920) shot(mc, "watchtowers");
         // the Illager citadel, and the Overlord
-        if (t == 1922) look(mc, bx - 170, by + 26, bz + 26, 180f, 34f);
+        if (t == 1922) look(mc, bx - 170, by + 22, bz + 12, 180f, 38f);
         if (t == 1990) shot(mc, "illager_citadel");
-        if (t == 1992) look(mc, bx - 39.5, by + 3.0, bz + 7.5, 180f, 8f);
+        if (t == 1992) look(mc, bx - 40.5, by + 2.4, bz + 4.2, 180f, 12f);
         if (t == 2030) shot(mc, "overlord");
         // every screen
         if (t == 2032) {
