@@ -1,5 +1,6 @@
 package com.dominionmod.dominion.item;
 
+import com.dominionmod.dominion.kingdom.Realm;
 import com.dominionmod.dominion.registry.ModContent;
 import java.util.List;
 import java.util.Set;
@@ -124,7 +125,7 @@ public class CreatureCageItem extends Item {
         }
         ItemStack full = capture(target);
         held.shrink(1);
-        if (!player.getInventory().add(full)) player.drop(full, false);
+        if (!player.getInventory().add(full)) Realm.give(player, full);
         return InteractionResult.SUCCESS_SERVER;
     }
 

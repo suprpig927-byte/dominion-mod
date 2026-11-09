@@ -252,6 +252,6 @@ public class Otter extends TamableAnimal {
 
     @Override
     protected void playStepSound(BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
-        playSound(SoundEvents.FOX_STEP, 0.1f, 1.3f);
+        playSound(SoundEvents.WOLF_STEP.value(), 0.08f, 1.6f);
     }
 }
