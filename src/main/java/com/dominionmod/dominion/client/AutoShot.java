@@ -144,7 +144,7 @@ public final class AutoShot {
         if (t == 1182) look(mc, bx - 20.5, by + 1.2, bz - 4.5, 0f, 6f);
         if (t == 1220) shot(mc, "creatures");
         // the orc village to the east
-        if (t == 1222) look(mc, bx + 52, by + 9, bz - 3.5, -90f, 20f);
+        if (t == 1222) look(mc, bx + 50, by + 16, bz - 3.5, -90f, 28f);
         if (t == 1280) shot(mc, "orc_village");
         // the wild kingdom and its castle to the south
         if (t == 1282) look(mc, bx, by + 16, bz + 14, 0f, 20f);
@@ -169,18 +169,18 @@ public final class AutoShot {
         if (t == 1462) look(mc, bx - 31.0, by + 1.4, bz + 3.6, 0f, 6f);
         if (t == 1500) shot(mc, "deer");
         // inside the houses, and the centaurs
-        if (t == 1502) look(mc, bx - 12, by, bz - 18.0, 180f, 20f);
+        if (t == 1502) look(mc, bx - 12, by + 0.2, bz - 21.0, 180f, 22f);
         if (t == 1540) shot(mc, "interior_cottage");
-        if (t == 1542) look(mc, bx - 26, by, bz - 53.0, 180f, 14f);
+        if (t == 1542) look(mc, bx - 26, by + 0.2, bz - 56.0, 180f, 18f);
         if (t == 1580) shot(mc, "interior_longhouse");
         if (t == 1582) look(mc, bx + 0.7, by + 1.0, bz + 12.0, 0f, 4f);
         if (t == 1620) shot(mc, "centaurs");
         // the war camp to the west
-        if (t == 1622) look(mc, bx - 81, by + 3.5, bz + 15, 180f, 10f);
+        if (t == 1622) look(mc, bx - 81, by + 2.5, bz + 10.5, 180f, 8f);
         if (t == 1680) shot(mc, "siege_engines");
         if (t == 1682) look(mc, bx - 58, by + 2.0, bz + 9.5, 180f, 7f);
         if (t == 1720) shot(mc, "cavalry");
-        if (t == 1722) look(mc, bx - 68, by + 6, bz - 5, 180f, 18f);
+        if (t == 1722) look(mc, bx - 68, by + 3, bz - 7, 180f, 8f);
         if (t == 1760) shot(mc, "stables");
         if (t == 1762) look(mc, bx - 44.5, by + 2.6, bz + 7, 180f, 6f);
         if (t == 1800) shot(mc, "warlord");

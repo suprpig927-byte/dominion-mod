@@ -255,15 +255,22 @@ public class RealmScreen extends Screen {
 
     private void drawDiplomacy(GuiGraphicsExtractor g, int l, int t, int p) {
         g.text(this.font, "Diplomacy", l + 10, t + 10, p, true);
-        g.text(this.font, "Other kingdoms, nearest first. Wild kingdoms answer at once; other rulers get your offer.", l + 10, t + 22, 0xFF999999, false);
+        g.text(this.font, "Nearest first. Wild kingdoms answer at once.", l + 10, t + 22, 0xFF999999, false);
         List<String> rows = info.diplomacy();
-        if (rows.isEmpty()) g.text(this.font, "You know of no other kingdoms yet. Explore: wild kingdoms rise in the lands around you.",
+        if (rows.isEmpty()) g.text(this.font, "No other kingdoms known yet. Explore to find them.",
                 l + 10, t + 44, 0xFFCCCCCC, false);
         for (int i = scroll; i < Math.min(rows.size(), scroll + 9); i++) {
             String[] f = rows.get(i).split("\\|", -1);
             int y = t + 40 + (i - scroll) * 22;
             g.fill(l + 8, y - 5, l + W - 8, y + 14, 0x30FFFFFF);
-            g.text(this.font, f[1], l + 12, y, color(Integer.parseInt(f[2])), true);
+            int dye = color(Integer.parseInt(f[2]));
+            // brighten dark banner colours so the name stays readable on the dark panel
+            int r = (dye >> 16) & 0xFF, gg = (dye >> 8) & 0xFF, b = dye & 0xFF;
+            if (r * 3 + gg * 6 + b < 1100) {
+                r = (r + 0xEE) / 2; gg = (gg + 0xEE) / 2; b = (b + 0xEE) / 2;
+            }
+            String name = this.font.plainSubstrByWidth(f[1], 104);
+            g.text(this.font, name, l + 12, y, 0xFF000000 | r << 16 | gg << 8 | b, true);
             String rel = switch (f[3]) {
                 case "WAR" -> "At war";
                 case "TRADING" -> "Trading";

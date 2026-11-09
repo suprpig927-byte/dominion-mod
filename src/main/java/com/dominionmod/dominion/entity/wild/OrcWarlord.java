@@ -66,8 +66,6 @@ public class OrcWarlord extends Orc {
                                                   @Nullable SpawnGroupData data) {
         SpawnGroupData out = super.finalizeSpawn(level, difficulty, reason, data);
         this.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(ModContent.BATTLE_AXE.get()));
-        this.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
-        this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(Items.SKELETON_SKULL));
         for (EquipmentSlot s : EquipmentSlot.values()) this.setDropChance(s, 0f);
         this.setPersistenceRequired();
         return out;

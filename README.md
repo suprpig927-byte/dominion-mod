@@ -70,13 +70,42 @@ Craft one from leather, string and an iron nugget. It holds 512 Bullets: right-c
 
 ## The wild
 
-Every mob has a spawn egg (Citizen, Deer, Orc, Centaur, Clydesdale, Mustang, Shetland Pony), in the Dominion tab and the Spawn Eggs tab. They work on spawners too.
+Every mob has a spawn egg (Citizen, Deer, Orc, Orc Warlord, Centaur, Clydesdale, Mustang, Shetland Pony), in the Dominion tab and the Spawn Eggs tab. They work on spawners too.
 - **Horses**: three new breeds roam the plains, meadows and taiga. The **Clydesdale** is huge and tough but slow; the **Mustang** is fast and a great jumper; the **Shetland Pony** is tiny and sturdy. Tame, saddle and breed them like horses; foals take after their parents.
 - **Deer** live in forests, taiga and meadows. They bolt unless you sneak; tempt and breed them with apples or berries. Stags carry antlers. They drop venison (cook it) and leather.
 - **Centaurs** roam the grasslands in bands. They leave you alone unless you hurt one (then the band shoots back), and they hunt orcs.
 - **Orcs** live in villages of hide huts around a War Totem, led by a chieftain with a battle axe. They attack players, villagers and citizens. Kill every orc in a village, then right-click the War Totem: the 3x3 chunks around it become yours, with 25 gold coins of plunder.
 - **Wild kingdoms**: small towns and great kingdoms are scattered through the world, each with its own name, colours, flag, buildings, people and soldiers (some on patrol). Great kingdoms are built around a **Castle**. Their soldiers defend each other. Defeat every soldier near the Town Hall, then right-click it: the kingdom's land, buildings, storehouse and surviving people become yours.
 - Settlements appear in 512-block regions as you explore (none near the world spawn). Operators can raise one with `/dominion admin settle orc|town|kingdom`.
+
+## Rival kingdoms and diplomacy
+- Wild kingdoms are alive: once a day each one may claim more land, put up a new building and train another soldier from its treasury.
+- They send **envoys** who ride up to you with offers: **tribute** (pay or face war), **trade**, an **alliance**, or **peace** after a war. Click [Accept] or [Refuse] in chat. Killing an envoy is an act of war.
+- The **Diplomacy** tab of the Realm screen lists every kingdom you know, with its strength and your relation (Neutral, Trading, Allied, War), and buttons to declare war, offer trade, propose an alliance, demand tribute or sue for peace.
+- At war, a kingdom raises an **army** (knights, horse archers, musketeers, pikemen, archers, militia and siege engines) that marches across the map toward your Town Hall. It appears when you're near; break it and the survivors flee. If it holds your hall it plunders your storehouse and leaves. Peace comes with a truce.
+- Allies never hurt each other. Hitting someone from a kingdom you're not at war with is stopped.
+
+## Cavalry and stables
+- Research **Horsemanship**, then build **Stables**. They come with a Clydesdale and a Mustang, and every few minutes they saddle a spare kingdom horse for a soldier who needs one (a saddle, or 3 leather and an iron ingot from the storehouse) and breed a new foal (hay or wheat).
+- Swordsmen ride **Clydesdales** as knights and **charge**: hits from the saddle at speed do extra damage and knock foes back. Archers ride **Mustangs** as horse archers. Hand a citizen a saddled, tamed horse you're leading to make it theirs.
+- **Supply Cart**: use it on a tamed adult Shetland Pony to hitch it up. Near your Town Hall the cart loads arrows, shot and food from the storehouse; out in the field it refills archers and musketeers (they carry 40 shots and fight with a knife when they run dry) and feeds the wounded. Right-click to open it; sneak + right-click to unhitch.
+
+## Sieges
+- Research **Siegecraft** for the **Battering Ram** and **Trebuchet**, and **Gunpowder** for the **Cannon** and **Cannonballs**. Place them like spawn eggs; a crew member (any citizen of yours nearby, or you) must stand close for them to work. Load trebuchets with cobblestone and cannons with cannonballs; sneak + right-click to pack one up.
+- Command Baton **Siege** mode: right-click a block to have every engine within 64 blocks bombard it; right-click the air to stand them down.
+- Rams batter gates and walls; trebuchets lob boulders over them; cannons hit hard and straight. Blocks crack before they break.
+- Every block knocked out of your walls is remembered. When the fighting stops, builders and engineers put it back from the storehouse (any stone for stone, any planks for planks). During an attack, archers and musketeers climb onto the walls and man the battlements.
+
+## Orc warbands
+- Orc villages grow: after a few days a village becomes a **war camp** with a palisade, then a **stronghold** with a taller palisade, watch platforms and the hut of an **Orc Warlord** (a huge boss with a ground slam, a leap and a war cry that summons more orcs). He drops the Warlord's Cleaver and a big pile of coins.
+- At nightfall, war camps and strongholds may send a **raid** at the nearest town. Raiders slink home at dawn.
+- Taking a stronghold gives more land and more plunder than a village.
+
+## Trade and roads
+- **Roads** are a new wall type in the Build tab: draw a line and builders lay a 3-wide path at ground level (dirt path, coarse dirt, andesite, polished andesite or deepslate by tier). Everyone moves faster on roads.
+- With a Market Stall, your kingdom sends **caravans** twice a day to kingdoms you trade with or are allied to, and to your outposts. A merchant leads a pony and cart carrying your surplus; it earns coins at the other end and brings goods home. Caravans travel faster on roads.
+- **Bandits** ambush caravans on the open road. Hire guards (2 coins each per trip) from the Market screen with [+1] and [-1].
+- **Market prices follow supply**: whatever your storehouse already has plenty of fetches less, and anything scarce fetches more. The market screen marks each good as glut or scarce.
 
 ## Children
 - When there's a free bed and the storehouse has food to spare, two citizens near the Town Hall may have a child. Children join the kingdom, can't work, and grow up after one Minecraft day.
@@ -103,7 +132,8 @@ Every mob has a spawn egg (Citizen, Deer, Orc, Centaur, Clydesdale, Mustang, She
 
 ## Commands
 `/dominion claim | unclaim | realm | list | invite <player> | join | leave | crown <player>`
-Operators: `/dominion admin influence <amount>`, `/dominion admin disband <kingdom>`, `/dominion admin settle orc|town|kingdom`
+`/dominion diplomacy <war|peace|trade|alliance|tribute|break> <kingdom>` · `/dominion caravan guards <0-6>`
+Operators: `/dominion admin influence <amount>`, `/dominion admin disband <kingdom>`, `/dominion admin settle orc|town|kingdom`, `/dominion admin war <kingdom>`, `/dominion admin envoy <kind> <kingdom>`, `/dominion admin armies`, `/dominion admin raid`, `/dominion admin stronghold`
 
 ## Building
 Pushes build the jar on GitHub Actions (Build workflow, artifact `dominion-mod`). Textures are painted by `tools/gen_textures.py` and `tools/gen_hd.py` (which also runs `gen_weapons.py` and `gen_wild.py`).
