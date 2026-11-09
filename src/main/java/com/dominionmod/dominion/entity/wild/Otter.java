@@ -24,7 +24,6 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.control.SmoothSwimmingLookControl;
 import net.minecraft.world.entity.ai.control.SmoothSwimmingMoveControl;
 import net.minecraft.world.entity.ai.goal.BreedGoal;
-import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.FollowParentGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.PanicGoal;
@@ -108,12 +107,58 @@ public class Otter extends TamableAnimal {
         this.goalSelector.addGoal(2, new SitWhenOrderedToGoal(this));
         this.goalSelector.addGoal(3, new BreedGoal(this, 1.0));
         this.goalSelector.addGoal(4, new TemptGoal(this, 1.1, this::isFood, false));
-        this.goalSelector.addGoal(5, new FollowOwnerGoal(this, 1.2, 8.0f, 3.0f));
+        this.goalSelector.addGoal(5, new FollowOwner());
         this.goalSelector.addGoal(6, new FollowParentGoal(this, 1.15));
         this.goalSelector.addGoal(7, new RandomSwimmingGoal(this, 1.0, 40));
         this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 0.8));
         this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 6.0f));
         this.goalSelector.addGoal(10, new RandomLookAroundGoal(this));
+    }
+
+    /** Like the vanilla follow-owner goal, which won't work with amphibious pathfinding: swim or lope after the owner, or catch up by teleporting. */
+    private final class FollowOwner extends net.minecraft.world.entity.ai.goal.Goal {
+        private @Nullable LivingEntity owner;
+        private int recalc;
+
+        FollowOwner() {
+            setFlags(java.util.EnumSet.of(Flag.MOVE, Flag.LOOK));
+        }
+
+        @Override
+        public boolean canUse() {
+            LivingEntity o = getOwner();
+            if (o == null || unableToMoveToOwner() || distanceToSqr(o) < 8 * 8) return false;
+            owner = o;
+            return true;
+        }
+
+        @Override
+        public boolean canContinueToUse() {
+            return owner != null && !getNavigation().isDone() && !unableToMoveToOwner() && distanceToSqr(owner) > 3 * 3;
+        }
+
+        @Override
+        public void start() {
+            recalc = 0;
+        }
+
+        @Override
+        public void stop() {
+            owner = null;
+            getNavigation().stop();
+        }
+
+        @Override
+        public void tick() {
+            if (owner == null) return;
+            boolean far = shouldTryTeleportToOwner();
+            if (!far) getLookControl().setLookAt(owner, 10.0f, getMaxHeadXRot());
+            if (--recalc <= 0) {
+                recalc = adjustedTickDelay(10);
+                if (far) tryToTeleportToOwner();
+                else getNavigation().moveTo(owner, 1.2);
+            }
+        }
     }
 
     @Override
