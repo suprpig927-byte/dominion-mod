@@ -713,7 +713,7 @@ public class RealmScreen extends Screen {
             String garrison = f[5].isEmpty() ? "No archers posted" : f[5];
             Theme.text(g, this.font.plainSubstrByWidth(garrison, 120) + " (" + (f[5].isEmpty() ? 0 : f[5].split(", ").length) + "/" + f[6] + ")",
                     x + 20, y + 11, f[5].isEmpty() ? Theme.RED : Theme.GREEN);
-            Theme.text(g, "Sees " + f[7] + " blocks; land " + f[8] + " chunk" + (f[8].equals("1") ? "" : "s") + " around", x + 20, y + 20, Theme.INK_FAINT);
+            Theme.text(g, "Sees " + f[7] + " blocks, land " + f[8] + " chunk" + (f[8].equals("1") ? "" : "s") + " out", x + 20, y + 20, Theme.INK_FAINT);
             y += 36;
         }
         int rx = l + 228;
