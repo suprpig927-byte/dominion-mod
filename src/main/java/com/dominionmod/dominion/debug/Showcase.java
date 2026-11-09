@@ -74,9 +74,7 @@ public final class Showcase {
         instant(level, k, "smithy", center.offset(-2, -1, -38), 0, 3);
         instant(level, k, "barracks", center.offset(10, -1, -38), 0, 4);
         instant(level, k, "university", center.offset(26, -1, -40), 0, 3);
-        instant(level, k, "watchtower", center.offset(-26, -1, -54), 0, 2);
-        instant(level, k, "farm", center.offset(-12, -1, -54), 0, 1);
-        instant(level, k, "market_stall", center.offset(0, -1, -54), 0, 1);
+        // (the watchtower, farm and market stall stand in the war camp to the west; see warCamp)
 
         // One of every job, in a row in front of the player.
         Object[][] row = {
@@ -296,6 +294,9 @@ public final class Showcase {
         var pr = Realm.data(level).progress(k);
         pr.researched.addAll(List.of("horsemanship", "siegecraft", "gunpowder"));
         instant(level, k, "stables", center.offset(-74, -1, -22), 0, 2);
+        instant(level, k, "watchtower", center.offset(-94, -1, -24), 0, 2);
+        instant(level, k, "farm", center.offset(-56, -1, -24), 0, 1);
+        instant(level, k, "market_stall", center.offset(-44, -1, -24), 0, 1);
         // a road along the front
         BlockPos a = center.offset(-96, -1, 7), b = center.offset(-38, -1, 7);
         var cols = Plans.line(a, b);

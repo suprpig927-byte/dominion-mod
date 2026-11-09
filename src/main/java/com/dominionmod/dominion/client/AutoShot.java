@@ -78,7 +78,7 @@ public final class AutoShot {
         if (t == 530) shot(mc, "storehouse");
         if (t == 532) look(mc, bx + 26, by + 2, bz - 30, 180f, 5f);
         if (t == 580) shot(mc, "university");
-        if (t == 582) look(mc, bx - 12, by + 6, bz - 44, 180f, 25f);
+        if (t == 582) look(mc, bx - 50, by + 7, bz - 7, 180f, 30f);
         if (t == 620) shot(mc, "farm_tower");
         if (t == 622) look(mc, bx, by + 0.3, bz - 0.5, 0f, 8f);
         if (t == 660) shot(mc, "armory");
