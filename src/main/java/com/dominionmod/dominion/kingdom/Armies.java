@@ -195,6 +195,12 @@ public final class Armies {
         }
     }
 
+    /** Test hook: runs a number of march steps at once. */
+    public static void debugMarch(ServerLevel level, Army a, int steps) {
+        KingdomData d = Realm.data(level);
+        for (int i = 0; i < steps && d.armies.contains(a); i++) step(level, d, a);
+    }
+
     private static void step(ServerLevel level, KingdomData d, Army a) {
         Kingdom target = d.byId(a.target);
         if (!a.orcs() && d.byId(a.kingdom) == null || target == null) {

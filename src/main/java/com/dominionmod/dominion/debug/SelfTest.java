@@ -208,6 +208,12 @@ public final class SelfTest {
             log("spawned " + net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getKey(type) + " hp=" + m.getMaxHealth()
                     + " scale=" + m.getScale() + (m instanceof net.minecraft.world.entity.animal.equine.Horse h ? " coat=" + h.getVariant() + "/" + h.getMarkings() : ""));
         }
+        try {
+            warfareSetup(level, k);
+        } catch (RuntimeException e) {
+            log("warfare setup FAILED: " + e);
+            DominionMod.LOGGER.error("warfare setup", e);
+        }
         checkAt = level.getGameTime() + 3000;
         log("started at " + center + ", citizens: " + citizens.size() + ", kingdom citizens: " + k.citizens);
     }
@@ -256,6 +262,12 @@ public final class SelfTest {
             Kingdom found = null;
             for (Kingdom wk : d.all()) if (wk.wild && wk.name.startsWith("Kingdom of")) found = wk;
             final Kingdom wildK = found;
+            try {
+                warfareCheck(level, d, k, wildK);
+            } catch (RuntimeException e) {
+                log("warfare check FAILED: " + e);
+                DominionMod.LOGGER.error("warfare check", e);
+            }
             if (wildK != null && k != null && wildK.hall.isPresent()) {
                 int defenders = com.dominionmod.dominion.kingdom.Settlements.defenders(level, wildK, wildK.hall.get());
                 int buildings = d.progress(wildK).buildings.size();
@@ -334,5 +346,187 @@ public final class SelfTest {
             log("influence=" + k.influence + " daily=" + Realm.dailyInfluence(k) + " claims=" + d.claimCount(k) + " cost=" + Realm.claimCost(d, k));
         }
         log("DONE");
+    }
+
+    // ------------------------------------------------------------------ warfare, trade and houses
+
+    private static UUID knight, archerInField, cart, cannon;
+    private static BlockPos pillar, ruinWall;
+
+    private static void warfareSetup(ServerLevel level, Kingdom k) {
+        KingdomData d = Realm.data(level);
+        // arrows in the storehouse for the supply cart to load
+        if (level.getBlockEntity(center.offset(2, 0, 0)) instanceof ChestBlockEntity be) be.setItem(5, new ItemStack(Items.ARROW, 64));
+        // a knight on a Clydesdale
+        spawn(level, k, center.offset(6, 0, -14), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.IRON_CHESTPLATE));
+        Citizen kn = (Citizen) level.getEntity(citizens.removeLast());
+        var horse = com.dominionmod.dominion.entity.Cavalry.mountNew(level, kn, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE);
+        knight = kn.getUUID();
+        log("cavalry: knight mounted=" + kn.isPassenger() + " on " + (kn.getVehicle() == null ? "nothing" : kn.getVehicle().getType().toShortString())
+                + " steed=" + (horse != null && horse.getUUID().equals(kn.steed())) + " saddled=" + (horse != null && horse.isSaddled()));
+        // an archer with an empty quiver next to a pony and its supply cart, near the hall
+        spawn(level, k, center.offset(-4, 0, 4), new ItemStack(Items.BOW), null);
+        Citizen ar = (Citizen) level.getEntity(citizens.removeLast());
+        ar.debugSetAmmo(0);
+        archerInField = ar.getUUID();
+        var pony = ModContent.SHETLAND_PONY.get().create(level, EntitySpawnReason.COMMAND);
+        var sc = ModContent.SUPPLY_CART.get().create(level, EntitySpawnReason.COMMAND);
+        if (pony != null && sc != null) {
+            pony.snapTo(center.getX() - 2.5, center.getY(), center.getZ() + 5.5, 0, 0);
+            pony.setTamed(true);
+            pony.setPersistenceRequired();
+            level.addFreshEntity(pony);
+            sc.snapTo(pony.getX(), pony.getY(), pony.getZ() - 2, 0, 0);
+            level.addFreshEntity(sc);
+            sc.hitch(pony, k.id);
+            cart = sc.getUUID();
+            log("supply cart hitched to pony=" + (sc.ponyNetworkId() == pony.getId()) + " archer ammo=" + ar.ammo());
+        }
+        // a cannon told to knock down a pillar of stone
+        pillar = center.offset(-18, 0, -17);
+        for (int i = 0; i < 3; i++) level.setBlock(pillar.above(i), Blocks.COBBLESTONE.defaultBlockState(), Block.UPDATE_ALL);
+        var cn = com.dominionmod.dominion.entity.siege.SiegeEngine.spawnFor(level, k, "cannon", center.offset(-18, 0, 2), center.offset(-18, 0, 2));
+        if (cn != null) {
+            cn.setFireAt(pillar.above());
+            cannon = cn.getUUID();
+        }
+        // a stretch of wall battered down by hand, to be rebuilt by the builder
+        ruinWall = center.offset(18, 0, -18);
+        level.setBlock(ruinWall, Blocks.STONE_BRICKS.defaultBlockState(), Block.UPDATE_ALL);
+        int blows = 0;
+        while (!level.getBlockState(ruinWall).isAir() && blows < 40) {
+            com.dominionmod.dominion.entity.siege.SiegeDamage.hit(level, ruinWall, 20f);
+            blows++;
+        }
+        log("siege damage: stone bricks hp=" + com.dominionmod.dominion.entity.siege.SiegeDamage.hitPoints(Blocks.STONE_BRICKS.defaultBlockState())
+                + " fell after " + blows + " blows, ruins recorded=" + d.ruins.stream().filter(r -> r.kingdom().equals(k.id)).count());
+        // market prices follow supply: bread is plentiful in the store, wheat isn't
+        log("market: bread base=" + com.dominionmod.dominion.block.MarketBlock.perCoin(new ItemStack(Items.BREAD)) + " now="
+                + com.dominionmod.dominion.block.MarketBlock.priceAt(level, center, new ItemStack(Items.BREAD))
+                + " | wheat base=" + com.dominionmod.dominion.block.MarketBlock.perCoin(new ItemStack(Items.WHEAT)) + " now="
+                + com.dominionmod.dominion.block.MarketBlock.priceAt(level, center, new ItemStack(Items.WHEAT)));
+        // a road: three wide, at ground level
+        var road = com.dominionmod.dominion.build.Structures.get("road");
+        if (road != null) {
+            BlockPos a = center.offset(-19, -1, 19), b = center.offset(19, -1, 19);
+            var cols = com.dominionmod.dominion.build.Plans.line(a, b);
+            var tmp = new com.dominionmod.dominion.build.Site(UUID.randomUUID(), k.id, "road", KingdomData.dim(level), a, b, 1,
+                    com.dominionmod.dominion.build.Plans.groundHeights(level, cols), 0);
+            var steps = com.dominionmod.dominion.build.Plans.steps(level, tmp, k);
+            log("road plan: " + steps.size() + " steps over " + cols.size() + " columns, isRoad=" + com.dominionmod.dominion.build.Structures.isRoad(road)
+                    + " materials=" + com.dominionmod.dominion.build.Plans.materials(road, 1));
+            com.dominionmod.dominion.build.Plans.forget(tmp.id);
+        } else log("road plan: FAIL no road structure");
+        houseChecks();
+    }
+
+    /** Every house: nothing that should stand on a table sits on the floor, and no ladder hangs on glass or air. */
+    private static void houseChecks() {
+        int bad = 0;
+        StringBuilder why = new StringBuilder();
+        java.util.List<com.dominionmod.dominion.build.Structures.Structure> all = new ArrayList<>(com.dominionmod.dominion.build.Structures.all());
+        for (String extra : new String[]{"cottage_2", "longhouse_2", "farmhouse_2", "townhouse_2"}) {
+            var s = com.dominionmod.dominion.build.Structures.get(extra);
+            if (s != null) all.add(s);
+        }
+        int checked = 0;
+        for (var s : all) {
+            if (s.kind() != com.dominionmod.dominion.build.Structures.Kind.BUILDING) continue;
+            checked++;
+            var L = s.layers();
+            for (int y = 1; y < L.size(); y++) {
+                String[] layer = L.get(y), below = L.get(y - 1);
+                for (int z = 0; z < layer.length; z++) {
+                    for (int x = 0; x < layer[z].length(); x++) {
+                        char c = layer[z].charAt(x);
+                        if ("pia".indexOf(c) >= 0) {
+                            char under = z < below.length && x < below[z].length() ? below[z].charAt(x) : ' ';
+                            if ("tmVjI".indexOf(under) < 0) {
+                                bad++;
+                                if (why.length() < 300) why.append(s.id()).append(" '").append(c).append("' on '").append(under).append("' at ").append(x).append(',').append(y).append(',').append(z).append("; ");
+                            }
+                        }
+                        int bx = x, bz = z;
+                        switch (c) {
+                            case 'A' -> bz = z - 1;
+                            case '9' -> bz = z + 1;
+                            case ':' -> bx = x - 1;
+                            case ';' -> bx = x + 1;
+                            default -> { continue; }
+                        }
+                        if (bz < 0 || bz >= layer.length || bx < 0 || bx >= layer[bz].length()) continue;
+                        char behind = layer[bz].charAt(bx);
+                        if ("G. nlpjiau".indexOf(behind) >= 0) {
+                            bad++;
+                            if (why.length() < 300) why.append(s.id()).append(" ladder on '").append(behind).append("' at ").append(x).append(',').append(y).append(',').append(z).append("; ");
+                        }
+                    }
+                }
+            }
+        }
+        log("house check: " + checked + " buildings, problems=" + bad + (bad > 0 ? " " + why : ""));
+    }
+
+    private static void warfareCheck(ServerLevel level, KingdomData d, Kingdom k, Kingdom wildK) {
+        if (k == null) return;
+        if (level.getEntity(knight) instanceof Citizen kn)
+            log("cavalry later: knight riding=" + kn.isPassenger() + " " + com.dominionmod.dominion.entity.Cavalry.describe(kn));
+        else log("cavalry later: knight gone");
+        if (level.getEntity(archerInField) instanceof Citizen ar) {
+            var sc = cart == null ? null : level.getEntity(cart);
+            int arrows = 0;
+            if (sc instanceof com.dominionmod.dominion.entity.SupplyCart c)
+                for (ItemStack s : c.cargo().getItems()) if (s.is(Items.ARROW)) arrows += s.getCount();
+            log("supply cart: archer ammo now=" + ar.ammo() + " cart alive=" + (sc != null && sc.isAlive()) + " arrows left in cart=" + arrows);
+        }
+        var cn = cannon == null ? null : level.getEntity(cannon);
+        int left = 0;
+        for (int i = 0; i < 3; i++) if (!level.getBlockState(pillar.above(i)).isAir()) left++;
+        log("cannon: alive=" + (cn != null && cn.isAlive()) + " pillar blocks left=" + left + " of 3"
+                + (cn instanceof com.dominionmod.dominion.entity.siege.SiegeEngine e ? " fireAt=" + e.fireAt() : ""));
+        log("ruin repair: wall now=" + level.getBlockState(ruinWall).getBlock() + " ruins pending=" + d.ruins.stream().filter(r -> r.kingdom().equals(k.id)).count());
+
+        // diplomacy with the wild kingdom
+        if (wildK != null) {
+            log("diplomacy: start relation=" + com.dominionmod.dominion.kingdom.Diplomacy.relation(d, k.id, wildK.id)
+                    + " rival=" + (d.rival(wildK) != null) + " strength wild=" + com.dominionmod.dominion.kingdom.Diplomacy.strength(d, wildK)
+                    + " mine=" + com.dominionmod.dominion.kingdom.Diplomacy.strength(d, k));
+            var trade = com.dominionmod.dominion.kingdom.Diplomacy.newOffer(level, wildK, k, com.dominionmod.dominion.kingdom.Diplomacy.Kind.TRADE, 0);
+            com.dominionmod.dominion.kingdom.Rivals.envoy(level, wildK, k, trade);
+            log("diplomacy: offer #" + trade.id() + " kind=" + trade.kind() + " still open=" + (com.dominionmod.dominion.kingdom.Diplomacy.offer(trade.id()) != null));
+            com.dominionmod.dominion.kingdom.Diplomacy.set(level, k, wildK, com.dominionmod.dominion.kingdom.Diplomacy.Relation.TRADING);
+            log("diplomacy: rows=" + com.dominionmod.dominion.kingdom.Diplomacy.rows(level, k));
+            com.dominionmod.dominion.kingdom.Diplomacy.declareWar(level, wildK, k, "the self-test demands it");
+            log("diplomacy: after declaration relation=" + com.dominionmod.dominion.kingdom.Diplomacy.relation(d, k.id, wildK.id)
+                    + " hostile=" + com.dominionmod.dominion.kingdom.Diplomacy.hostile(level.getServer(), k.id, wildK.id));
+            var army = com.dominionmod.dominion.kingdom.Armies.raise(level, wildK, k);
+            log("army raised=" + (army != null) + " " + com.dominionmod.dominion.kingdom.Armies.describe(level));
+            // tick the march a while without anyone watching: it advances virtually
+            if (army != null) {
+                double sx = army.x, sz = army.z;
+                com.dominionmod.dominion.kingdom.Armies.debugMarch(level, army, 40);
+                log("army marched " + (int) Math.hypot(army.x - sx, army.z - sz) + " blocks toward " + army.dest);
+            }
+            log("army after marching: " + com.dominionmod.dominion.kingdom.Armies.describe(level));
+            com.dominionmod.dominion.kingdom.Armies.recall(level, wildK, k);
+            com.dominionmod.dominion.kingdom.Diplomacy.makePeace(level, wildK, k, 3);
+            log("diplomacy: after peace relation=" + com.dominionmod.dominion.kingdom.Diplomacy.relation(d, k.id, wildK.id));
+            var rival = d.rival(wildK);
+            int claims = d.claimCount(wildK);
+            if (rival != null) com.dominionmod.dominion.kingdom.Rivals.grow(level, d, wildK, rival);
+            log("rival growth: claims " + claims + " -> " + d.claimCount(wildK) + " buildings=" + d.progress(wildK).buildings.size());
+        }
+        // orc village grows into a stronghold with a Warlord
+        if (!d.orcVillages.isEmpty()) {
+            var v = d.orcVillages.get(0);
+            com.dominionmod.dominion.kingdom.OrcWarbands.fastForward(level, v);
+            var lords = level.getEntitiesOfClass(com.dominionmod.dominion.entity.wild.OrcWarlord.class, new net.minecraft.world.phys.AABB(v.totem).inflate(48));
+            log("orc stronghold: stage=" + v.stage + " title=" + v.title() + " warlords=" + lords.size()
+                    + (lords.isEmpty() ? "" : " hp=" + lords.get(0).getMaxHealth()));
+            var raid = com.dominionmod.dominion.kingdom.Armies.raid(level, v.totem, k, 4, false);
+            log("orc raid: " + (raid != null) + " " + com.dominionmod.dominion.kingdom.Armies.describe(level));
+            com.dominionmod.dominion.kingdom.Armies.recall(level, k, k);
+            d.armies.removeIf(a -> a.kingdom.equals(com.dominionmod.dominion.kingdom.Armies.ORCS));
+        }
     }
 }

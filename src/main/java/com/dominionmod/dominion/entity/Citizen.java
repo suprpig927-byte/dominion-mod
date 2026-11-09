@@ -250,6 +250,9 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
 
     public int ammo() { return ammo; }
 
+    /** Test hook: sets the quiver/shot count directly. */
+    public void debugSetAmmo(int n) { this.ammo = Math.max(0, Math.min(MAX_AMMO, n)); }
+
     public void spendAmmo() {
         if (!shoots() || !inField()) return;
         ammo = Math.max(0, ammo - 1);
