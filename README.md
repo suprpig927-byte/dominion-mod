@@ -70,7 +70,7 @@ Craft one from leather, string and an iron nugget. It holds 512 Bullets: right-c
 
 ## The wild
 
-Every mob has a spawn egg (Citizen, Deer, Orc, Orc Warlord, Illager Overlord, Centaur, Clydesdale, Mustang, Shetland Pony), in the Dominion tab and the Spawn Eggs tab. They work on spawners too.
+Every mob has a spawn egg (Citizen, Deer, Otter, Orc, Orc Warlord, Illager Overlord, Centaur, Clydesdale, Mustang, Shetland Pony), in the Dominion tab and the Spawn Eggs tab. They work on spawners too.
 - **Horses**: three new breeds roam the plains, meadows and taiga. The **Clydesdale** is huge and tough but slow; the **Mustang** is fast and a great jumper; the **Shetland Pony** is tiny and sturdy. Tame, saddle and breed them like horses; foals take after their parents.
 - **Deer** live in forests, taiga and meadows. They bolt unless you sneak; tempt and breed them with apples or berries. Stags carry antlers. They drop venison (cook it) and leather.
 - **Centaurs** roam the grasslands in bands. They leave you alone unless you hurt one (then the band shoots back), and they hunt orcs.
@@ -137,6 +137,11 @@ Every screen got a new look (parchment in a dark wood frame, wooden buttons, clo
 - **Bandits** ambush caravans on the open road. Hire guards (2 coins each per trip) on the Market screen with + and -.
 - **Market prices follow supply**: whatever your storehouse already has plenty of fetches less, and anything scarce fetches more. The market screen marks each good as glut or scarce.
 
+## Pets
+- **Otters** live in families along rivers, swamps and forest lakes. Feed one raw cod or salmon to tame it (one try in three). A tame otter follows you, sits when you right-click it, swims fast, floats on its back in calm water, and every few minutes in the water dives and brings you a fish. Breed otters with fish; pups take after their parents and belong to you.
+- **Creature Cage** (sticks, iron bars, planks): right-click your pet, or a small animal, to put it in the cage; right-click the ground to let it out with its name, collar and owner unchanged. It takes cats, dogs, otters, parrots, foxes, rabbits, chickens, axolotls, frogs, armadillos, ocelots, turtles, allays and any pet you've tamed, but not horses or other people's pets.
+- **Pet Bed** (wool, a carpet and sticks): at night your tame pets nearby that haven't been told to sit curl up in the nearest free bed (one to a bed) and heal while they sleep. They get up at dawn, or if you go far from home. Use any dye on a bed to recolor it.
+
 ## Children
 - When there's a free bed and the storehouse has food to spare, two citizens near the Town Hall may have a child. Children join the kingdom, can't work, and grow up after one Minecraft day.
 
@@ -147,6 +152,7 @@ Every screen got a new look (parchment in a dark wood frame, wooden buttons, clo
 
 ## Land
 - Press **K** (or right-click your Town Hall) for the Realm screen: your stats, a map of nearby chunks, and Claim / Release buttons.
+- Click a chunk on the Realm map to claim it, or right-click one of yours to release it (hover for details).
 - A new kingdom starts with the 3x3 chunks around its Town Hall. Each extra chunk costs Influence (10, plus 3 more for every chunk beyond the first 9) and it must border your land. Influence comes in through the day: 5 + 3 per citizen.
 - Outsiders can't break, place or use blocks on your land. Monster spawning can be switched off for your land.
 - Hold the Command Baton to see borders in each kingdom's color.
