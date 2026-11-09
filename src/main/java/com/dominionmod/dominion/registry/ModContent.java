@@ -66,6 +66,8 @@ public final class ModContent {
 
     public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.OrcWarlord>> ORC_WARLORD = ENTITIES.registerEntityType("orc_warlord",
             com.dominionmod.dominion.entity.wild.OrcWarlord::new, MobCategory.MONSTER, b -> b.sized(0.6f, 1.95f).eyeHeight(1.62f).clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.IllagerOverlord>> ILLAGER_OVERLORD = ENTITIES.registerEntityType("illager_overlord",
+            com.dominionmod.dominion.entity.wild.IllagerOverlord::new, MobCategory.MONSTER, b -> b.sized(0.6f, 1.95f).eyeHeight(1.62f).clientTrackingRange(10));
     public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.SupplyCart>> SUPPLY_CART = ENTITIES.registerEntityType("supply_cart",
             com.dominionmod.dominion.entity.SupplyCart::new, MobCategory.MISC, b -> b.noLootTable().sized(1.3f, 1.4f).clientTrackingRange(10).updateInterval(2));
     public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.siege.SiegeEngine>> BATTERING_RAM = ENTITIES.registerEntityType("battering_ram",
@@ -115,6 +117,10 @@ public final class ModContent {
     public static final DeferredBlock<com.dominionmod.dominion.block.OrcTotemBlock> ORC_TOTEM = BLOCKS.registerBlock("orc_totem",
             com.dominionmod.dominion.block.OrcTotemBlock::new, p -> p.mapColor(MapColor.COLOR_BROWN).strength(-1f, 3600000f).sound(SoundType.WOOD));
     public static final DeferredItem<BlockItem> ORC_TOTEM_ITEM = ITEMS.registerSimpleBlockItem("orc_totem", ORC_TOTEM);
+    public static final DeferredBlock<com.dominionmod.dominion.block.IllagerStandardBlock> ILLAGER_STANDARD = BLOCKS.registerBlock("illager_standard",
+            com.dominionmod.dominion.block.IllagerStandardBlock::new, p -> p.mapColor(MapColor.COLOR_GRAY).strength(-1f, 3600000f).sound(SoundType.WOOD).noOcclusion());
+    public static final DeferredItem<BlockItem> ILLAGER_STANDARD_ITEM = ITEMS.registerSimpleBlockItem("illager_standard", ILLAGER_STANDARD);
+    public static final DeferredItem<Item> FLOUR = ITEMS.registerSimpleItem("flour", p -> p.stacksTo(64));
     public static final DeferredItem<com.dominionmod.dominion.item.SpellBookItem> SPELL_BOOK = ITEMS.registerItem("spell_book",
             com.dominionmod.dominion.item.SpellBookItem::new, p -> p.stacksTo(1).rarity(Rarity.RARE));
     public static final DeferredItem<com.dominionmod.dominion.item.AmmoPouchItem> AMMO_POUCH = ITEMS.registerItem("ammo_pouch",
@@ -142,7 +148,7 @@ public final class ModContent {
     public static final java.util.Map<String, DeferredItem<net.minecraft.world.item.SpawnEggItem>> SPAWN_EGGS = new java.util.LinkedHashMap<>();
 
     static {
-        for (String mob : List.of("citizen", "deer", "orc", "orc_warlord", "centaur", "clydesdale", "mustang", "shetland_pony"))
+        for (String mob : List.of("citizen", "deer", "orc", "orc_warlord", "illager_overlord", "centaur", "clydesdale", "mustang", "shetland_pony"))
             SPAWN_EGGS.put(mob, ITEMS.registerItem(mob + "_spawn_egg", net.minecraft.world.item.SpawnEggItem::new, p -> p.spawnEgg(eggMob(mob))));
     }
 
@@ -152,6 +158,7 @@ public final class ModContent {
             case "deer" -> DEER.get();
             case "orc" -> ORC.get();
             case "orc_warlord" -> ORC_WARLORD.get();
+            case "illager_overlord" -> ILLAGER_OVERLORD.get();
             case "centaur" -> CENTAUR.get();
             case "clydesdale" -> CLYDESDALE.get();
             case "mustang" -> MUSTANG.get();
@@ -236,6 +243,7 @@ public final class ModContent {
                 out.accept(TREBUCHET_ITEM.get());
                 out.accept(CANNON_ITEM.get());
                 out.accept(CANNONBALL.get());
+                out.accept(FLOUR.get());
                 SPAWN_EGGS.values().forEach(egg -> out.accept(egg.get()));
             }).build());
 
@@ -252,6 +260,7 @@ public final class ModContent {
             e.put(DEER.get(), com.dominionmod.dominion.entity.wild.Deer.createAttributes().build());
             e.put(ORC.get(), com.dominionmod.dominion.entity.wild.Orc.createAttributes().build());
             e.put(CENTAUR.get(), com.dominionmod.dominion.entity.wild.Centaur.createAttributes().build());
+            e.put(ILLAGER_OVERLORD.get(), com.dominionmod.dominion.entity.wild.IllagerOverlord.createOverlordAttributes().build());
             e.put(ORC_WARLORD.get(), com.dominionmod.dominion.entity.wild.OrcWarlord.createWarlordAttributes().build());
             e.put(BATTERING_RAM.get(), com.dominionmod.dominion.entity.siege.SiegeEngine.createAttributes(com.dominionmod.dominion.entity.siege.SiegeEngine.Kind.RAM).build());
             e.put(TREBUCHET.get(), com.dominionmod.dominion.entity.siege.SiegeEngine.createAttributes(com.dominionmod.dominion.entity.siege.SiegeEngine.Kind.TREBUCHET).build());

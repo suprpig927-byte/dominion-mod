@@ -107,6 +107,31 @@ public final class Buildings {
         }
         int target = pr.maxTier();
         Structures.Structure st = Structures.get(b.structure);
+        // Watchtowers rise level by level: Lookout -> Stone Watchtower -> Fortified Tower.
+        int lvl = com.dominionmod.dominion.kingdom.Watchtowers.level(b);
+        if (lvl > 0) {
+            String up = com.dominionmod.dominion.kingdom.Watchtowers.next(b);
+            String info = b.name() + ": garrison " + b.workers.size() + "/" + com.dominionmod.dominion.kingdom.Watchtowers.garrisonSize(b)
+                    + ", sees " + com.dominionmod.dominion.kingdom.Watchtowers.sight(b) + " blocks, land "
+                    + com.dominionmod.dominion.kingdom.Watchtowers.claimRadius(b) + " chunk(s) around.";
+            if (up != null) {
+                Structures.Structure next = Structures.get(up);
+                String need = com.dominionmod.dominion.kingdom.Watchtowers.RESEARCH[lvl];
+                if (!pr.has(need)) {
+                    Research.Tech tech = Research.get(need);
+                    return Component.literal(info + " Research " + (tech == null ? need : tech.name()) + " to raise it into a " + next.name() + ".")
+                            .withStyle(ChatFormatting.GRAY);
+                }
+                if (!p.isShiftKeyDown())
+                    return Component.literal(info + " Sneak + right-click to raise it into a " + next.name() + ".").withStyle(ChatFormatting.YELLOW);
+                Site site = new Site(UUID.randomUUID(), k.id, up, b.dim, b.origin, b.origin, b.rotation, List.of(), 0);
+                site.tier = Math.max(Math.max(b.tier, target), next.minTier());
+                site.building = b.id;
+                d.addSite(site);
+                return Component.literal("Your builders will raise the " + b.name() + " into a " + next.name() + ".").withStyle(ChatFormatting.GREEN);
+            }
+            if (!p.isShiftKeyDown() || target <= b.tier) return Component.literal(info).withStyle(ChatFormatting.GOLD);
+        }
         // A Builder's Hammer adds a second storey.
         if (p.getMainHandItem().is(com.dominionmod.dominion.registry.ModContent.BUILDERS_HAMMER.get())) {
             Structures.Structure up = Structures.storeyOf(b.structure);

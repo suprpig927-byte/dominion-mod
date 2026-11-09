@@ -49,7 +49,7 @@ public final class Settlements {
     private Settlements() {}
 
     public enum Type {
-        ORC_VILLAGE(26), WILD_TOWN(32), WILD_KINGDOM(48);
+        ORC_VILLAGE(26), WILD_TOWN(32), WILD_KINGDOM(48), ILLAGER_CAMP(30);
 
         public final int radius;
 
@@ -82,7 +82,7 @@ public final class Settlements {
                     if (d.settled.contains(key)) continue;
                     RandomSource r = regionRandom(level, rx, rz);
                     float roll = r.nextFloat();
-                    Type type = roll < 0.30f ? Type.ORC_VILLAGE : roll < 0.48f ? Type.WILD_TOWN : roll < 0.60f ? Type.WILD_KINGDOM : null;
+                    Type type = roll < 0.26f ? Type.ORC_VILLAGE : roll < 0.42f ? Type.WILD_TOWN : roll < 0.54f ? Type.WILD_KINGDOM : roll < 0.68f ? Type.ILLAGER_CAMP : null;
                     int cx = rx * REGION + 96 + r.nextInt(REGION - 192), cz = rz * REGION + 96 + r.nextInt(REGION - 192);
                     if (type == null) {
                         d.settled.add(key);
@@ -128,7 +128,7 @@ public final class Settlements {
 
     private static @Nullable String unsuitable(ServerLevel level, Type type, BlockPos c) {
         var spawn = level.getRespawnData().pos();
-        if (spawn.distSqr(c) < (type == Type.ORC_VILLAGE ? 260 * 260 : 360 * 360)) return "too near the world spawn";
+        if (spawn.distSqr(c) < (type == Type.ORC_VILLAGE || type == Type.ILLAGER_CAMP ? 260 * 260 : 360 * 360)) return "too near the world spawn";
         var biome = level.getBiome(c);
         if (biome.is(BiomeTags.IS_OCEAN) || biome.is(BiomeTags.IS_RIVER) || biome.is(BiomeTags.IS_BEACH)) return "water biome";
         if (!level.getFluidState(c).isEmpty() || !level.getFluidState(c.above()).isEmpty()) return "in water";
@@ -172,6 +172,7 @@ public final class Settlements {
             case ORC_VILLAGE -> orcVillage(level, center, r);
             case WILD_TOWN -> wildKingdom(level, center, r, false);
             case WILD_KINGDOM -> wildKingdom(level, center, r, true);
+            case ILLAGER_CAMP -> IllagerEmpire.outpost(level, center, r);
         };
     }
 

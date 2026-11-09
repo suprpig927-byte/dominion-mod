@@ -20,7 +20,16 @@ public enum Job {
     MONK("Monk", -2, true),
     ENGINEER("Engineer", -1, false),
     /** Carries a Flintlock or Musket. */
-    MUSKETEER("Musketeer", -2, true);
+    MUSKETEER("Musketeer", -2, true),
+    // Trades: hired by a workshop (any citizen with empty hands can be taken on)
+    MINER("Miner", 1, false),
+    SAWYER("Sawyer", 1, false),
+    MILLER("Miller", 1, false),
+    BAKER("Baker", 1, false),
+    BUTCHER("Butcher", 1, false),
+    FISHER("Fisher", 1, false),
+    INNKEEPER("Innkeeper", 1, false),
+    PRIEST("Priest", 1, false);
 
     public final String title;
     /** Coins paid in daily: positive = tax the citizen pays, negative = wage they're owed. */
@@ -34,7 +43,12 @@ public enum Job {
     }
 
     public boolean worker() {
-        return this == FARMER || this == LUMBERJACK || this == BUILDER || this == ENGINEER || this == BLACKSMITH || this == SCHOLAR;
+        return this == FARMER || this == LUMBERJACK || this == BUILDER || this == ENGINEER || this == BLACKSMITH || this == SCHOLAR || trade();
+    }
+
+    /** Works at a workshop it was hired by (Mine, Mill, Bakery, Tavern...). */
+    public boolean trade() {
+        return ordinal() >= MINER.ordinal();
     }
 
     /** Trained at the University rather than given by a tool. */

@@ -120,7 +120,8 @@ public final class KingdomData extends SavedData {
             Rivals.Rival.CODEC.listOf().optionalFieldOf("rivals", List.of()).forGetter(d -> new ArrayList<>(d.rivals.values())),
             Armies.Army.CODEC.listOf().optionalFieldOf("armies", List.of()).forGetter(d -> new ArrayList<>(d.armies)),
             Ruin.CODEC.listOf().optionalFieldOf("ruins", List.of()).forGetter(d -> new ArrayList<>(d.ruins)),
-            Caravans.Caravan.CODEC.listOf().optionalFieldOf("caravans", List.of()).forGetter(d -> new ArrayList<>(d.caravans))
+            Caravans.Caravan.CODEC.listOf().optionalFieldOf("caravans", List.of()).forGetter(d -> new ArrayList<>(d.caravans)),
+            OrcVillage.CODEC.listOf().optionalFieldOf("illager_camps", List.of()).forGetter(d -> new ArrayList<>(d.illagerCamps))
     ).apply(i, KingdomData::new));
 
     public static final SavedDataType<KingdomData> TYPE = new SavedDataType<>(DominionMod.id("kingdoms"), KingdomData::new, CODEC);
@@ -145,10 +146,13 @@ public final class KingdomData extends SavedData {
     public final List<Armies.Army> armies = new ArrayList<>();
     public final List<Ruin> ruins = new ArrayList<>();
     public final List<Caravans.Caravan> caravans = new ArrayList<>();
+    /** Illager camps (same bookkeeping as orc villages: the "totem" is the Illager Standard). */
+    public final List<OrcVillage> illagerCamps = new ArrayList<>();
 
     private KingdomData(List<Kingdom> list, List<Claim> claimList, List<com.dominionmod.dominion.build.Site> siteList, List<Progress> progressList,
                         List<Long> settledList, List<OrcVillage> villages, List<Pact> pactList, List<Rivals.Rival> rivalList, List<Armies.Army> armyList,
-                        List<Ruin> ruinList, List<Caravans.Caravan> caravanList) {
+                        List<Ruin> ruinList, List<Caravans.Caravan> caravanList, List<OrcVillage> camps) {
+        illagerCamps.addAll(camps);
         ruins.addAll(ruinList);
         caravans.addAll(caravanList);
         pacts.addAll(pactList);

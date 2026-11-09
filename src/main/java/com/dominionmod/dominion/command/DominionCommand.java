@@ -191,6 +191,36 @@ public final class DominionCommand {
                             com.dominionmod.dominion.kingdom.Armies.raid(level, from, mine, 6, false);
                             return 1;
                         }))
+                        .then(Commands.literal("citadel").executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            ServerLevel level = (ServerLevel) p.level();
+                            KingdomData d = Realm.data(level);
+                            KingdomData.OrcVillage best = null;
+                            for (var v : d.illagerCamps) if (!v.conquered && (best == null || v.totem.distSqr(p.blockPosition()) < best.totem.distSqr(p.blockPosition()))) best = v;
+                            if (best == null) {
+                                ctx.getSource().sendFailure(Component.literal("No Illager camp known. /dominion admin settle illager first."));
+                                return 0;
+                            }
+                            com.dominionmod.dominion.kingdom.IllagerEmpire.fastForward(level, best);
+                            ctx.getSource().sendSuccess(() -> Component.literal("The Illager camp has grown into a citadel."), true);
+                            return 1;
+                        }))
+                        .then(Commands.literal("illagerraid").executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            ServerLevel level = (ServerLevel) p.level();
+                            KingdomData d = Realm.data(level);
+                            Kingdom mine = Realm.of(p);
+                            if (mine == null || mine.hall.isEmpty()) return 0;
+                            KingdomData.OrcVillage best = null;
+                            for (var v : d.illagerCamps) if (!v.conquered && (best == null || v.totem.distSqr(p.blockPosition()) < best.totem.distSqr(p.blockPosition()))) best = v;
+                            if (best == null) {
+                                var look = p.getLookAngle();
+                                best = new KingdomData.OrcVillage(KingdomData.dim(level), mine.hall.get().offset((int) (look.x * 120), 0, (int) (look.z * 120)), false);
+                                best.stage = 1;
+                            }
+                            com.dominionmod.dominion.kingdom.IllagerEmpire.raid(level, best, mine);
+                            return 1;
+                        }))
                         .then(Commands.literal("stronghold").executes(ctx -> {
                             ServerPlayer p = ctx.getSource().getPlayerOrException();
                             ServerLevel level = (ServerLevel) p.level();
@@ -206,12 +236,13 @@ public final class DominionCommand {
                             return 1;
                         }))
                         .then(Commands.literal("settle").then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
-                                .suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(new String[]{"orc", "town", "kingdom"}, b))
+                                .suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(new String[]{"orc", "town", "kingdom", "illager"}, b))
                                 .executes(ctx -> {
                             ServerPlayer p = ctx.getSource().getPlayerOrException();
                             String kind = com.mojang.brigadier.arguments.StringArgumentType.getString(ctx, "kind");
                             var type = switch (kind) {
                                 case "orc" -> com.dominionmod.dominion.kingdom.Settlements.Type.ORC_VILLAGE;
+                                case "illager" -> com.dominionmod.dominion.kingdom.Settlements.Type.ILLAGER_CAMP;
                                 case "kingdom" -> com.dominionmod.dominion.kingdom.Settlements.Type.WILD_KINGDOM;
                                 default -> com.dominionmod.dominion.kingdom.Settlements.Type.WILD_TOWN;
                             };

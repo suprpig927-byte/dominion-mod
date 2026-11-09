@@ -83,6 +83,10 @@ public final class Armies {
         ).apply(i, Army::new));
 
         public boolean orcs() { return "raid".equals(kind); }
+        public boolean illagers() { return "illager".equals(kind); }
+        /** A warband from a camp rather than a kingdom's army. */
+        public boolean raiders() { return orcs() || illagers(); }
+        public String who() { return orcs() ? "the orc warband" : illagers() ? "the Illager war party" : "the army"; }
 
         public Vec3 at() { return new Vec3(x, 0, z); }
     }
@@ -157,6 +161,21 @@ public final class Armies {
         return a;
     }
 
+    /** An Illager war party marches on a town (by day: they don't fear the sun). */
+    public static Army illagerRaid(ServerLevel level, BlockPos from, Kingdom to, List<String> troops) {
+        KingdomData d = Realm.data(level);
+        Army a = new Army(UUID.randomUUID(), IllagerEmpire.ILLAGERS, to.id, to.hallDim, from.getX() + 0.5, from.getZ() + 0.5, to.hall.orElse(from), from,
+                troops, false, false, List.of(), "illager");
+        d.armies.add(a);
+        d.markChanged();
+        boolean lord = troops.contains("overlord");
+        Citizen.tellKingdom(level, to, Component.literal("Illager horns at dawn! ").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.BOLD)
+                .append(Component.literal("A war party of " + troops.size() + (lord ? ", led by the Overlord himself," : "")
+                        + (troops.contains("ravager") ? " with a ravager" : "") + " marches from the " + compass(a.dest, from) + ", "
+                        + (int) Math.sqrt(from.distSqr(a.dest)) + " blocks away.").withStyle(ChatFormatting.LIGHT_PURPLE)));
+        return a;
+    }
+
     private static String describeSiege(List<String> troops) {
         List<String> engines = new ArrayList<>();
         if (troops.contains("ram")) engines.add("a battering ram");
@@ -203,7 +222,7 @@ public final class Armies {
 
     private static void step(ServerLevel level, KingdomData d, Army a) {
         Kingdom target = d.byId(a.target);
-        if (!a.orcs() && d.byId(a.kingdom) == null || target == null) {
+        if (!a.raiders() && d.byId(a.kingdom) == null || target == null) {
             disband(level, d, a);
             return;
         }
@@ -268,7 +287,7 @@ public final class Armies {
         // keep everyone pointed at the town
         for (LivingEntity e : alive) {
             if (e instanceof Citizen c && c.order() != com.dominionmod.dominion.entity.Order.MARCH) c.march(a.dest);
-            if (e instanceof Orc o) o.setHomeTo(a.dest, 10);
+            if (e instanceof net.minecraft.world.entity.Mob m && !(e instanceof Citizen)) m.setHomeTo(a.dest, 10);
         }
         if (Math.hypot(a.x - a.dest.getX(), a.z - a.dest.getZ()) < 26) {
             if (defenders(level, target, a.dest) == 0) a.quiet++;
@@ -324,6 +343,7 @@ public final class Armies {
             level.getChunk(ground.getX() >> 4, ground.getZ() >> 4);
             BlockPos at = new BlockPos(ground.getX(), level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, ground.getX(), ground.getZ()), ground.getZ());
             Entity e = a.orcs() ? Settlements.spawnRaider(level, troop, at, a.dest, r)
+                    : a.illagers() ? IllagerEmpire.spawnRaider(level, troop, at, a.dest, r)
                     : k == null ? null : Settlements.spawnTrooper(level, k, troop, at, a.dest, r);
             if (e != null) {
                 a.members.add(e.getUUID());
@@ -332,7 +352,8 @@ public final class Armies {
             i++;
         }
         d.markChanged();
-        Component who = a.orcs() ? Component.literal("The orc warband").withStyle(ChatFormatting.DARK_GREEN) : Component.literal("The army of ")
+        Component who = a.orcs() ? Component.literal("The orc warband").withStyle(ChatFormatting.DARK_GREEN)
+                : a.illagers() ? Component.literal("The Illager war party").withStyle(ChatFormatting.DARK_PURPLE) : Component.literal("The army of ")
                 .withStyle(ChatFormatting.RED).append(Realm.title(k));
         Citizen.tellKingdom(level, target, Component.empty().append(who).append(Component.literal(" is in sight, " +
                 (int) Math.hypot(a.x - a.dest.getX(), a.z - a.dest.getZ()) + " blocks to the " + compass(a.dest, center) + "!").withStyle(ChatFormatting.RED)));
@@ -365,7 +386,7 @@ public final class Armies {
         int food = Storehouse.take(store, s -> s.has(net.minecraft.core.component.DataComponents.FOOD), 24).getCount();
         Kingdom k = d.byId(a.kingdom);
         if (k != null) Diplomacy.receive(level, k, take);
-        String who = a.orcs() ? "The orcs" : "The army of " + (k == null ? "the enemy" : k.name);
+        String who = a.orcs() ? "The orcs" : a.illagers() ? "The Illagers" : "The army of " + (k == null ? "the enemy" : k.name);
         Citizen.tellKingdom(level, target, Component.literal(who + " stands unopposed at your Town Hall. They carry off " + take
                 + " Gold Coins and " + food + " food, and march home.").withStyle(ChatFormatting.DARK_RED));
         goHome(level, a);
@@ -374,7 +395,7 @@ public final class Armies {
     private static void defeated(ServerLevel level, KingdomData d, Army a, Kingdom target) {
         Kingdom k = d.byId(a.kingdom);
         if (k != null && k.wild) d.rival(k).lostArmies++;
-        String who = a.orcs() ? "the orc warband" : "the army of " + (k == null ? "the enemy" : k.name);
+        String who = a.raiders() ? a.who() : "the army of " + (k == null ? "the enemy" : k.name);
         Citizen.tellKingdom(level, target, Component.literal("Victory! You routed " + who + ".").withStyle(ChatFormatting.GOLD, ChatFormatting.BOLD));
         level.playSound(null, a.dest, SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, SoundSource.PLAYERS, 1.0f, 1.0f);
     }
@@ -384,7 +405,7 @@ public final class Armies {
         for (UUID id : a.members) {
             Entity e = level.getEntity(id);
             if (e instanceof Citizen c) c.march(a.home);
-            if (e instanceof Orc o) o.setHomeTo(a.home, 24);
+            if (e instanceof net.minecraft.world.entity.Mob m && !(e instanceof Citizen)) m.setHomeTo(a.home, 24);
         }
         Realm.data(level).markChanged();
     }
@@ -410,7 +431,7 @@ public final class Armies {
         KingdomData d = Realm.data(level);
         for (Army a : d.armies) {
             Kingdom k = d.byId(a.kingdom);
-            out.add((a.orcs() ? "orcs" : k == null ? "?" : k.name) + " -> " + (d.byId(a.target) == null ? "?" : d.byId(a.target).name)
+            out.add((a.orcs() ? "orcs" : a.illagers() ? "illagers" : k == null ? "?" : k.name) + " -> " + (d.byId(a.target) == null ? "?" : d.byId(a.target).name)
                     + String.format(" at %.0f,%.0f", a.x, a.z) + (a.materialized ? " (in the field, " + a.members.size() + " left)" : " (marching)")
                     + (a.returning ? " returning" : "") + " " + a.troops);
         }

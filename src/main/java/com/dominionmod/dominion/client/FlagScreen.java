@@ -64,7 +64,7 @@ public class FlagScreen extends Screen {
         for (int i = 0; i < 16; i++) {
             final int dye = i;
             int sx = x + i * (SW + 2), sy = t + 30;
-            addRenderableWidget(Button.builder(Component.empty(), b -> base = dye).bounds(sx, sy, SW, SW).build());
+            addRenderableWidget(Button.builder(Component.empty(), b -> base = dye).bounds(sx, sy, SW, SW).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
             swatches.add(new int[]{sx, sy, 0, dye});
         }
         // Layer list
@@ -75,21 +75,21 @@ public class FlagScreen extends Screen {
                 addRenderableWidget(Button.builder(Component.literal((i + 1) + ". " + patternName(layers.get(i))), b -> {
                     selected = idx;
                     rebuildWidgets();
-                }).bounds(x, row, 150, 13).build());
+                }).bounds(x, row, 150, 13).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
             }
         }
         int ly = t + 58 + Flags.MAX_LAYERS * 14 + 4;
         if (selected >= 0 && selected < layers.size()) {
-            addRenderableWidget(Button.builder(Component.literal("<"), b -> cycle(-1)).bounds(x + 156, t + 58 + selected * 14, 14, 13).build());
-            addRenderableWidget(Button.builder(Component.literal(">"), b -> cycle(1)).bounds(x + 172, t + 58 + selected * 14, 14, 13).build());
-            addRenderableWidget(Button.builder(Component.literal("Up"), b -> move(-1)).bounds(x + 188, t + 58 + selected * 14, 26, 13).build());
-            addRenderableWidget(Button.builder(Component.literal("Dn"), b -> move(1)).bounds(x + 216, t + 58 + selected * 14, 26, 13).build());
+            addRenderableWidget(Button.builder(Component.literal("<"), b -> cycle(-1)).bounds(x + 156, t + 58 + selected * 14, 14, 13).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
+            addRenderableWidget(Button.builder(Component.literal(">"), b -> cycle(1)).bounds(x + 172, t + 58 + selected * 14, 14, 13).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
+            addRenderableWidget(Button.builder(Component.literal("Up"), b -> move(-1)).bounds(x + 188, t + 58 + selected * 14, 26, 13).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
+            addRenderableWidget(Button.builder(Component.literal("Dn"), b -> move(1)).bounds(x + 216, t + 58 + selected * 14, 26, 13).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
             for (int i = 0; i < 16; i++) {
                 final int dye = i;
                 int sx = x + i * (SW + 2), sy = ly + 12;
                 addRenderableWidget(Button.builder(Component.empty(), b -> {
                     if (selected >= 0 && selected < layers.size()) layers.set(selected, new Flags.Layer(layers.get(selected).pattern(), dye));
-                }).bounds(sx, sy, SW, SW).build());
+                }).bounds(sx, sy, SW, SW).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
                 swatches.add(new int[]{sx, sy, 1, dye});
             }
         }
@@ -99,17 +99,17 @@ public class FlagScreen extends Screen {
             layers.add(new Flags.Layer(patterns.get(0).key().identifier().toString(), base == 15 ? 0 : 15));
             selected = layers.size() - 1;
             rebuildWidgets();
-        }).bounds(l + 10, by, 54, 20).build());
+        }).bounds(l + 10, by, 54, 20).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
         addRenderableWidget(Button.builder(Component.literal("- Layer"), b -> {
             if (selected < 0 || selected >= layers.size()) return;
             layers.remove(selected);
             selected = Math.min(selected, layers.size() - 1);
             rebuildWidgets();
-        }).bounds(l + 66, by, 54, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Copy held banner"), b -> copyHeld()).bounds(l + 122, by, 96, 20).build());
+        }).bounds(l + 66, by, 54, 20).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
+        addRenderableWidget(Button.builder(Component.literal("Copy held banner"), b -> copyHeld()).bounds(l + 122, by, 96, 20).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
         addRenderableWidget(Button.builder(Component.literal(doneLabel), b -> onDone.accept(Flags.encode(base, layers)))
-                .bounds(l + W - 106, by, 96, 20).build());
-        addRenderableWidget(Button.builder(Component.literal("Back"), b -> onClose()).bounds(l + 10, t + 6, 40, 16).build());
+                .bounds(l + W - 106, by, 96, 20).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
+        addRenderableWidget(Button.builder(Component.literal("Back"), b -> onClose()).bounds(l + 10, t + 6, 40, 16).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
     }
 
     private void cycle(int dir) {
@@ -180,12 +180,13 @@ public class FlagScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partialTick) {
         int l = left(), t = top();
-        g.fill(l, t, l + W, t + H, 0xE0141210);
-        g.text(this.font, "DESIGN YOUR FLAG", l + 60, t + 10, 0xFFFFD86B, true);
-        g.text(this.font, "Base color", l + 80, t + 20, 0xFFBBBBBB, false);
-        g.text(this.font, layers.isEmpty() ? "No patterns yet: press + Layer" : "Layers (bottom to top)", l + 80, t + 47, 0xFFBBBBBB, false);
+        com.dominionmod.dominion.client.ui.Theme.backdrop(g, this.width, this.height);
+        com.dominionmod.dominion.client.ui.Theme.panel(g, l - 6, t - 6, W + 12, H + 12);
+        g.text(this.font, "DESIGN YOUR FLAG", l + 60, t + 10, com.dominionmod.dominion.client.ui.Theme.GOLD, false);
+        g.text(this.font, "Base color", l + 80, t + 20, com.dominionmod.dominion.client.ui.Theme.INK_SOFT, false);
+        g.text(this.font, layers.isEmpty() ? "No patterns yet: press + Layer" : "Layers (bottom to top)", l + 80, t + 47, com.dominionmod.dominion.client.ui.Theme.INK_SOFT, false);
         if (selected >= 0 && selected < layers.size()) {
-            g.text(this.font, "Color of layer " + (selected + 1), l + 80, t + 58 + Flags.MAX_LAYERS * 14 + 6, 0xFFBBBBBB, false);
+            g.text(this.font, "Color of layer " + (selected + 1), l + 80, t + 58 + Flags.MAX_LAYERS * 14 + 6, com.dominionmod.dominion.client.ui.Theme.INK_SOFT, false);
         }
 
         // Preview, drawn on a backing so it reads at a glance.
@@ -193,7 +194,7 @@ public class FlagScreen extends Screen {
         g.fill(l + 10, t + 34, l + 70, t + 36, 0xFF6B4A2B); // the pole
         var tex = com.dominionmod.dominion.client.render.FlagTextures.preview(DyeColor.byId(base), preview());
         g.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, tex, l + 10, t + 38, 0, 0, 60, 120, 20, 40, 20, 40);
-        g.text(this.font, "Preview", l + 22, t + 164, 0xFF888888, false);
+        g.text(this.font, "Preview", l + 22, t + 164, com.dominionmod.dominion.client.ui.Theme.INK_FAINT, false);
 
         this.renderables.forEach(r -> r.extractRenderState(g, mouseX, mouseY, partialTick));
 
@@ -205,7 +206,7 @@ public class FlagScreen extends Screen {
         }
         if (selected >= 0 && selected < layers.size()) {
             int y = t + 58 + selected * 14;
-            g.fill(l + 76, y, l + 78, y + 13, 0xFFFFD86B);
+            g.fill(l + 76, y, l + 78, y + 13, com.dominionmod.dominion.client.ui.Theme.GOLD);
         }
     }
 }

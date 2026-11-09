@@ -19,6 +19,7 @@ EGGS = {
     "deer": ((156, 104, 62), (238, 230, 216), "spots"),        # fawn spots
     "orc": ((84, 116, 54), (46, 34, 26), "tusks"),             # green hide, war paint
     "orc_warlord": ((58, 66, 44), (150, 22, 18), "tusks"),     # ash hide, red war paint
+    "illager_overlord": ((70, 30, 96), (236, 190, 54), "band"),  # purple robes, gold trim
     "centaur": ((214, 168, 128), (122, 78, 44), "half"),       # rider's skin over a bay horse body
     "clydesdale": ((120, 62, 32), (242, 238, 232), "feather"),  # bay with white feathered base
     "mustang": ((200, 162, 100), (40, 30, 24), "dorsal"),      # buckskin with a dark stripe

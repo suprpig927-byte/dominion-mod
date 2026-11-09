@@ -84,7 +84,7 @@ public final class Structures {
                     }
                     if (bz < 0 || bz >= out[y].length || bx < 0 || bx >= out[y][bz].length()) continue;
                     char behind = out[y][bz].charAt(bx);
-                    if ("G. nlpjiau".indexOf(behind) >= 0) {
+                    if ("G. nlpjiau|γ".indexOf(behind) >= 0) {
                         char[] row = out[y][bz].toCharArray();
                         row[bx] = y <= 1 ? 'M' : 'W';
                         out[y][bz] = new String(row);
@@ -556,6 +556,163 @@ public final class Structures {
             {".....", ".....", "..&..", ".....", "....."},
     };
 
+    // ------------------------------------------------------------------ workshops and civic buildings
+
+    private static final String[][] TAVERN = {
+            {"CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC"},
+            {"LMMMMMMMMML", "MR,RR.mKQRM", "Mtttt.....M", "M.........M", "M6t8...6t8M", "M.........M", "M6t8...6t8M", "M....0....M", "LMMMMDMMMML"},
+            {"LWWGWWWGWWL", "WR..R....RW", "W.i.a.....W", "G.........G", "W.p.....i.W", "W.........W", "W.a.....p.W", "W.........W", "LWWGWuWGWWL"},
+            {"LWWWWWWWWWL", "W.........W", "W.........W", "W..n...n..W", "W.........W", "W.........W", "W..n...n..W", "W.........W", "LPPPPPPPPPL"},
+    };
+
+    private static final String[][] CHAPEL = {
+            {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
+            {"LMMMMMMML", "M..tEt..M", "M...0...M", "M777.777M", "M...0...M", "M777.777M", "M...0...M", "M777.777M", "M...0...M", "MK.....RM", "LMMMDMMML"},
+            {"LWWWGWWWL", "W..i.i..W", "W.......W", "G.......G", "W.......W", "G.......G", "W.......W", "G.......G", "W.......W", "W.......W", "LWWWuWWWL"},
+            {"LWWWWWWWL", "W.......W", "W.......W", "G.......G", "W.......W", "G.......G", "W.......W", "G.......G", "W.......W", "W.......W", "LWWWGWWWL"},
+            {"LWWWWWWWL", "W.......W", "W...n...W", "W.......W", "W.......W", "W...n...W", "W.......W", "W.......W", "W...n...W", "W.......W", "LPPPPPPPL"},
+    };
+
+    private static final String[][] BAKERY = {
+            {"CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC"},
+            {"LMMMMML", "M++m=RM", "M.....M", "Mtt..QM", "M.....M", "MK..RRM", "LMMDMML"},
+            {"LWWGWWL", "W.....W", "W.....W", "Gai...G", "W.....W", "W...R.W", "LWWuWWL"},
+            {"LWWWWWL", "W.....W", "W.....W", "W..n..W", "W.....W", "W.....W", "LPPPPPL"},
+    };
+
+    private static final String[][] MILL = {
+            {"CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC"},
+            {"LMMMMML", "M)=.=)M", "M.....M", "M=...RM", "M?...RM", "MK...QM", "LMMDMML"},
+            {"LWWGWWL", "W.=.=.W", "W.....W", "G.....G", "W.....W", "W.....W", "LWWuWWL"},
+            {"LWWWWWL", "W.....W", "W.....W", "W..n..W", "W.....W", "W.....W", "LPPPPPL"},
+    };
+
+    private static final String[][] BUTCHER = {
+            {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
+            {"LMMMMMMML", "Mmm.V.RRM", "M.......M", "Mttt....M", "M.......M", "MK.....QM", "LMMMDMMML"},
+            {"LWWWGWWWL", "W.......W", "W.......W", "Gpai....G", "W.......W", "W.......W", "LWWWuWWWL"},
+            {"LWWWWWWWL", "W.......W", "W...n...W", "W.......W", "W...n...W", "W.......W", "LPPPPPPPL"},
+    };
+
+    private static final String[][] MINE = {
+            {"CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC"},
+            {"LMMMMML", "MRU.URM", "M.....M", "M.///.M", "M.....M", "MK...QM", "LMMDMML"},
+            {"LWWGWWL", "W.....W", "W.....W", "G.....G", "W.....W", "W.....W", "LWWuWWL"},
+            {"LWWWWWL", "W.....W", "W.....W", "W..n..W", "W.....W", "W.....W", "LPPPPPL"},
+    };
+
+    private static final String[][] LUMBER_MILL = {
+            {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
+            {"LMMMMMMML", "MOO...OOM", "M.......M", "M.(.(.(.M", "M.......M", "MK.R.R.QM", "LMMMDMMML"},
+            {"LWWWGWWWL", "WOO...OOW", "W.......W", "G.......G", "W.......W", "W.......W", "LWWWuWWWL"},
+            {"LWWWWWWWL", "W.......W", "W...n...W", "W.......W", "W...n...W", "W.......W", "LPPPPPPPL"},
+    };
+
+    private static final String[][] HARBOR = {
+            {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CC~~~~~CC", "CC~~~~~CC", "CCCCCCCCC", "CCCCCCCCC"},
+            {"LMMMMMMML", "MRR.}.RRM", "M.......M", "M.......M", "M.......M", "MK.....QM", "LMMMDMMML"},
+            {"LWWWGWWWL", "W.......W", "W.......W", "G.......G", "W.......W", "W.......W", "LWWWuWWWL"},
+            {"LWWWWWWWL", "W.......W", "W...n...W", "W.......W", "W...n...W", "W.......W", "LPPPPPPPL"},
+    };
+
+    private static final String[][] ARCHERY_RANGE = {
+            {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC",
+                    "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
+            {"FFF*F*FFF", "F.......F", "F.=...=.F", "F.......F", "F.......F", "F.......F", "F.......F", "F.......F", "F.......F",
+                    "F.......F", "F.......F", "FqR.K.RQF", "FFFFgFFFF"},
+            {"l..*.*..l", ".........", ".........", ".........", ".........", ".........", ".........", ".........", ".........",
+                    ".........", ".........", ".........", "l.......l"},
+    };
+
+    /** The first watchtower: a log lookout with a bell, for any village. */
+    private static final String[][] LOOKOUT = {
+            {"O...O", ".....", ".....", ".....", "O...O"},
+            {"O...O", ".....", "..O..", "..A..", "O...O"},
+            {"O...O", ".....", "..O..", "..A..", "O...O"},
+            {"O...O", ".....", "..O..", "..A..", "O...O"},
+            {"O...O", ".....", "..O..", "..A..", "O...O"},
+            {"O...O", ".....", "..O..", "..A..", "O...O"},
+            {"PPPPP", "PPPPP", "PPOPP", "PPAPP", "PPPPP"},
+            {"FFFFF", "F...F", "F.-.F", "F...F", "FFFFF"},
+            {"l...l", ".....", ".....", ".....", "l...l"},
+    };
+
+    /** The last watchtower: a fortified tower with arrow slits, battlements, a bell and your banner. */
+    private static final String[][] FORTIFIED_TOWER = {
+            {"MMMMMMM", "MMMMMMM", "MMMMMMM", "MMMMMMM", "MMMMMMM", "MMMMMMM", "MMMMMMM"},
+            {"LMMMMML", "M.A...M", "M.....M", "M.....M", "M.....M", "MK...RM", "LMMDMML"},
+            {"LMMMMML", "M.A...M", "M.....M", "|.....|", "M.....M", "M.....M", "LMMuMML"},
+            {"LWWWWWL", "W.A...W", "W.....W", "W.....W", "W.....W", "W.....W", "LWWWWWL"},
+            {"LWW|W|L", "W.A...W", "|.....|", "W.....W", "|.....|", "W.....W", "LW|W|WL"},
+            {"LWWWWWL", "W.A...W", "W.....W", "W.....W", "W.....W", "W.....W", "LWWWWWL"},
+            {"LWW|W|L", "W.A...W", "|.....|", "W.....W", "|.....|", "W.....W", "LW|W|WL"},
+            {"PPPPPPP", "PPAPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP", "PPPPPPP"},
+            {"M.M.M.M", ".......", "M.....M", "...-...", "M.....M", ".......", "M.M.M.M"},
+            {"l.N...l", ".......", ".......", ".......", ".......", ".......", "l.....l"},
+    };
+
+    // ------------------------------------------------------------------ the Illager faction's camps
+
+    /** A dark oak outpost tower with a crossbow platform and an Illager Standard at its foot. */
+    private static final String[][] ILLAGER_TOWER = {
+            {"δδδδδδδ", "δδδδδδδ", "δδδδδδδ", "δδδδδδδ", "δδδδδδδ", "δδδδδδδ", "δδδδδδδ"},
+            {"βαααααβ", "α.A...α", "α.....α", "α.....α", "α.....α", "αR...Kα", "βαα.ααβ"},
+            {"βαααααβ", "α.A...α", "α.....α", "γ.....γ", "α.....α", "α.....α", "βαα.ααβ"},
+            {"βαααααβ", "α.A...α", "α.....α", "α.....α", "α.....α", "α.....α", "βαααααβ"},
+            {"βαααααβ", "ααAαααα", "ααααααα", "ααααααα", "ααααααα", "ααααααα", "βαααααβ"},
+            {"βααγααβ", "α.A...α", "γ.....γ", "α.....α", "γ.....γ", "α.....α", "βαγαγαβ"},
+            {"βαααααβ", "α.A...α", "α.....α", "α.....α", "α.....α", "α.....α", "βαααααβ"},
+            {"ααααααα", "ααAαααα", "ααααααα", "ααααααα", "ααααααα", "ααααααα", "ααααααα"},
+            {"γγγγγγγ", "γ.....γ", "γ.....γ", "γ.....γ", "γ.....γ", "γ.....γ", "γγγγγγγ"},
+            {"θ.....θ", ".......", ".......", ".......", ".......", ".......", "θ.....θ"},
+    };
+
+    /** A striped canvas tent on dark oak poles. */
+    private static final String[][] ILLAGER_TENT = {
+            {"#####", "#####", "#####", "#####", "#####"},
+            {"β...β", ".....", ".R.K.", ".....", "β...β"},
+            {"ζηζηζ", "ζ...ζ", "ζ...ζ", "ζ...ζ", "ζ...ζ"},
+            {" ζηζ ", " ζηζ ", " ζηζ ", " ζηζ ", " ζηζ "},
+            {"  η  ", "  η  ", "  η  ", "  η  ", "  η  "},
+    };
+
+    /** An iron cage: villagers kept captive inside are freed (and join you) when the camp falls. */
+    private static final String[][] ILLAGER_CAGE = {
+            {"δδδδδ", "δδδδδ", "δδδδδ", "δδδδδ", "δδδδδ"},
+            {"β|||β", "|...|", "|...|", "|...|", "β|||β"},
+            {"β|||β", "|...|", "|...|", "|...|", "β|||β"},
+            {"θθθθθ", "θθθθθ", "θθθθθ", "θθθθθ", "θθθθθ"},
+    };
+
+    /** The camp's heart: the Illager Standard on a cobble plinth, ringed by wall posts. */
+    private static final String[][] ILLAGER_STANDARD = {
+            {"δδδδδ", "δεδεδ", "δδδδδ", "δεδεδ", "δδδδδ"},
+            {"λ...λ", ".....", "..κ..", ".....", "λ...λ"},
+            {"λ...λ", ".....", ".....", ".....", "λ...λ"},
+    };
+
+    /** The Overlord's hall: dark oak and black banners, a red carpet to a throne. */
+    private static final String[][] ILLAGER_HALL = {
+            {"δδδδδδδδδ", "δδδδδδδδδ", "δδδδδδδδδ", "δδδδδδδδδ", "δδδδδδδδδ", "δδδδδδδδδ", "δδδδδδδδδ", "δδδδδδδδδ", "δδδδδδδδδ", "δδδδδδδδδ", "δδδδδδδδδ"},
+            {"βαααααααβ", "α.μ.ξ.μ.α", "α...ν...α", "α,..ν..Rα", "α...ν...α", "αK..ν..Kα", "α...ν...α", "α...ν...α", "α...ν...α", "α...ν...α", "βααα.αααβ"},
+            {"βαααααααβ", "α.μ...μ.α", "α.......α", "γ.......γ", "α.......α", "α.......α", "γ.......γ", "α.......α", "α.......α", "α.......α", "βααα.αααβ"},
+            {"βαααααααβ", "α.......α", "α.......α", "α.......α", "α.......α", "α.......α", "α.......α", "α.......α", "α.......α", "α.......α", "βαααααααβ"},
+            {"θθθθθθθθθ", "θθθθθθθθθ", "θθθθθθθθθ", "θθθθθθθθθ", "θθθθθθθθθ", "θθθθθθθθθ", "θθθθθθθθθ", "θθθθθθθθθ", "θθθθθθθθθ", "θθθθθθθθθ", "θθθθθθθθθ"},
+            {"γ.γ.γ.γ.γ", ".........", "γ.......γ", ".........", "γ.......γ", ".........", "γ.......γ", ".........", "γ.......γ", ".........", "γ.γ.γ.γ.γ"},
+    };
+
+    /** A padded layer, empty except one character on the ridge (a bell, a flag...). */
+    private static String[] ridge(String[][] walls, char c) {
+        int W = walls[0][0].length() + 2, D = walls[0].length + 2;
+        String[] rows = new String[D];
+        for (int z = 0; z < D; z++) {
+            char[] row = " ".repeat(W).toCharArray();
+            if (z == D / 2) row[W / 2] = c;
+            rows[z] = new String(row);
+        }
+        return rows;
+    }
+
     static {
         add("cottage", "Cottage", "A family home: two beds, a chest, a crafting table and a pitched roof.", 1, null, 0, true, house(COTTAGE));
         add("longhouse", "Longhouse", "A long family hall with three beds side by side and room for storage.", 1, null, 0, true, house(LONGHOUSE));
@@ -588,7 +745,11 @@ public final class Structures {
                 {"FFFFFFFFF", "FyyyyyyyF", "FyyyyyyyF", "FyyyyyyyF", "Fyyy.yyyF", "FyyyyyyyF", "FyyyyyyyF", "FyyyyyyyF", "FFFFgFFFF"},
                 {"l       l", "         ", "         ", "         ", "         ", "         ", "         ", "         ", "l       l"}});
 
-        add("watchtower", "Watchtower", "A tall tower with arrow slits and a lookout platform. Flies your flag.", 1, "stone", 2, true, new String[][]{
+        add("lookout", "Lookout Tower", "A log lookout with a bell. One archer keeps watch from the top, it rings the bell when enemies come within"
+                + " 40 blocks, and you can claim land up to a chunk around it even where it doesn't touch your borders. Sneak + right-click its"
+                + " sign to raise it into a Stone Watchtower, then a Fortified Tower.", 1, null, 0, true, LOOKOUT);
+        add("watchtower", "Stone Watchtower", "A tall stone tower with arrow slits and a lookout platform. Garrisons two archers, sees 56 blocks,"
+                + " and lets you claim land up to 2 chunks around it. Flies your flag.", 1, "stone", 2, true, new String[][]{
                 {"MMMMM", "MMMMM", "MMMMM", "MMMMM", "MMMMM"},
                 {"LMMML", "M.A.M", "M...M", "M...M", "LMDML"},
                 {"LMMML", "M.A.M", "M...M", "M...M", "LMuML"},
@@ -600,6 +761,30 @@ public final class Structures {
                 {"F.F.F", ".....", "F.N.F", ".....", "F.F.F"},
                 {"l...l", "     ", "     ", "     ", "l...l"}});
 
+        add("fortified_tower", "Fortified Tower", "A great tower with battlements, arrow slits, a bell and your banner. Garrisons four archers,"
+                + " sees 72 blocks, and lets you claim land up to 3 chunks around it.", 1, "fortification", 2, true, FORTIFIED_TOWER);
+        add("tavern", "Tavern", "Ale, a hearth and tables for travellers. An Innkeeper brings in +3 Influence a day, and travellers who"
+                + " stop by may stay and join your kingdom (if you have a free bed and food to spare).", 1, null, 0, true, house(TAVERN, ridgeFlag(TAVERN)));
+        add("chapel", "Chapel", "Pews, an altar and a bell. A Priest heals and blesses your people within 32 blocks and adds +2 Influence a day.",
+                1, "faith", 0, true, house(CHAPEL, ridge(CHAPEL, '-')));
+        add("mill", "Mill", "Grindstones and hay. A Miller grinds wheat from the storehouse into Flour.", 1, "milling", 0, true, house(MILL));
+        add("bakery", "Bakery", "Ovens and a smoker. A Baker turns Flour into bread (two loaves a sack), or bakes plain wheat when there's no flour.",
+                1, "milling", 0, true, house(BAKERY));
+        add("butcher", "Butcher", "A smoker and a block. The Butcher keeps the herds near it: breeds cows, pigs, sheep and chickens with"
+                + " grain from the storehouse and culls the extras into cooked meat, leather, wool and feathers.", 1, "husbandry", 0, true, house(BUTCHER));
+        add("mine", "Mine", "A pithead with a blast furnace. A Miner brings up stone, coal and ore every few minutes: iron, copper, lapis and"
+                + " redstone, sometimes gold, and in stone or better, now and then a diamond.", 1, "mining", 0, true, house(MINE));
+        add("lumber_mill", "Lumber Mill", "Saws and log piles. A Sawyer cuts logs from the storehouse into planks (6 a log instead of 4) and sticks.",
+                1, "timber", 1, true, house(LUMBER_MILL));
+        add("harbor", "Harbor", "A boathouse with a slipway. A Fisher brings in fish (more if the harbor stands by open water), and now and then"
+                + " something from the deep. Cooked in Stone or better.", 1, "seafaring", 0, true, house(HARBOR));
+        add("archery_range", "Archery Range", "Targets, hay bales and a fletcher's table. Every archer in your kingdom hits 25% harder"
+                + " (40% in Stone or better).", 1, "archery", 0, true, ARCHERY_RANGE);
+        hidden("illager_tower", "Illager Tower", "", 1, null, 0, false, ILLAGER_TOWER);
+        hidden("illager_tent", "Illager Tent", "", 1, null, 0, false, ILLAGER_TENT);
+        hidden("illager_cage", "Illager Cage", "", 1, null, 0, false, ILLAGER_CAGE);
+        hidden("illager_standard", "Illager Standard", "", 1, null, 0, false, ILLAGER_STANDARD);
+        hidden("illager_hall", "Overlord's Hall", "", 1, null, 0, false, ILLAGER_HALL);
         add("market_stall", "Market Stall", "A Market under an awning striped in your colors.", 0, null, 0, false, new String[][]{
                 {"F...F", ".....", "..T..", ".....", "F...F"},
                 {"F...F", ".....", ".....", ".....", "F...F"},

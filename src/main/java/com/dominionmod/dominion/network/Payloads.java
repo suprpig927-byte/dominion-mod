@@ -41,6 +41,24 @@ public final class Payloads {
     }
 
     /** Server -> client: open the kingdom founding screen for the Town Hall at {@code pos}. */
+    /** Server -> client: the Market screen. rows: key|base|now|bonus|carried|stock ; caravans: one line each. */
+    public record OpenMarket(BlockPos pos, List<String> rows, int guards, List<String> caravans, boolean owner, int coins)
+            implements CustomPacketPayload {
+        public static final Type<OpenMarket> TYPE = new Type<>(DominionMod.id("open_market"));
+        public static final StreamCodec<RegistryFriendlyByteBuf, OpenMarket> CODEC = StreamCodec.of(
+                (RegistryFriendlyByteBuf buf, OpenMarket p) -> {
+                    buf.writeBlockPos(p.pos);
+                    writeStrings(buf, p.rows);
+                    buf.writeVarInt(p.guards);
+                    writeStrings(buf, p.caravans);
+                    buf.writeBoolean(p.owner);
+                    buf.writeVarInt(p.coins);
+                }, buf -> new OpenMarket(buf.readBlockPos(), readStrings(buf), buf.readVarInt(), readStrings(buf), buf.readBoolean(), buf.readVarInt()));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    }
+
     public record OpenFounding(BlockPos pos) implements CustomPacketPayload {
         public static final Type<OpenFounding> TYPE = new Type<>(DominionMod.id("open_founding"));
         public static final StreamCodec<RegistryFriendlyByteBuf, OpenFounding> CODEC = StreamCodec.of(
@@ -70,7 +88,7 @@ public final class Payloads {
     /** Client -> server: a Realm screen button (or opening the screen, which asks for fresh info). */
     public record RealmAction(int action, String arg) implements CustomPacketPayload {
         public static final int REFRESH = 0, CLAIM = 1, UNCLAIM = 2, TOGGLE_PEACEFUL = 3, OPEN = 4, BLUEPRINT = 5, CANCEL_SITE = 6, SET_FLAG = 7, MAP = 8,
-                START_RESEARCH = 9, TRAIN = 10, DIPLOMACY = 11;
+                START_RESEARCH = 9, TRAIN = 10, DIPLOMACY = 11, TOGGLE_SHOP = 12, MARKET_SELL = 13, MARKET_GUARDS = 14;
 
         public RealmAction(int action) {
             this(action, "");
@@ -93,7 +111,8 @@ public final class Payloads {
     public record RealmInfo(boolean open, boolean has, String name, int primary, int secondary, double influence, double daily,
                             int claimCost, int chunks, int beds, List<Integer> jobs, int coins, int food, String here,
                             boolean peaceful, List<Integer> map, String message, boolean ruler, String flag,
-                            List<String> roster, List<String> sites, int openTab, List<String> research, int scholars, List<String> diplomacy)
+                            List<String> roster, List<String> sites, int openTab, List<String> research, int scholars, List<String> diplomacy,
+                            List<String> industry, List<String> defense, List<String> stock)
             implements CustomPacketPayload {
         public static final Type<RealmInfo> TYPE = new Type<>(DominionMod.id("realm_info"));
         public static final StreamCodec<RegistryFriendlyByteBuf, RealmInfo> CODEC = StreamCodec.of(
@@ -123,11 +142,15 @@ public final class Payloads {
                     writeStrings(buf, p.research);
                     buf.writeVarInt(p.scholars);
                     writeStrings(buf, p.diplomacy);
+                    writeStrings(buf, p.industry);
+                    writeStrings(buf, p.defense);
+                    writeStrings(buf, p.stock);
                 },
                 buf -> new RealmInfo(buf.readBoolean(), buf.readBoolean(), buf.readUtf(), buf.readVarInt(), buf.readVarInt(), buf.readDouble(),
                         buf.readDouble(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), readInts(buf), buf.readVarInt(), buf.readVarInt(),
                         buf.readUtf(), buf.readBoolean(), readInts(buf), buf.readUtf(), buf.readBoolean(), buf.readUtf(2048),
-                        readStrings(buf), readStrings(buf), buf.readVarInt() - 1, readStrings(buf), buf.readVarInt(), readStrings(buf)));
+                        readStrings(buf), readStrings(buf), buf.readVarInt() - 1, readStrings(buf), buf.readVarInt(), readStrings(buf),
+                        readStrings(buf), readStrings(buf), readStrings(buf)));
 
         @Override
         public Type<? extends CustomPacketPayload> type() { return TYPE; }
@@ -250,6 +273,8 @@ public final class Payloads {
                 com.dominionmod.dominion.client.RealmScreen.receive(p));
         r.playToClient(OpenTraining.TYPE, OpenTraining.CODEC, (p, ctx) ->
                 com.dominionmod.dominion.client.TrainingScreen.open(p));
+        r.playToClient(OpenMarket.TYPE, OpenMarket.CODEC, (p, ctx) ->
+                com.dominionmod.dominion.client.MarketScreen.open(p));
         r.playToClient(MapData.TYPE, MapData.CODEC, (p, ctx) ->
                 com.dominionmod.dominion.client.RealmMap.receive(p));
 
@@ -289,6 +314,19 @@ public final class Payloads {
                 case RealmAction.TRAIN -> msg = com.dominionmod.dominion.kingdom.Scholarship.train(sp, p.arg()).getString();
                 case RealmAction.BLUEPRINT -> msg = com.dominionmod.dominion.build.Construction.giveBlueprint(sp, p.arg()).getString();
                 case RealmAction.CANCEL_SITE -> msg = com.dominionmod.dominion.build.Construction.cancel(sp, p.arg()).getString();
+                case RealmAction.TOGGLE_SHOP -> {
+                    Kingdom k = Realm.of(sp);
+                    msg = k == null || !k.owner.equals(sp.getUUID()) ? "Only the ruler can do that."
+                            : com.dominionmod.dominion.kingdom.Industry.toggle((ServerLevel) sp.level(), k, p.arg()).getString();
+                }
+                case RealmAction.MARKET_SELL -> {
+                    com.dominionmod.dominion.block.MarketBlock.sellFromScreen(sp, p.arg());
+                    return;
+                }
+                case RealmAction.MARKET_GUARDS -> {
+                    com.dominionmod.dominion.block.MarketBlock.guardsFromScreen(sp, p.arg());
+                    return;
+                }
                 case RealmAction.DIPLOMACY -> {
                     String[] f = p.arg().split("\\|", 2);
                     try {
@@ -305,6 +343,19 @@ public final class Payloads {
             }
             sendRealm(sp, p.action() == RealmAction.OPEN, msg, TAB_KEEP);
         });
+    }
+
+    /** Everything in the storehouse, as item id|count (biggest first, at most 160 kinds). */
+    private static List<String> stockRows(List<net.minecraft.world.Container> store) {
+        java.util.Map<net.minecraft.world.item.Item, Integer> counts = new java.util.HashMap<>();
+        for (var c : store) for (int i = 0; i < c.getContainerSize(); i++) {
+            var s = c.getItem(i);
+            if (!s.isEmpty()) counts.merge(s.getItem(), s.getCount(), Integer::sum);
+        }
+        List<String> out = new ArrayList<>();
+        counts.entrySet().stream().sorted((a, b) -> b.getValue() - a.getValue()).limit(160)
+                .forEach(e -> out.add(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(e.getKey()) + "|" + e.getValue()));
+        return out;
     }
 
     public static void sendRealm(ServerPlayer p, boolean open) {
@@ -332,7 +383,7 @@ public final class Payloads {
         String hereName = here == null ? "" : here.name;
         if (k == null) {
             PacketDistributor.sendToPlayer(p, new RealmInfo(open, false, "", 0, 0, 0, 0, 0, 0, 0, List.of(), 0, 0, hereName, false, map, message,
-                    false, "", List.of(), List.of(), tab, List.of(), 0, List.of()));
+                    false, "", List.of(), List.of(), tab, List.of(), 0, List.of(), List.of(), List.of(), List.of()));
             return;
         }
         List<Integer> jobs = new ArrayList<>();
@@ -340,12 +391,16 @@ public final class Payloads {
         var store = Storehouse.containers(level, k);
         int coins = Storehouse.count(store, s -> s.is(ModContent.GOLD_COIN.get()));
         int food = Storehouse.count(store, s -> s.has(DataComponents.FOOD));
-        // Roster: name|job|bed
+        // Roster: name|job|bed|workplace|soldier
+        var prog = d.progress(k);
+        java.util.Map<java.util.UUID, String> works = new java.util.HashMap<>();
+        for (var b : prog.buildings) for (var w : b.workers) works.put(w, b.name());
         List<String> roster = new ArrayList<>();
         for (var e : k.citizens.entrySet()) {
             var bed = k.bedOf(e.getKey());
-            roster.add(k.names.getOrDefault(e.getKey(), "?") + "|" + Job.byId(e.getValue()).title + "|"
-                    + (bed == null ? "no bed" : bed.getX() + " " + bed.getY() + " " + bed.getZ()));
+            Job j = Job.byId(e.getValue());
+            roster.add(k.names.getOrDefault(e.getKey(), "?") + "|" + j.title + "|"
+                    + (bed == null ? "no bed" : bed.getX() + " " + bed.getY() + " " + bed.getZ()) + "|" + works.getOrDefault(e.getKey(), "") + "|" + j.soldier);
         }
         roster.sort(String::compareToIgnoreCase);
         // Sites: id|name|done|total|status
@@ -364,9 +419,10 @@ public final class Payloads {
             int pct = t.id().equals(pr.current) ? (int) Math.min(99, 100 * pr.work / t.work()) : status.equals("done") ? 100 : 0;
             research.add(t.id() + "|" + status + "|" + pct);
         }
-        PacketDistributor.sendToPlayer(p, new RealmInfo(open, true, k.name, k.primary, k.secondary, k.influence, Realm.dailyInfluence(k),
+        PacketDistributor.sendToPlayer(p, new RealmInfo(open, true, k.name, k.primary, k.secondary, k.influence, Realm.dailyInfluence(d, k),
                 Realm.claimCost(d, k), d.claimCount(k), Realm.beds(level, k), jobs, coins, food, hereName, k.peaceful, map, message,
                 k.owner.equals(p.getUUID()), com.dominionmod.dominion.kingdom.Flags.fromBanner(k.flag), roster, sites, tab, research,
-                pr.scholarsWorking(level.getGameTime()), com.dominionmod.dominion.kingdom.Diplomacy.rows(level, k)));
+                pr.scholarsWorking(level.getGameTime()), com.dominionmod.dominion.kingdom.Diplomacy.rows(level, k),
+                com.dominionmod.dominion.kingdom.Industry.rows(level, k), com.dominionmod.dominion.kingdom.Watchtowers.rows(level, k), stockRows(store)));
     }
 }

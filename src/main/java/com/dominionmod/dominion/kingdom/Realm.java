@@ -52,6 +52,11 @@ public final class Realm {
         return DAILY_BASE + DAILY_PER_CITIZEN * k.citizens.size();
     }
 
+    /** With the Taverns and Chapels. */
+    public static double dailyInfluence(KingdomData d, Kingdom k) {
+        return dailyInfluence(k) + Industry.dailyInfluence(d, k);
+    }
+
     public static MutableComponent title(Kingdom k) {
         return Component.literal(k.name).withStyle(s -> s.withColor(k.textColor()).withBold(true));
     }
@@ -135,7 +140,8 @@ public final class Realm {
         Kingdom owner = d.ownerAt(level, chunk);
         if (owner == k) return err("This chunk is already yours.");
         if (owner != null) return err("This land belongs to " + owner.name + ". Taking land by force comes with war (coming soon).");
-        if (!d.touches(level, chunk, k)) return err("New land has to border land you already own.");
+        if (!d.touches(level, chunk, k) && !Watchtowers.covers(level, d, k, chunk))
+            return err("New land has to border land you already own (or lie within sight of one of your watchtowers).");
         int cost = claimCost(d, k);
         if (k.influence < cost) return err(String.format("You need %d Influence to claim this (you have %.0f).", cost, k.influence));
         k.influence -= cost;
@@ -273,7 +279,7 @@ public final class Realm {
     /** Called about once a minute: Influence trickles in over the day. */
     public static void minuteTick(ServerLevel overworld) {
         KingdomData d = data(overworld);
-        for (Kingdom k : d.all()) k.influence += dailyInfluence(k) / 20.0;
+        for (Kingdom k : d.all()) k.influence += dailyInfluence(d, k) / 20.0;
         d.markChanged();
     }
 

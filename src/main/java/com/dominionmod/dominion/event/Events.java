@@ -55,6 +55,10 @@ public final class Events {
         bus.addListener(Events::onIncomingDamage);
         bus.addListener(Events::onDeath);
         bus.addListener(Events::onFinalizeSpawn);
+        bus.addListener((net.neoforged.neoforge.event.entity.EntityJoinLevelEvent e) -> {
+            if (!e.getLevel().isClientSide() && e.getEntity() instanceof net.minecraft.world.entity.Mob m)
+                com.dominionmod.dominion.kingdom.IllagerEmpire.onJoin(m);
+        });
         bus.addListener((PlayerEvent.PlayerLoggedOutEvent e) -> {
             Orders.forget(e.getEntity().getUUID());
             LAST_OWNER.remove(e.getEntity().getUUID());
@@ -76,6 +80,9 @@ public final class Events {
         com.dominionmod.dominion.kingdom.Rivals.tick(level);
         com.dominionmod.dominion.kingdom.Armies.tick(level);
         com.dominionmod.dominion.kingdom.OrcWarbands.tick(level);
+        com.dominionmod.dominion.kingdom.IllagerEmpire.tick(level);
+        com.dominionmod.dominion.kingdom.Industry.tick(level);
+        com.dominionmod.dominion.kingdom.Watchtowers.tick(level);
         com.dominionmod.dominion.kingdom.Caravans.tick(level);
         com.dominionmod.dominion.entity.Cavalry.stablesTick(level);
         if (level.dimension() == Level.OVERWORLD && t % 20 == 0) com.dominionmod.dominion.kingdom.Scholarship.tick(level);

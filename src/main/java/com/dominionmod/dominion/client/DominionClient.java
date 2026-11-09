@@ -29,6 +29,7 @@ public class DominionClient {
             e.registerEntityRenderer(ModContent.DEER.get(), com.dominionmod.dominion.client.render.wild.DeerRenderer::new);
             e.registerEntityRenderer(ModContent.CENTAUR.get(), com.dominionmod.dominion.client.render.wild.CentaurRenderer::new);
             e.registerEntityRenderer(ModContent.ORC.get(), com.dominionmod.dominion.client.render.wild.OrcRenderer::new);
+            e.registerEntityRenderer(ModContent.ILLAGER_OVERLORD.get(), com.dominionmod.dominion.client.render.wild.OverlordRenderer::new);
             e.registerEntityRenderer(ModContent.ORC_WARLORD.get(), com.dominionmod.dominion.client.render.wild.OrcRenderer::new);
             e.registerEntityRenderer(ModContent.SUPPLY_CART.get(), com.dominionmod.dominion.client.render.siege.SupplyCartRenderer::new);
             e.registerEntityRenderer(ModContent.BATTERING_RAM.get(), ctx -> new com.dominionmod.dominion.client.render.siege.SiegeRenderer(ctx,

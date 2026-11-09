@@ -631,6 +631,10 @@ if __name__ == "__main__":
     gen_engines.write_items()
     import gen_warlord  # derived from the chieftain skin
     gen_warlord.write()
+    import gen_factions  # Illager Standard, the Overlord, flour
+    gen_factions.write()
+    import gen_gui  # the parchment-and-wood UI theme
+    gen_gui.write()
     town_hall()
     market()
     research_table()

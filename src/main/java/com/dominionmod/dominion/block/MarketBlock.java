@@ -51,6 +51,20 @@ public class MarketBlock extends Block {
         PER_COIN.put(Items.LEATHER, 4);
         PER_COIN.put(Items.EMERALD, 1);
         PER_COIN.put(Items.GOLD_INGOT, 1);
+        PER_COIN.put(Items.DIAMOND, 1);
+        PER_COIN.put(ModContent.FLOUR.get(), 6);
+        PER_COIN.put(Items.COOKED_BEEF, 3);
+        PER_COIN.put(Items.COOKED_PORKCHOP, 3);
+        PER_COIN.put(Items.COOKED_MUTTON, 3);
+        PER_COIN.put(Items.COOKED_CHICKEN, 4);
+        PER_COIN.put(Items.COD, 6);
+        PER_COIN.put(Items.COOKED_COD, 4);
+        PER_COIN.put(Items.SALMON, 5);
+        PER_COIN.put(Items.RAW_IRON, 2);
+        PER_COIN.put(Items.RAW_COPPER, 6);
+        PER_COIN.put(Items.LAPIS_LAZULI, 4);
+        PER_COIN.put(Items.REDSTONE, 8);
+        PER_COIN.put(Items.FEATHER, 16);
         TAG_PER_COIN.put(ItemTags.LOGS, 8);
         TAG_PER_COIN.put(ItemTags.PLANKS, 32);
         TAG_PER_COIN.put(ItemTags.WOOL, 8);
@@ -60,6 +74,7 @@ public class MarketBlock extends Block {
     private static int bonus(Item item) {
         if (item == Items.EMERALD) return 2;
         if (item == Items.GOLD_INGOT) return 3;
+        if (item == Items.DIAMOND) return 10;
         return 1;
     }
 
@@ -118,31 +133,111 @@ public class MarketBlock extends Block {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (level.isClientSide()) return InteractionResult.SUCCESS;
-        player.sendSystemMessage(Component.literal("== Market: items per Gold Coin (by today's supply) ==").withStyle(ChatFormatting.GOLD));
-        StringBuilder sb = new StringBuilder();
-        PER_COIN.forEach((item, n) -> {
-            if (!sb.isEmpty()) sb.append(", ");
-            int b = bonus(item);
-            int now = priceAt(level, pos, new ItemStack(item));
-            String trend = now > n ? " (glut)" : now < n ? " (scarce)" : "";
-            sb.append(new ItemStack(item).getHoverName().getString()).append(' ').append(b > 1 ? "1 = " + b + " coins" : String.valueOf(now)).append(trend);
+        if (player instanceof ServerPlayer sp) openFor(sp, pos);
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
+    }
+
+    // ------------------------------------------------------------------ the Market screen
+
+    private static final String[] TAG_KEYS = {"#logs", "#planks", "#wool"};
+
+    private static java.util.function.Predicate<ItemStack> matcher(String key) {
+        for (var e : TAG_PER_COIN.entrySet()) if (("#" + e.getKey().location().getPath()).equals(key)) return s -> s.is(e.getKey());
+        var id = net.minecraft.resources.Identifier.tryParse(key);
+        if (id == null) return s -> false;
+        Item item = net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(id);
+        return s -> s.is(item);
+    }
+
+    private static int tagPrice(String key) {
+        for (var e : TAG_PER_COIN.entrySet()) if (("#" + e.getKey().location().getPath()).equals(key)) return e.getValue();
+        return 0;
+    }
+
+    private static int carried(ServerPlayer p, java.util.function.Predicate<ItemStack> m) {
+        int n = 0;
+        for (ItemStack s : p.getInventory().getNonEquipmentItems()) if (!s.isEmpty() && m.test(s)) n += s.getCount();
+        return n;
+    }
+
+    public static void openFor(ServerPlayer p, BlockPos pos) {
+        var level = (net.minecraft.server.level.ServerLevel) p.level();
+        var d = com.dominionmod.dominion.kingdom.KingdomData.get(level.getServer());
+        var owner = d.ownerAt(level, pos);
+        var store = owner == null ? java.util.List.<net.minecraft.world.Container>of() : com.dominionmod.dominion.kingdom.Storehouse.containers(level, owner);
+        java.util.List<String> rows = new java.util.ArrayList<>();
+        PER_COIN.forEach((item, base) -> {
+            String key = net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(item).toString();
+            int stock = com.dominionmod.dominion.kingdom.Storehouse.count(store, s -> s.is(item));
+            rows.add(key + "|" + base + "|" + priceAt(level, pos, new ItemStack(item)) + "|" + bonus(item) + "|" + carried(p, s -> s.is(item)) + "|" + stock);
         });
-        sb.append(", any logs 8, any planks 32, any wool 8");
-        player.sendSystemMessage(Component.literal(sb.toString()).withStyle(ChatFormatting.GRAY));
-        player.sendSystemMessage(Component.literal("Right-click with a stack to sell all of it.").withStyle(ChatFormatting.DARK_GRAY));
-        if (level instanceof net.minecraft.server.level.ServerLevel sl) {
-            var d = com.dominionmod.dominion.kingdom.KingdomData.get(sl.getServer());
-            var k = d.byPlayer(player.getUUID());
-            if (k != null && k == d.ownerAt(level, pos)) {
-                int g = d.progress(k).caravanGuards;
-                player.sendSystemMessage(Component.literal("Caravan guards: " + g + " per trip (2 coins each a trip). ").withStyle(ChatFormatting.YELLOW)
-                        .append(link("[+1]", "/dominion caravan guards " + Math.min(6, g + 1))).append(Component.literal(" "))
-                        .append(link("[-1]", "/dominion caravan guards " + Math.max(0, g - 1))));
-                for (String line : com.dominionmod.dominion.kingdom.Caravans.describe(sl))
-                    if (line.startsWith(k.name + " ")) player.sendSystemMessage(Component.literal("  " + line).withStyle(ChatFormatting.GRAY));
-            }
+        for (String key : TAG_KEYS) {
+            var m = matcher(key);
+            rows.add(key + "|" + tagPrice(key) + "|" + tagPrice(key) + "|1|" + carried(p, m) + "|" + com.dominionmod.dominion.kingdom.Storehouse.count(store, m));
         }
-        return InteractionResult.SUCCESS_SERVER;
+        var k = d.byPlayer(p.getUUID());
+        boolean mine = k != null && k == owner;
+        java.util.List<String> caravans = new java.util.ArrayList<>();
+        if (mine) for (String line : com.dominionmod.dominion.kingdom.Caravans.describe(level)) if (line.startsWith(k.name + " ")) caravans.add(line);
+        int coins = carried(p, s -> s.is(ModContent.GOLD_COIN.get()));
+        net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(p, new com.dominionmod.dominion.network.Payloads.OpenMarket(pos, rows,
+                mine ? d.progress(k).caravanGuards : -1, caravans, mine, coins));
+    }
+
+    /** "key@x,y,z": sell every one of that good the player carries. */
+    public static void sellFromScreen(ServerPlayer p, String arg) {
+        String[] f = arg.split("@", 2);
+        if (f.length < 2) return;
+        String[] c = f[1].split(",");
+        BlockPos pos;
+        try {
+            pos = new BlockPos(Integer.parseInt(c[0]), Integer.parseInt(c[1]), Integer.parseInt(c[2]));
+        } catch (RuntimeException e) {
+            return;
+        }
+        var level = p.level();
+        if (!(level.getBlockState(pos).getBlock() instanceof MarketBlock) || p.distanceToSqr(pos.getCenter()) > 10 * 10) return;
+        var m = matcher(f[0]);
+        int sold = 0, coins = 0;
+        String name = "";
+        for (ItemStack s : p.getInventory().getNonEquipmentItems()) {
+            if (s.isEmpty() || !m.test(s)) continue;
+            int per = f[0].startsWith("#") ? tagPrice(f[0]) : priceAt(level, pos, s);
+            if (per <= 0) continue;
+            int lots = s.getCount() / per;
+            if (lots == 0) continue;
+            name = s.getHoverName().getString();
+            sold += lots * per;
+            coins += lots * bonus(s.getItem());
+            s.shrink(lots * per);
+        }
+        if (coins > 0) {
+            Realm.give(p, new ItemStack(ModContent.GOLD_COIN.get(), coins));
+            level.playSound(null, pos, SoundEvents.VILLAGER_YES, SoundSource.BLOCKS, 0.8f, 1.0f);
+            p.sendOverlayMessage(Component.literal("Sold " + sold + " " + name + " for " + coins + " Gold Coin" + (coins == 1 ? "" : "s")).withStyle(ChatFormatting.GOLD));
+        } else {
+            p.sendOverlayMessage(Realm.err("You don't carry enough of that to make a coin."));
+        }
+        openFor(p, pos);
+    }
+
+    /** "n@x,y,z": set the caravan guards. */
+    public static void guardsFromScreen(ServerPlayer p, String arg) {
+        String[] f = arg.split("@", 2);
+        if (f.length < 2) return;
+        String[] c = f[1].split(",");
+        try {
+            int n = Math.max(0, Math.min(6, Integer.parseInt(f[0])));
+            BlockPos pos = new BlockPos(Integer.parseInt(c[0]), Integer.parseInt(c[1]), Integer.parseInt(c[2]));
+            var level = (net.minecraft.server.level.ServerLevel) p.level();
+            var d = com.dominionmod.dominion.kingdom.KingdomData.get(level.getServer());
+            var k = d.byPlayer(p.getUUID());
+            if (k != null && k == d.ownerAt(level, pos)) {
+                d.progress(k).caravanGuards = n;
+                d.markChanged();
+            }
+            openFor(p, pos);
+        } catch (RuntimeException ignored) {
+        }
     }
 }

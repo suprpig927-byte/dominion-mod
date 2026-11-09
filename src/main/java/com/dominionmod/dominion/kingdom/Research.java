@@ -32,6 +32,13 @@ public final class Research {
         add("royal", "Royal Architecture", "Royal buildings: deepslate walls and copper roofs.", 120, 40, 1.0, "brick");
         add("horsemanship", "Horsemanship", "The Stables: soldiers ride to war as knights and horse archers. Supply carts for ponies.", 35, 10, 0.5, "timber");
         add("siegecraft", "Siegecraft", "Battering Rams and Trebuchets to break enemy walls.", 50, 16, 0.75, "stone");
+        add("faith", "Faith", "The Chapel: a Priest heals your people and the bells ring out Influence.", 20, 6, 0.25);
+        add("milling", "Milling", "The Mill and the Bakery: wheat to flour to bread, four times the loaves.", 25, 6, 0.5, "timber");
+        add("husbandry", "Animal Husbandry", "The Butcher: herds bred and culled for meat, leather and wool.", 20, 6, 0.25, "timber");
+        add("mining", "Mining", "The Mine: a Miner brings up stone, coal and ore.", 35, 10, 0.5, "timber");
+        add("seafaring", "Seafaring", "The Harbor: Fishers bring in the catch.", 25, 8, 0.5, "timber");
+        add("archery", "Archery", "The Archery Range: every archer in the kingdom hits harder.", 30, 8, 0.5, "timber");
+        add("fortification", "Fortification", "The Fortified Tower: four archers, battlements, and land 3 chunks around it.", 60, 18, 0.75, "stone");
         add("gunpowder", "Gunpowder", "Cannons, and Cannonballs to load them.", 70, 24, 0.75, "siegecraft", "blacksmithing");
     }
 

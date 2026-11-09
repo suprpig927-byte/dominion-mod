@@ -55,7 +55,7 @@ public class FoundingScreen extends Screen {
                 addRenderableWidget(Button.builder(Component.empty(), b -> {
                     if (r == 0) primary = dye;
                     else secondary = dye;
-                }).bounds(sx, sy, SW, SW).build());
+                }).bounds(sx, sy, SW, SW).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
                 swatches.add(new int[]{sx, sy, row, dye});
             }
         }
@@ -67,9 +67,9 @@ public class FoundingScreen extends Screen {
                 ClientPacketDistributor.sendToServer(new Payloads.FoundKingdom(hall, typed, primary, secondary, design));
                 Minecraft.getInstance().gui.setScreen(null);
             }, "Found Kingdom"));
-        }).bounds(left() + W - 122, top() + H - 28, 110, 20).build());
+        }).bounds(left() + W - 122, top() + H - 28, 110, 20).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
         addRenderableWidget(Button.builder(Component.literal("Later"), b -> onClose())
-                .bounds(left() + 12, top() + H - 28, 60, 20).build());
+                .bounds(left() + 12, top() + H - 28, 60, 20).build(com.dominionmod.dominion.client.ui.WoodButton::plank));
     }
 
     @Override
@@ -82,13 +82,14 @@ public class FoundingScreen extends Screen {
         int l = left(), t = top();
         int p = 0xFF000000 | DyeColor.byId(primary).getTextureDiffuseColor();
         int s = 0xFF000000 | DyeColor.byId(secondary).getTextureDiffuseColor();
-        g.fill(l, t, l + W, t + H, 0xE0141210);
+        com.dominionmod.dominion.client.ui.Theme.backdrop(g, this.width, this.height);
+        com.dominionmod.dominion.client.ui.Theme.panel(g, l - 6, t - 6, W + 12, H + 12);
         g.fill(l, t, l + W, t + 2, p);
         g.fill(l, t + H - 2, l + W, t + H, s);
-        g.text(this.font, "FOUND A KINGDOM", l + 12, t + 10, 0xFFFFD86B, true);
-        g.text(this.font, "Name", l + 12, t + 24, 0xFFBBBBBB, false);
-        g.text(this.font, "Primary color: " + nice(primary), l + 12, t + 70, 0xFFBBBBBB, false);
-        g.text(this.font, "Secondary color: " + nice(secondary), l + 12, t + 108, 0xFFBBBBBB, false);
+        g.text(this.font, "FOUND A KINGDOM", l + 12, t + 10, com.dominionmod.dominion.client.ui.Theme.GOLD, false);
+        g.text(this.font, "Name", l + 12, t + 24, com.dominionmod.dominion.client.ui.Theme.INK_SOFT, false);
+        g.text(this.font, "Primary color: " + nice(primary), l + 12, t + 70, com.dominionmod.dominion.client.ui.Theme.INK_SOFT, false);
+        g.text(this.font, "Secondary color: " + nice(secondary), l + 12, t + 108, com.dominionmod.dominion.client.ui.Theme.INK_SOFT, false);
 
         this.renderables.forEach(r -> r.extractRenderState(g, mouseX, mouseY, partialTick));
 
@@ -105,9 +106,9 @@ public class FoundingScreen extends Screen {
         g.fill(px + 2, py + 2, px + 20, py + 28, p);
         g.fill(px + 9, py + 8, px + 13, py + 20, s);
         g.fill(px + 5, py + 12, px + 17, py + 16, s);
-        g.text(this.font, "Your soldiers' tabards come in these colors,", px + 30, py + 4, 0xFFDDDDDD, false);
-        g.text(this.font, "with your flag on the chest.", px + 30, py + 16, 0xFFDDDDDD, false);
-        g.text(this.font, "Next you'll design the flag itself.", px + 30, py + 26, 0xFF777777, false);
+        g.text(this.font, "Your soldiers' tabards come in these colors,", px + 30, py + 4, com.dominionmod.dominion.client.ui.Theme.INK, false);
+        g.text(this.font, "with your flag on the chest.", px + 30, py + 16, com.dominionmod.dominion.client.ui.Theme.INK, false);
+        g.text(this.font, "Next you'll design the flag itself.", px + 30, py + 26, com.dominionmod.dominion.client.ui.Theme.INK_FAINT, false);
     }
 
     private static String nice(int dye) {

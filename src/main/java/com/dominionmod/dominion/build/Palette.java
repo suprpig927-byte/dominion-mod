@@ -157,6 +157,35 @@ public final class Palette {
             case 'v' -> Blocks.FLOWERING_AZALEA_LEAVES.defaultBlockState().setValue(net.minecraft.world.level.block.LeavesBlock.PERSISTENT, true);
             case 'd' -> Blocks.DIRT_PATH.defaultBlockState();
             case 'e' -> Blocks.CAMPFIRE.defaultBlockState();
+            // workshops
+            case '(' -> Blocks.STONECUTTER.defaultBlockState();
+            case ')' -> Blocks.GRINDSTONE.defaultBlockState().setValue(net.minecraft.world.level.block.GrindstoneBlock.FACE,
+                    net.minecraft.world.level.block.state.properties.AttachFace.FLOOR);
+            case '*' -> Blocks.TARGET.defaultBlockState();
+            case '+' -> Blocks.FURNACE.defaultBlockState().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
+            case ',' -> Blocks.BREWING_STAND.defaultBlockState();
+            case '-' -> Blocks.BELL.defaultBlockState();
+            case '/' -> Blocks.RAIL.defaultBlockState();
+            case '?' -> Blocks.COMPOSTER.defaultBlockState();
+            case '|' -> Blocks.IRON_BARS.defaultBlockState();
+            case '{' -> Blocks.LOOM.defaultBlockState();
+            case '}' -> Blocks.CARTOGRAPHY_TABLE.defaultBlockState();
+            case 'q' -> Blocks.FLETCHING_TABLE.defaultBlockState();
+            case '_' -> Blocks.CAULDRON.defaultBlockState();
+            // the Illager faction's camps (always the same dark oak and cobblestone)
+            case 'α' -> Blocks.DARK_OAK_PLANKS.defaultBlockState();
+            case 'β' -> Blocks.DARK_OAK_LOG.defaultBlockState();
+            case 'γ' -> Blocks.DARK_OAK_FENCE.defaultBlockState();
+            case 'δ' -> Blocks.COBBLESTONE.defaultBlockState();
+            case 'ε' -> Blocks.MOSSY_COBBLESTONE.defaultBlockState();
+            case 'ζ' -> Blocks.WOOL.pick(DyeColor.WHITE).defaultBlockState();
+            case 'η' -> Blocks.WOOL.pick(DyeColor.GRAY).defaultBlockState();
+            case 'θ' -> Blocks.DARK_OAK_SLAB.defaultBlockState();
+            case 'κ' -> com.dominionmod.dominion.registry.ModContent.ILLAGER_STANDARD.get().defaultBlockState();
+            case 'λ' -> Blocks.COBBLESTONE_WALL.defaultBlockState();
+            case 'μ' -> Blocks.WOOL.pick(DyeColor.BLACK).defaultBlockState();
+            case 'ν' -> Blocks.CARPET.pick(DyeColor.RED).defaultBlockState();
+            case 'ξ' -> Blocks.DARK_OAK_STAIRS.defaultBlockState().setValue(StairBlock.FACING, Direction.NORTH);
             // farming
             case 'f' -> Blocks.FARMLAND.defaultBlockState();
             case '~' -> Blocks.WATER.defaultBlockState();
@@ -169,6 +198,6 @@ public final class Palette {
     public static boolean free(char c) {
         return c == 'f' || c == '~' || c == 'N' || (c >= '1' && c <= '4') || c == 'v' || c == 'd' || c == 'e' || c == '[' || c == ']' || c == 'w'
                 // interior trimmings: builders bring these along with the furniture
-                || c == 'p' || c == 'i' || c == 'a' || c == 'I' || c == 'V' || c == 'j';
+                || c == 'p' || c == 'i' || c == 'a' || c == 'I' || c == 'V' || c == 'j' || c == '-';
     }
 }

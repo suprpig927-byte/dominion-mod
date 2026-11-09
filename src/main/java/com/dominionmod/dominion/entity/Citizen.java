@@ -146,9 +146,11 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new OpenDoorGoal(this, true));
+        this.goalSelector.addGoal(1, new com.dominionmod.dominion.entity.goal.GarrisonGoal(this));
+        this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.WorkshopGoal(this));
         this.goalSelector.addGoal(2, new RangedBowAttackGoal<Citizen>(this, 0.75, 20, 16.0f) {
-            @Override public boolean canUse() { return job() == Job.ARCHER && hasAmmo() && super.canUse(); }
-            @Override public boolean canContinueToUse() { return job() == Job.ARCHER && hasAmmo() && super.canContinueToUse(); }
+            @Override public boolean canUse() { return job() == Job.ARCHER && hasAmmo() && !com.dominionmod.dominion.kingdom.Watchtowers.garrisoned(Citizen.this) && super.canUse(); }
+            @Override public boolean canContinueToUse() { return job() == Job.ARCHER && hasAmmo() && !com.dominionmod.dominion.kingdom.Watchtowers.garrisoned(Citizen.this) && super.canContinueToUse(); }
         });
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 0.85, true) {
             @Override public boolean canUse() { return fightsHandToHand() && super.canUse(); }
@@ -214,6 +216,11 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         ItemStack arrows = new ItemStack(Items.ARROW);
         AbstractArrow arrow = ProjectileUtil.getMobArrow(this, arrows, power, bow);
         arrow.pickup = AbstractArrow.Pickup.DISALLOWED;
+        if (this.level() instanceof ServerLevel sl) {
+            float bonus = com.dominionmod.dominion.kingdom.Industry.archeryBonus(sl, kingdom());
+            if (com.dominionmod.dominion.kingdom.Watchtowers.garrisoned(this)) bonus += 0.25f;
+            if (bonus > 0) arrow.setBaseDamageFromMob(power * (1 + bonus));
+        }
         double dx = target.getX() - this.getX();
         double dy = target.getY(0.3333333333333333) - arrow.getY();
         double dz = target.getZ() - this.getZ();
@@ -791,7 +798,19 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     public Job job() {
         if (isChild()) return Job.UNASSIGNED;
         Job spec = specialization();
+        if (spec != null && spec.trade()) {
+            // a tool in hand (hoe, sword, bow...) takes them off the workshop's books
+            Job held = Job.of(getMainHandItem());
+            return held != Job.UNASSIGNED ? held : spec;
+        }
         return spec != null ? spec : Job.of(getMainHandItem());
+    }
+
+    /** Hired by a workshop (or let go, with null). */
+    public void hire(@Nullable Job trade) {
+        this.entityData.set(SPEC, trade == null ? -1 : trade.ordinal());
+        applyStats();
+        if (this.level() instanceof ServerLevel level) onJobChanged(level, job());
     }
     public int getPrimary() { return this.entityData.get(PRIMARY); }
     public int getSecondary() { return this.entityData.get(SECONDARY); }
