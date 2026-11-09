@@ -169,7 +169,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.goalSelector.addGoal(5, new FarmGoal(this));
         this.goalSelector.addGoal(5, new LumberGoal(this));
         this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.BuildGoal(this));
-        this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.RepairGoal(this));
+        this.goalSelector.addGoal(4, new com.dominionmod.dominion.entity.goal.RepairGoal(this)); // ahead of building: walls first
         this.goalSelector.addGoal(3, new com.dominionmod.dominion.entity.goal.BattlementGoal(this));
         this.goalSelector.addGoal(4, new com.dominionmod.dominion.entity.goal.SleepGoal(this));
         this.goalSelector.addGoal(6, new DepositGoal(this));

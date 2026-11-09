@@ -45,6 +45,8 @@ public class RepairGoal extends Goal {
         cooldown = 60;
         Kingdom k = c.kingdom();
         if (k == null || Armies.underAttack(level, k)) return false;
+        Long short_ = SHORT.get(k.id);
+        if (short_ != null && level.getGameTime() - short_ < 1200) return false; // out of stone and timber: back to other work for a while
         KingdomData d = Realm.data(level);
         String dim = KingdomData.dim(level);
         double best = 96 * 96;
