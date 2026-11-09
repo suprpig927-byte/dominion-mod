@@ -215,7 +215,15 @@ public final class AutoShot {
         if (t == 2280) shot(mc, "ui_founding");
         if (t == 2282) mc.gui.setScreen(new FlagScreen(null, Showcase.FLAG, s -> {}, "Done"));
         if (t == 2300) shot(mc, "ui_flag");
-        if (t == 2310) {
+        // otters and pet beds
+        if (t == 2301) {
+            mc.gui.setScreen(null);
+            look(mc, bx - 70, by + 3.5, bz - 37, 180f, 22f);
+        }
+        if (t == 2340) shot(mc, "otters");
+        if (t == 2342) look(mc, bx - 58.5, by + 2.2, bz - 34.5, 180f, 30f);
+        if (t == 2380) shot(mc, "pet_beds");
+        if (t == 2400) {
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();
         }

@@ -631,6 +631,7 @@ public final class SelfTest {
                 log("tower garrison: " + a.baseName() + " job=" + a.job() + " garrisoned=" + com.dominionmod.dominion.kingdom.Watchtowers.garrisoned(a)
                         + " y=" + a.getY() + " post=" + com.dominionmod.dominion.kingdom.Watchtowers.postOf(a) + " (ground " + center.getY() + ")");
         }
+        petsCheck(level, k);
         // the Illager camp
         log("illager camps=" + d.illagerCamps.size());
         if (!d.illagerCamps.isEmpty()) {
@@ -647,5 +648,36 @@ public final class SelfTest {
             log("illager raid: " + com.dominionmod.dominion.kingdom.Armies.describe(level).stream().filter(x -> x.startsWith("illagers")).toList());
             d.armies.removeIf(a -> a.illagers());
         }
+    }
+
+    private static void petsCheck(ServerLevel level, Kingdom k) {
+        var otter = ModContent.OTTER.get().create(level, EntitySpawnReason.COMMAND);
+        if (otter == null) {
+            log("pets: FAIL no otter");
+            return;
+        }
+        BlockPos at = center.offset(-14, 0, -12);
+        otter.snapTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
+        otter.finalizeSpawn(level, level.getCurrentDifficultyAt(at), EntitySpawnReason.COMMAND, null);
+        otter.setVariant(1);
+        otter.setTame(true, false);
+        otter.setCustomName(net.minecraft.network.chat.Component.literal("Pebble"));
+        level.addFreshEntity(otter);
+        boolean bedGoal = otter.goalSelector.getAvailableGoals().stream().anyMatch(w -> w.getGoal().getClass().getSimpleName().equals("Bedtime"));
+        String why = com.dominionmod.dominion.item.CreatureCageItem.refusal(otter, null);
+        ItemStack cage = com.dominionmod.dominion.item.CreatureCageItem.capture(otter);
+        boolean gone = otter.isRemoved();
+        var out = com.dominionmod.dominion.item.CreatureCageItem.release(level, cage, at.offset(2, 0, 0), 90);
+        log("pets: otter hp=" + otter.getMaxHealth() + " bedtime goal=" + bedGoal + " cage allowed=" + (why == null) + " captured=" + gone
+                + " released=" + (out == null ? "null" : out.getType().toShortString() + " name=" + out.getName().getString()
+                + " tame=" + (out instanceof com.dominionmod.dominion.entity.wild.Otter o && o.isTame()) + " variant="
+                + (out instanceof com.dominionmod.dominion.entity.wild.Otter o2 ? o2.variant() : -1)) + " cage empty after=" + !com.dominionmod.dominion.item.CreatureCageItem.isFull(cage));
+        var zombie = EntityTypes.ZOMBIE.create(level, EntitySpawnReason.COMMAND);
+        var horse = ModContent.MUSTANG.get().create(level, EntitySpawnReason.COMMAND);
+        log("pets: cage refuses zombie=" + (zombie != null && com.dominionmod.dominion.item.CreatureCageItem.refusal(zombie, null) != null)
+                + " horse=" + (horse != null && com.dominionmod.dominion.item.CreatureCageItem.refusal(horse, null) != null));
+        BlockPos bed = center.offset(-16, 0, -12);
+        level.setBlock(bed, ModContent.PET_BED.get().defaultBlockState(), Block.UPDATE_ALL);
+        log("pets: pet bed placed=" + level.getBlockState(bed).getBlock() + " color=" + level.getBlockState(bed).getValue(com.dominionmod.dominion.block.PetBedBlock.COLOR));
     }
 }

@@ -248,6 +248,7 @@ public final class Showcase {
             orc.setNoAi(true);
         warCamp(level, k, center);
         townQuarter(level, k, center);
+        pets(level, p, center);
         p.teleportTo(level, center.getX() + 0.5, center.getY(), center.getZ() + 3.5, java.util.Set.of(), 180f, 10f, true);
     }
 
@@ -440,5 +441,74 @@ public final class Showcase {
         cit.joinKingdom(k, level);
         cit.setNoAi(true);
         level.addFreshEntity(cit);
+    }
+
+    /** North-west of the war camp: an otter pond and three pet beds with their sleepers. */
+    private static void pets(ServerLevel level, ServerPlayer owner, BlockPos center) {
+        BlockPos a = center.offset(-84, 0, -62), b = center.offset(-46, 0, -30);
+        for (BlockPos q : BlockPos.betweenClosed(a.offset(0, -1, 0), b.offset(0, 12, 0))) {
+            int dy = q.getY() - center.getY();
+            level.setBlock(q, dy == -1 ? Blocks.GRASS_BLOCK.defaultBlockState() : Blocks.AIR.defaultBlockState(), Block.UPDATE_CLIENTS);
+        }
+        for (BlockPos q : BlockPos.betweenClosed(a.offset(0, -4, 0), b.offset(0, -2, 0)))
+            if (level.getBlockState(q).canBeReplaced()) level.setBlock(q, Blocks.DIRT.defaultBlockState(), Block.UPDATE_CLIENTS);
+        // the pond
+        BlockPos pond = center.offset(-70, -1, -46);
+        for (int dx = -5; dx <= 5; dx++) for (int dz = -3; dz <= 3; dz++) {
+            if (dx * dx / 30.0 + dz * dz / 12.0 > 1) continue;
+            level.setBlock(pond.offset(dx, 0, dz), Blocks.WATER.defaultBlockState(), Block.UPDATE_CLIENTS);
+            level.setBlock(pond.offset(dx, -1, dz), Blocks.WATER.defaultBlockState(), Block.UPDATE_CLIENTS);
+            level.setBlock(pond.offset(dx, -2, dz), Blocks.SAND.defaultBlockState(), Block.UPDATE_CLIENTS);
+        }
+        for (int i = 0; i < 4; i++) level.setBlock(pond.offset(-6 + i * 4, 1, -4), Blocks.SHORT_GRASS.defaultBlockState(), Block.UPDATE_CLIENTS);
+        Object[][] otters = {{-2.5, 0.45, 0.5, "float", 0}, {2.5, -0.35, -0.5, "swim", 1}, {-4.5, 1.0, 4.5, "sit", 0}, {-2.0, 1.0, 4.8, "pup", 0},
+                {3.5, 1.0, 4.2, "stand", 1}};
+        for (Object[] o : otters) {
+            var ot = ModContent.OTTER.get().create(level, EntitySpawnReason.COMMAND);
+            if (ot == null) continue;
+            ot.snapTo(pond.getX() + 0.5 + (double) o[0], pond.getY() + (double) o[1], pond.getZ() + 0.5 + (double) o[2], 160, 0);
+            ot.finalizeSpawn(level, level.getCurrentDifficultyAt(pond), EntitySpawnReason.COMMAND, null);
+            ot.setVariant((int) o[4]);
+            ot.setYBodyRot(160);
+            ot.setYHeadRot(160);
+            switch ((String) o[3]) {
+                case "sit" -> {
+                    ot.tame(owner);
+                    ot.setOrderedToSit(true);
+                    ot.setInSittingPose(true);
+                }
+                case "pup" -> ot.setAge(-24000);
+                default -> {}
+            }
+            ot.setNoAi(true);
+            ot.setPersistenceRequired();
+            ot.setPermanentlyInvulnerable(true);
+            level.addFreshEntity(ot);
+        }
+        // three pet beds with a cat, a dog and an otter asleep in them
+        net.minecraft.world.item.DyeColor[] colors = {net.minecraft.world.item.DyeColor.RED, net.minecraft.world.item.DyeColor.BLUE,
+                net.minecraft.world.item.DyeColor.YELLOW, net.minecraft.world.item.DyeColor.GREEN};
+        for (int i = 0; i < 4; i++) {
+            BlockPos bed = center.offset(-62 + i * 2, 0, -38);
+            level.setBlock(bed, ModContent.PET_BED.get().defaultBlockState().setValue(com.dominionmod.dominion.block.PetBedBlock.COLOR, colors[i])
+                    .setValue(com.dominionmod.dominion.block.PetBedBlock.FACING, net.minecraft.core.Direction.SOUTH), Block.UPDATE_ALL);
+            if (i == 3) continue;
+            net.minecraft.world.entity.TamableAnimal pet = switch (i) {
+                case 0 -> net.minecraft.world.entity.EntityTypes.CAT.create(level, EntitySpawnReason.COMMAND);
+                case 1 -> net.minecraft.world.entity.EntityTypes.WOLF.create(level, EntitySpawnReason.COMMAND);
+                default -> ModContent.OTTER.get().create(level, EntitySpawnReason.COMMAND);
+            };
+            if (pet == null) continue;
+            pet.snapTo(bed.getX() + 0.5, bed.getY() + 0.25, bed.getZ() + 0.5, 180, 0);
+            pet.finalizeSpawn(level, level.getCurrentDifficultyAt(bed), EntitySpawnReason.COMMAND, null);
+            pet.tame(owner);
+            pet.setInSittingPose(true);
+            if (pet instanceof net.minecraft.world.entity.animal.feline.Cat cat) cat.setLying(true);
+            pet.setYBodyRot(180);
+            pet.setYHeadRot(180);
+            pet.setNoAi(true);
+            pet.setPermanentlyInvulnerable(true);
+            level.addFreshEntity(pet);
+        }
     }
 }
