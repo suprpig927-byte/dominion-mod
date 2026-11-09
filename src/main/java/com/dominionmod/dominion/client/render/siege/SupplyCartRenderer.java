@@ -54,7 +54,7 @@ public class SupplyCartRenderer extends EntityRenderer<SupplyCart, SupplyCartRen
     public void submit(SupplyCartRenderState s, PoseStack pose, SubmitNodeCollector out, CameraRenderState camera) {
         pose.pushPose();
         pose.translate(s.offX, s.offY, s.offZ);
-        pose.mulPose(Axis.YP.rotationDegrees(180.0f - s.yRot));
+        pose.rotate(Axis.YP.rotationDegrees(180.0f - s.yRot));
         pose.scale(-1.0f, -1.0f, 1.0f);
         pose.translate(0.0f, -1.501f, 0.0f);
         out.submitModel(this.model, s, pose, TEXTURE, s.lightCoords, OverlayTexture.NO_OVERLAY, s.outlineColor);

@@ -39,7 +39,7 @@ public final class OrcWarbands {
         long t = level.getGameTime();
         KingdomData d = Realm.data(level);
         long day = Diplomacy.day(level);
-        long dayTime = level.getDayTime() % 24000L;
+        long dayTime = level.getOverworldClockTime() % 24000L;
         boolean nightfall = dayTime >= 13000 && dayTime < 13400;
         if (t % 200 != 91 && !(nightfall && t % 40 == 11)) return;
         for (KingdomData.OrcVillage v : d.orcVillages) {

@@ -124,14 +124,14 @@ public class BreedHorse extends Horse {
     // ------------------------------------------------------------------ in a kingdom's service
 
     /** The kingdom this horse was bred for (stables, armies), if any. */
-    private @org.jspecify.annotations.Nullable java.util.UUID kingdomId;
+    private java.util.@org.jspecify.annotations.Nullable UUID kingdomId;
     /** The supply cart this pony pulls, if any. */
-    private @org.jspecify.annotations.Nullable java.util.UUID cartId;
+    private java.util.@org.jspecify.annotations.Nullable UUID cartId;
 
-    public @org.jspecify.annotations.Nullable java.util.UUID kingdomId() { return kingdomId; }
-    public void setKingdomId(@org.jspecify.annotations.Nullable java.util.UUID id) { this.kingdomId = id; }
-    public @org.jspecify.annotations.Nullable java.util.UUID cartId() { return cartId; }
-    public void setCartId(@org.jspecify.annotations.Nullable java.util.UUID id) { this.cartId = id; }
+    public java.util.@org.jspecify.annotations.Nullable UUID kingdomId() { return kingdomId; }
+    public void setKingdomId(java.util.@org.jspecify.annotations.Nullable UUID id) { this.kingdomId = id; }
+    public java.util.@org.jspecify.annotations.Nullable UUID cartId() { return cartId; }
+    public void setCartId(java.util.@org.jspecify.annotations.Nullable UUID id) { this.cartId = id; }
 
     @Override
     protected void registerGoals() {

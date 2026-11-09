@@ -106,7 +106,7 @@ public class OrcWarlord extends Orc {
 
     private void groundSlam(ServerLevel level) {
         slam = 160;
-        swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+        swing(net.minecraft.world.InteractionHand.MAIN_HAND, net.minecraft.world.item.component.SwingAnimation.DEFAULT, true);
         level.playSound(null, blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), SoundSource.HOSTILE, 1.6f, 0.6f);
         var ground = level.getBlockState(blockPosition().below());
         level.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, ground), getX(), getY() + 0.1, getZ(), 60, 2.5, 0.1, 2.5, 0.2);
@@ -115,7 +115,7 @@ public class OrcWarlord extends Orc {
             e.hurtServer(level, damageSources().mobAttack(this), 10f);
             Vec3 away = e.position().subtract(position()).normalize();
             e.push(away.x * 1.2, 0.7, away.z * 1.2);
-            e.hurtMarked = true;
+            e.needsSync = true;
         }
     }
 
