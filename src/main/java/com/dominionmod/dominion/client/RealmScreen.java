@@ -264,8 +264,11 @@ public class RealmScreen extends Screen {
         if (pop >= info.beds()) warns.add(new String[]{"warn", "Every bed is taken: build houses to grow."});
         for (String[] w : warns) {
             Theme.icon(g, w[0], wx, wy - 2);
-            Theme.text(g, w[1], wx + 15, wy, Theme.RED);
-            wy += 12;
+            for (String line : Theme.wrap(w[1], MAP - 15)) {
+                Theme.text(g, line, wx + 15, wy, Theme.RED);
+                wy += 10;
+            }
+            wy += 2;
         }
     }
 
@@ -305,7 +308,8 @@ public class RealmScreen extends Screen {
                 int tx = mx + (int) fx, tz = my + (int) fz;
                 if (tx < mx || tz < my || tx >= mx + px || tz >= my + px) continue;
                 int r = parse(f[8]) * 16 * px / RealmMap.size() + cell / 2;
-                g.outline(tx - r, tz - r, 2 * r, 2 * r, 0x90FFE070);
+                int x0 = Math.max(mx, tx - r), z0 = Math.max(my, tz - r), x1 = Math.min(mx + px, tx + r), z1 = Math.min(my + px, tz + r);
+                if (x1 > x0 && z1 > z0) g.outline(x0, z0, x1 - x0, z1 - z0, 0x90FFE070);
                 Theme.icon(g, "tower", tx - 6, tz - 6);
             }
         }
@@ -357,8 +361,7 @@ public class RealmScreen extends Screen {
             Theme.text(g, r[2], x + 304, y, r[2].equals("no bed") ? Theme.RED : Theme.INK_SOFT);
             y += 11;
         }
-        Theme.text(g, roster.size() + " citizens. To move someone's bed: select them with the Command Baton, then click the bed.",
-                l + 66, t + H - 22, Theme.INK_FAINT);
+        Theme.text(g, roster.size() + " citizens. Move a bed: select with the Command Baton, click a bed.", l + 66, t + H - 22, Theme.INK_FAINT);
     }
 
     // ------------------------------------------------------------------ build
@@ -451,9 +454,9 @@ public class RealmScreen extends Screen {
         WoodButton take = button("Take blueprint", b -> send(Payloads.RealmAction.BLUEPRINT, s.id() + ":" + tier), l + W - 178, t + H - 28, 108, 18);
         take.active = lockedReason(s, tier) == null;
         List<String> sites = info.sites();
-        for (int i = 0; i < sites.size() && i < 3; i++) {
+        for (int i = 0; i < sites.size() && i < 2; i++) {
             String id = sites.get(i).split("\\|", -1)[0];
-            button("Cancel", b -> send(Payloads.RealmAction.CANCEL_SITE, id), l + W - 66, t + 216 + i * 16, 50, 14);
+            button("Cancel", b -> send(Payloads.RealmAction.CANCEL_SITE, id), l + W - 66, t + 223 + i * 16, 50, 14);
         }
     }
 
@@ -461,7 +464,7 @@ public class RealmScreen extends Screen {
         Structures.Structure s = picked();
         int x = l + 140, y = t + 40;
         int tier = tierFor(s);
-        Theme.inset(g, x - 4, y - 4, W - 150, 168);
+        Theme.inset(g, x - 4, y - 4, W - 150, 172);
         Theme.text(g, s.name(), x, y, Theme.INK);
         if (s.kind() != Structures.Kind.WALL)
             Theme.textRight(g, s.width() + " x " + s.depth() + ", " + (s.height() - s.sink()) + " tall", l + W - 18, y, Theme.INK_SOFT);
@@ -495,13 +498,13 @@ public class RealmScreen extends Screen {
             if (col == 3) {
                 col = 0;
                 y += 20;
-                if (y > t + 190) break;
+                if (y > t + 184) break;
             }
         }
         List<String> sites = info.sites();
-        int sy = t + 214;
-        Theme.heading(g, sites.isEmpty() ? "No construction sites: take a blueprint and mark one." : "Construction sites", l + 14, sy - 14, W - 28);
-        for (int i = 0; i < sites.size() && i < 3; i++) {
+        int sy = t + 224;
+        Theme.heading(g, sites.isEmpty() ? "No construction sites: take a blueprint and mark one." : "Construction sites", l + 14, sy - 13, W - 28);
+        for (int i = 0; i < sites.size() && i < 2; i++) {
             String[] r = sites.get(i).split("\\|", -1);
             if (r.length < 6) continue;
             int done = parse(r[2]), total = Math.max(1, parse(r[3]));
@@ -510,7 +513,7 @@ public class RealmScreen extends Screen {
             Theme.bar(g, l + 160, sy + 3 + i * 16, 60, pct, "gold");
             Theme.text(g, pct + "%  " + this.font.plainSubstrByWidth(r[4], 130), l + 226, sy + 2 + i * 16, Theme.INK_SOFT);
         }
-        if (sites.size() > 3) Theme.text(g, "+" + (sites.size() - 3) + " more", l + 16, sy + 50, Theme.INK_FAINT);
+        if (sites.size() > 2) Theme.text(g, "+" + (sites.size() - 2) + " more", l + 16, sy + 34, Theme.INK_FAINT);
     }
 
     private static boolean walls(Structures.Structure s) {
@@ -569,7 +572,7 @@ public class RealmScreen extends Screen {
 
     private void drawResearch(GuiGraphicsExtractor g, int l, int t, int mx, int my) {
         Theme.ribbon(g, "Research", l + W / 2, t + 16);
-        String sch = info.scholars() == 0 ? "No Scholars at work: research is slow. Give a citizen a book and a Research Table."
+        String sch = info.scholars() == 0 ? "No Scholars at work, so research is slow. Give a citizen a book."
                 : info.scholars() + " Scholar" + (info.scholars() == 1 ? "" : "s") + " at work: research goes " + (1 + 2 * info.scholars()) + "x faster.";
         Theme.text(g, sch, l + 16, t + 36, info.scholars() == 0 ? Theme.RED : Theme.GREEN);
         List<Research.Tech> all = techs();
@@ -589,9 +592,9 @@ public class RealmScreen extends Screen {
             Theme.icon(g, icon, cx + 5, cy + 5);
             Theme.text(g, tech.name(), cx + 20, cy + 6, status.equals("locked") ? Theme.INK_FAINT : Theme.INK);
             List<String> lines = Theme.wrap(tech.unlocks(), 192);
-            for (int k = 0; k < Math.min(2, lines.size()); k++) Theme.text(g, lines.get(k), cx + 6, cy + 18 + k * 9, Theme.INK_SOFT);
+            for (int k = 0; k < Math.min(2, lines.size()); k++) Theme.text(g, lines.get(k), cx + 6, cy + 16 + k * 9, Theme.INK_SOFT);
             if (Theme.over(mx, my, cx, cy, 204, 49) && lines.size() > 2) Theme.tooltip(g, Theme.wrap(tech.unlocks(), 220), mx, my);
-            int by = cy + 34;
+            int by = cy + 37;
             switch (status) {
                 case "done" -> Theme.text(g, "Researched", cx + 6, by, Theme.GREEN);
                 case "current" -> {
@@ -629,7 +632,7 @@ public class RealmScreen extends Screen {
             boolean open = Boolean.parseBoolean(f[5]);
             String id = f[0];
             int y = t + 40 + (i - scroll) * 44;
-            button(open ? "Close" : "Open", b -> send(Payloads.RealmAction.TOGGLE_SHOP, id), l + W - 70, y + 4, 52, 15);
+            button(open ? "Close shop" : "Reopen", b -> send(Payloads.RealmAction.TOGGLE_SHOP, id), l + W - 88, y + 4, 70, 15);
         }
     }
 
@@ -657,7 +660,8 @@ public class RealmScreen extends Screen {
             Theme.inset(g, l + 14, y, W - 28, 41);
             g.item(new ItemStack(iconFor(f[1])), l + 18, y + 4);
             Theme.text(g, f[1], l + 38, y + 5, Theme.INK);
-            Theme.text(g, "makes " + f[9], l + 38 + this.font.width(f[1]) + 6, y + 5, Theme.INK_FAINT);
+            int mxw = W - 140 - this.font.width(f[1]);
+            Theme.text(g, this.font.plainSubstrByWidth("makes " + f[9], mxw), l + 38 + this.font.width(f[1]) + 6, y + 5, Theme.INK_FAINT);
             String staff = f[2].equals("-") ? "No workers needed"
                     : !open ? "Closed" : f[3].isEmpty() ? "Hiring a " + f[2] + "..." : f[2] + ": " + f[3] + " (" + f[3].split(", ").length + "/" + f[4] + ")";
             Theme.text(g, this.font.plainSubstrByWidth(staff, W - 120), l + 38, y + 16, !open ? Theme.INK_FAINT : f[3].isEmpty() && !f[2].equals("-") ? Theme.GOLD : Theme.GREEN);
@@ -705,11 +709,11 @@ public class RealmScreen extends Screen {
             Theme.inset(g, x, y - 3, 200, 32);
             Theme.icon(g, "tower", x + 4, y);
             Theme.text(g, f[1], x + 20, y + 1, Theme.INK);
-            Theme.textRight(g, "*".repeat(parse(f[4])), x + 196, y + 1, Theme.GOLD);
+            Theme.textRight(g, f[2] + ", " + f[3] + " " + "*".repeat(parse(f[4])), x + 196, y + 1, Theme.GOLD);
             String garrison = f[5].isEmpty() ? "No archers posted" : f[5];
             Theme.text(g, this.font.plainSubstrByWidth(garrison, 120) + " (" + (f[5].isEmpty() ? 0 : f[5].split(", ").length) + "/" + f[6] + ")",
                     x + 20, y + 11, f[5].isEmpty() ? Theme.RED : Theme.GREEN);
-            Theme.text(g, "Sees " + f[7] + " blocks, land " + f[8] + " chunks out  at " + f[2] + ", " + f[3], x + 20, y + 20, Theme.INK_FAINT);
+            Theme.text(g, "Sees " + f[7] + " blocks; land " + f[8] + " chunk" + (f[8].equals("1") ? "" : "s") + " around", x + 20, y + 20, Theme.INK_FAINT);
             y += 36;
         }
         int rx = l + 228;
@@ -722,7 +726,7 @@ public class RealmScreen extends Screen {
             y += 14;
         }
         for (String[] f : threats) {
-            if (f.length < 7) continue;
+            if (f.length < 6) continue;
             Theme.icon(g, "warn", rx, y - 2);
             Theme.text(g, this.font.plainSubstrByWidth(f[1], 180), rx + 15, y, Theme.RED);
             Theme.text(g, f[4] + " strong, " + f[2] + " blocks " + f[3] + ", " + f[5], rx + 15, y + 10, Theme.INK_SOFT);
@@ -740,7 +744,7 @@ public class RealmScreen extends Screen {
             Theme.textRight(g, f[2] + " blocks " + f[3], rx + 198, y, Theme.INK_SOFT);
             y += 12;
         }
-        Theme.text(g, "Towers garrison your archers automatically. Sneak + right-click a tower's sign to raise it.", l + 14, t + H - 22, Theme.INK_FAINT);
+        Theme.text(g, "Archers garrison towers by themselves. Sneak + right-click a tower's sign to raise it.", l + 14, t + H - 22, Theme.INK_FAINT);
     }
 
     // ------------------------------------------------------------------ diplomacy

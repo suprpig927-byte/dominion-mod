@@ -175,12 +175,13 @@ public final class AutoShot {
         if (t == 1760) shot(mc, "stables");
         if (t == 1762) look(mc, bx - 44.5, by + 2.6, bz + 7, 180f, 6f);
         if (t == 1800) shot(mc, "warlord");
-        // the new workshops and towers north of town
-        if (t == 1802) look(mc, bx, by + 7, bz - 58, 180f, 18f);
+        // the new workshops and towers north of town (as a spectator, so the camera can hang in the air)
+        if (t == 1801) onServer(mc, sp -> sp.setGameMode(net.minecraft.world.level.GameType.SPECTATOR));
+        if (t == 1802) look(mc, bx, by + 18, bz - 60, 180f, 40f);
         if (t == 1840) shot(mc, "workshops");
-        if (t == 1842) look(mc, bx, by + 7, bz - 82, 180f, 18f);
+        if (t == 1842) look(mc, bx, by + 18, bz - 82, 180f, 40f);
         if (t == 1880) shot(mc, "workshops_2");
-        if (t == 1882) look(mc, bx + 18, by + 3, bz - 84, 160f, 12f);
+        if (t == 1882) look(mc, bx + 14, by + 6, bz - 86, 200f, 10f);
         if (t == 1920) shot(mc, "watchtowers");
         // the Illager citadel, and the Overlord
         if (t == 1922) look(mc, bx - 170, by + 26, bz + 26, 180f, 34f);

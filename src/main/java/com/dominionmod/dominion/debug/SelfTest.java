@@ -624,8 +624,12 @@ public final class SelfTest {
                 + " fish=" + Storehouse.count(store, s -> s.is(Items.COD) || s.is(Items.SALMON) || s.is(Items.COOKED_COD))
                 + " wheat=" + Storehouse.count(store, s -> s.is(Items.WHEAT)) + " daily influence=" + Realm.dailyInfluence(d, k));
         for (String row : com.dominionmod.dominion.kingdom.Watchtowers.rows(level, k)) if (row.startsWith("tower|")) log("defense " + row);
-        if (towerArcher != null && level.getEntity(towerArcher) instanceof Citizen a)
-            log("tower archer: garrisoned=" + com.dominionmod.dominion.kingdom.Watchtowers.garrisoned(a) + " y=" + a.getY() + " (ground " + center.getY() + ")");
+        for (var b : d.progress(k).buildings) {
+            if (com.dominionmod.dominion.kingdom.Watchtowers.level(b) == 0) continue;
+            for (UUID id : b.workers) if (level.getEntity(id) instanceof Citizen a)
+                log("tower garrison: " + a.baseName() + " job=" + a.job() + " garrisoned=" + com.dominionmod.dominion.kingdom.Watchtowers.garrisoned(a)
+                        + " y=" + a.getY() + " post=" + com.dominionmod.dominion.kingdom.Watchtowers.postOf(a) + " (ground " + center.getY() + ")");
+        }
         // the Illager camp
         log("illager camps=" + d.illagerCamps.size());
         if (!d.illagerCamps.isEmpty()) {

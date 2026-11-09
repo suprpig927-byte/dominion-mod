@@ -82,7 +82,8 @@ public class TrainingScreen extends Screen {
                 Theme.text(g, String.valueOf(c.lapis()), l + 175, y + 5, Theme.INK);
             }
             Theme.text(g, "each", l + 192, y + 5, Theme.INK_FAINT);
-            Theme.text(g, this.font.plainSubstrByWidth(c.about(), W - 120), l + 40, y + 20, Theme.INK_SOFT);
+            var lines = Theme.wrap(c.about(), W - 124);
+            for (int k = 0; k < Math.min(2, lines.size()); k++) Theme.text(g, lines.get(k), l + 40, y + 16 + k * 9, Theme.INK_SOFT);
             i++;
         }
         Theme.text(g, "Paid from the storehouse for each citizen at the desk.", l + 16, t + H - 22, Theme.INK_FAINT);

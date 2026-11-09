@@ -21,7 +21,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
  * what's in store, a Sell button for each good, and the caravans and their hired guards.
  */
 public class MarketScreen extends Screen {
-    private static final int W = 440, H = 280, COLS = 2, ROWS = 8;
+    private static final int W = 440, H = 280, COLS = 2, ROWS = 7;
     private static int page;
     private final Payloads.OpenMarket data;
 
