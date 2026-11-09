@@ -215,6 +215,21 @@ public final class Showcase {
             level.addFreshEntity(m);
         }
 
+        // The three centaur looks, side by side.
+        for (int i = 0; i < 3; i++) {
+            var cen = ModContent.CENTAUR.get().create(level, EntitySpawnReason.COMMAND);
+            if (cen == null) continue;
+            cen.setUUID(new java.util.UUID(0x5EED + i * 7919L, i));
+            cen.snapTo(center.getX() - 2.5 + i * 3.2, center.getY(), center.getZ() + 18.5, 90, 0);
+            cen.finalizeSpawn(level, level.getCurrentDifficultyAt(center), EntitySpawnReason.COMMAND, null);
+            cen.setYHeadRot(90);
+            cen.setYBodyRot(90);
+            cen.setNoAi(true);
+            cen.setPermanentlyInvulnerable(true);
+            cen.setPersistenceRequired();
+            level.addFreshEntity(cen);
+        }
+
         // An orc village to the east and a wild kingdom with its castle to the south.
         var rs = net.minecraft.util.RandomSource.create(7);
         int ox = center.getX() + 72, oz = center.getZ();
@@ -250,6 +265,7 @@ public final class Showcase {
                 level.setBlock(s.pos(), s.state(), Block.UPDATE_ALL);
             }
             if (s.flag() && level.getBlockEntity(s.pos()) != null) level.getBlockEntity(s.pos()).applyComponentsFromItemStack(k.flag);
+            com.dominionmod.dominion.build.Furnish.dress(level, s.pos());
         }
         // Let fences and panes connect.
         for (Plans.Step s : Plans.steps(level, site, k)) {

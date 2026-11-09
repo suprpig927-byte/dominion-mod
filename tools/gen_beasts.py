@@ -670,6 +670,179 @@ def deer_shader(fawn):
     return shader
 
 
+
+# ===================================================================== centaur
+
+def centaur_model():
+    m = Model("centaur", 128, 128)
+    body = m.part("body", None, (0, 11, 3), boxes=[Box((-5, -5, -9), (10, 10, 20), tag="barrel"),
+                                                   Box((-4.5, -4.5, -10), (9, 9, 1.5), tag="breast")])
+    m.part("tail", body, (0, -4, 11), (0.55, 0, 0), [Box((-1.5, 0, -1.5), (3, 13, 3))])
+    for name, x, z in (("right_hind_leg", -3, 11), ("left_hind_leg", 3, 11), ("right_front_leg", -3, -4), ("left_front_leg", 3, -4)):
+        m.part(name, None, (x, 15, z), boxes=[Box((-1.75, -1, -1.75), (3.5, 5.5, 3.5), tag="upper"),
+                                              Box((-1.25, 4.5, -1.25), (2.5, 3.5, 2.5), tag="cannon"),
+                                              Box((-1.5, 8, -1.5), (3, 1, 3), tag="hoof")], tag="leg")
+    torso = m.part("torso", None, (0, 8, -5), boxes=[Box((-4, -12, -2), (8, 12, 4), tag="chest"),
+                                                    Box((-4.5, -2.5, -2.5), (9, 3, 5), 0.0, tag="belt")])
+    head = m.part("head", torso, (0, -12, 0), boxes=[Box((-4, -8, -4), (8, 8, 8))])
+    m.part("hair", head, boxes=[Box((-4, -8, -4), (8, 8, 8), 0.45)])
+    m.part("right_arm", torso, (-5, -10, 0), boxes=[Box((-3, -2, -2), (4, 12, 4))], tag="arm")
+    left = m.part("left_arm", torso, (5, -10, 0), boxes=[Box((-1, -2, -2), (4, 12, 4))], tag="arm")
+    bow = m.part("bow", left, (1, 9, -2.5), boxes=[Box((-0.5, -2, -0.5), (1, 4, 1), tag="grip")], tag="bow")
+    m.part("bow_upper", bow, (0, -2, 0), (0.45, 0, 0), [Box((-0.5, -5, -0.5), (1, 5, 1), -0.1)], tag="bow")
+    m.part("bow_lower", bow, (0, 2, 0), (-0.45, 0, 0), [Box((-0.5, 0, -0.5), (1, 5, 1), -0.1)], tag="bow")
+    m.part("bow_string", bow, (0, 0, 2.15), boxes=[Box((-0.25, -6.2, -0.25), (0.5, 12.4, 0.5), -0.1)], tag="string")
+    m.part("quiver", torso, (1.6, -10.5, 2.2), (0.0, 0, 0.42), [Box((-1.5, 0, 0), (3, 9, 2), tag="case"),
+                                                              Box((-1.25, -2.5, 0.25), (2.5, 2.5, 1.5), tag="arrows")], tag="quiver")
+    m.pack()
+    return m
+
+
+CENTAUR_LOOKS = {
+    "centaur_bay": dict(coat=(116, 62, 34), points=(30, 22, 18), skin=(190, 136, 98), hair=(44, 30, 22), eyes=(70, 90, 60), dapple=False),
+    "centaur_chestnut": dict(coat=(164, 80, 40), points=None, skin=(222, 172, 136), hair=(150, 66, 30), eyes=(60, 100, 140), dapple=False),
+    "centaur_grey": dict(coat=(156, 156, 160), points=(70, 68, 72), skin=(140, 96, 66), hair=(218, 214, 206), eyes=(60, 50, 40), dapple=True),
+}
+
+
+def centaur_shader(look):
+    L = CENTAUR_LOOKS[look]
+    seed = zlib.crc32(look.encode()) & 0xFFF
+    coat, skin, hairc = col(L["coat"]), col(L["skin"]), col(L["hair"])
+    leather, dark_leather = col((122, 78, 44)), col((70, 44, 28))
+
+    def shader(s):
+        P, N, tag, face, bt = s["P"], s["N"], s["part"].tag, s["face"], s["box"].tag
+        n = len(P)
+        x, y, z = P[:, 0], P[:, 1], P[:, 2]
+        Lc = s["L"]
+        g = grain(s, seed)
+        keep = np.ones(n, bool)
+
+        if tag in ("body", "leg", "tail"):
+            if tag == "tail":
+                strands = vnoise(np.stack([Lc[:, 0] * 3.2, Lc[:, 1] * 0.35, Lc[:, 2] * 3.2], 1), seed + 9)
+                c = col(L["points"], n) if L["points"] is not None else hairc[None].repeat(n, 0)
+                c = c * (0.72 + 0.4 * strands)[:, None]
+                if face in ("left", "right", "front", "back"):
+                    strand = _hash((s["px"] // 2).astype(np.int64), np.full(n, 7, np.int64), np.full(n, seed, np.int64), 3)
+                    keep = s["b"] < 1 - 0.3 * strand
+                return c, keep
+            c = coat[None].repeat(n, 0)
+            if L["dapple"]:
+                d = worley(P * 0.34, seed + 21)
+                c = mixc(c * 0.88, col((222, 222, 224), n), smooth(0.55, 0.25, d) * 0.6)
+            t = np.clip((y - 6) / 10, 0, 1)
+            c = c * (1.08 - 0.3 * t ** 1.5)[:, None]
+            if tag == "body":
+                # a woven blanket across the back, behind the man's waist
+                band = smooth(-5.6, -5.0, z) * smooth(1.6, 1.0, z) * smooth(13.5, 12.5, y)
+                stripe = np.mod(np.floor((y + 0.5 * np.abs(x)) * 1.1), 3)
+                weave = np.where(stripe == 0, 1, 0)[:, None] * col((176, 44, 36)) + np.where(stripe == 1, 1, 0)[:, None] * col((214, 170, 70)) \
+                        + np.where(stripe == 2, 1, 0)[:, None] * col((40, 70, 110))
+                tri = (np.mod(z * 1.4 + np.abs(y - 9) * 0.0, 2.0) < 1.0)
+                weave = mixc(weave, col((236, 226, 200), n), (tri & (np.abs(y - 12.3) < 0.35)).astype(float))
+                c = mixc(c, weave * (0.85 + 0.25 * g)[:, None], band)
+                if face == "bottom":
+                    c = c * 0.75
+            if tag == "leg":
+                if L["points"] is not None:
+                    c = mixc(c, col(L["points"], n), smooth(18.0, 19.5, y))
+                if bt == "hoof":
+                    c = col((42, 36, 34), n) * (0.85 + 0.25 * vnoise(np.stack([x * 6, y, z * 6], 1), seed))[:, None]
+                c = c * (1 - 0.12 * (np.sign(x) * N[:, 0] < -0.5))[:, None]
+            return c * (0.9 + 0.2 * g)[:, None]
+
+        if tag == "string":
+            return col((210, 205, 190), n)
+        if tag == "bow":
+            c = col((128, 84, 46), n) * (0.8 + 0.35 * vnoise(np.stack([Lc[:, 0] * 4, Lc[:, 1] * 0.8, Lc[:, 2] * 4], 1), seed))[:, None]
+            if bt == "grip":
+                wrap = np.mod(np.floor((Lc[:, 1] + 2) * 3), 2) == 0
+                c = mixc(c, dark_leather[None].repeat(n, 0), wrap.astype(float) * 0.9)
+            return c
+        if tag == "quiver":
+            if bt == "arrows":
+                fl = np.mod(np.floor((Lc[:, 0] + 2) * 2.2), 3)
+                c = np.where((fl == 0)[:, None], col((226, 222, 210)), np.where((fl == 1)[:, None], col((176, 50, 40)), col((90, 80, 70))))
+                return c * (0.85 + 0.25 * g)[:, None]
+            c = leather[None].repeat(n, 0) * (0.85 + 0.25 * g)[:, None]
+            stitch = (np.abs(s["a"] - 0.5) > 0.4) & (np.mod(s["py"], 3) == 0)
+            c = mixc(c, col((220, 200, 160), n), stitch.astype(float) * 0.8)
+            c = mixc(c, dark_leather[None].repeat(n, 0), smooth(0.15, 0.05, s["b"]))
+            return c
+
+        # ------------------------------------------------ the man
+        if tag == "hair":
+            # long hair and a beard over the head; the face shows through
+            lx, ly, lz = Lc[:, 0], Lc[:, 1], Lc[:, 2]
+            strands = vnoise(np.stack([lx * 3, ly * 0.4, lz * 3], 1), seed + 31)
+            c = hairc[None].repeat(n, 0) * (0.7 + 0.45 * strands)[:, None]
+            if face == "top" or face == "back":
+                keep = np.ones(n, bool)
+            elif face in ("left", "right"):
+                back = lz > -1.0 + 1.5 * _hash((s["py"] // 2).astype(np.int64), np.full(n, 1, np.int64), np.full(n, seed, np.int64), 2)
+                keep = (ly < -5.6) | back
+            elif face == "front":
+                fringe = ly < -7.0 + 0.9 * _hash((s["px"] // 2).astype(np.int64), np.full(n, 2, np.int64), np.full(n, seed, np.int64), 2)
+                beard = (ly > -2.9) & ~((np.abs(lx) < 1.2) & (ly > -1.75) & (ly < -1.15))
+                stache = (ly > -2.5) & (ly < -1.75) & (np.abs(lx) < 1.8)
+                keep = fringe | beard | stache
+                c = c * np.where(beard & (ly > -1.0), 0.85, 1.0)[:, None]
+            else:
+                keep = np.zeros(n, bool)
+            return c, keep
+        c = skin[None].repeat(n, 0) * (0.92 + 0.14 * g)[:, None]
+        if tag == "head":
+            lx, ly, lz = Lc[:, 0], Lc[:, 1], Lc[:, 2]
+            if face == "front":
+                for sx in (-1.8, 1.8):
+                    ew = ((lx - sx) / 0.75) ** 2 + ((ly + 4.3) / 0.4) ** 2
+                    c = mixc(c, col((236, 232, 226), n), smooth(1.0, 0.85, ew))
+                    iris = ((lx - sx * 0.92) / 0.38) ** 2 + ((ly + 4.3) / 0.38) ** 2
+                    c = mixc(c, col(L["eyes"], n), smooth(1.0, 0.7, iris))
+                    c = mixc(c, col((16, 12, 12), n), smooth(0.35, 0.15, iris))
+                    brow = smooth(0.3, 0.1, np.abs(ly + 5.25 - 0.12 * np.abs(lx - sx))) * smooth(1.1, 0.8, np.abs(lx - sx))
+                    c = mixc(c, hairc[None].repeat(n, 0) * 0.8, brow)
+                nose = smooth(0.7, 0.45, np.abs(lx)) * smooth(-4.6, -4.2, ly) * smooth(-2.0, -2.4, ly)
+                c = mixc(c, c * 1.12, nose)
+                c = mixc(c, c * 0.7, smooth(0.5, 0.3, np.abs(lx)) * smooth(-2.45, -2.25, ly) * smooth(-1.95, -2.15, ly))
+                c = mixc(c, col((120, 60, 50), n), smooth(1.2, 0.95, np.abs(lx)) * smooth(0.22, 0.05, np.abs(ly + 1.45)))
+            if face in ("left", "right"):
+                ear = (((lz - 0.4) / 0.7) ** 2 + ((ly + 3.6) / 1.1) ** 2) < 1
+                c = mixc(c, c * 0.82, ear.astype(float))
+            return c
+        if tag == "torso":
+            lx, ly, lz = Lc[:, 0], Lc[:, 1], Lc[:, 2]
+            if bt == "belt":
+                c = dark_leather[None].repeat(n, 0) * (0.85 + 0.25 * g)[:, None]
+                buckle = (face == "front") & (np.abs(lx) < 0.9) & (np.abs(ly + 1.0) < 0.7)
+                return mixc(c, col((200, 170, 90), n), buckle.astype(float))
+            if face in ("front", "back"):
+                pec = smooth(0.25, 0.0, np.abs(ly + 8.6 + 0.25 * np.abs(lx))) * (np.abs(lx) > 0.3) * (face == "front")
+                c = mixc(c, c * 0.8, pec * 0.8)
+                mid = smooth(0.25, 0.0, np.abs(lx)) * smooth(-8.5, -8.0, ly) * (face == "front")
+                c = mixc(c, c * 0.85, mid * 0.6)
+                strap = smooth(0.95, 0.65, np.abs(lx + (ly + 6) * 0.55 * (1 if face == "front" else -1)))
+                c = mixc(c, leather[None].repeat(n, 0) * (0.85 + 0.25 * g)[:, None], strap)
+            if face == "top":
+                c = c * 0.95
+            # shading down to the waist
+            c = c * (1.05 - 0.15 * smooth(-12, 0, ly))[:, None]
+            return c
+        if tag == "arm":
+            ly = Lc[:, 1]
+            bracer = smooth(4.8, 5.3, ly) * smooth(9.6, 9.1, ly)
+            c = mixc(c, leather[None].repeat(n, 0) * (0.85 + 0.25 * g)[:, None], bracer)
+            lace = bracer * (np.mod(s["py"], 4) == 0) * (np.abs(s["a"] - 0.5) < 0.15)
+            c = mixc(c, col((220, 200, 160), n), lace * 0.8)
+            c = mixc(c, c * 0.88, smooth(9.6, 10.0, ly))
+            return c
+        return c
+
+    return shader
+
+
 # ===================================================================== output
 
 def write():
@@ -693,6 +866,11 @@ def write():
     java.append(d.java("deer"))
     d.paint(deer_shader(False), os.path.join(ENTITY, "deer.png"))
     d.paint(deer_shader(True), os.path.join(ENTITY, "deer_fawn.png"))
+    cm = centaur_model()
+    java.append("")
+    java.append(cm.java("centaur"))
+    for look in CENTAUR_LOOKS:
+        cm.paint(centaur_shader(look), os.path.join(ENTITY, look + ".png"))
     java.append("}")
     with open(JAVA, "w") as fh:
         fh.write("\n".join(java) + "\n")

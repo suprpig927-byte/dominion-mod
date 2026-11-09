@@ -7,7 +7,8 @@ import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.resources.Identifier;
 
 public class CentaurRenderer extends MobRenderer<Centaur, CentaurRenderState, CentaurModel> {
-    private static final Identifier TEXTURE = DominionMod.id("textures/entity/centaur.png");
+    private static final Identifier[] LOOKS = {DominionMod.id("textures/entity/centaur_bay.png"),
+            DominionMod.id("textures/entity/centaur_chestnut.png"), DominionMod.id("textures/entity/centaur_grey.png")};
 
     public CentaurRenderer(EntityRendererProvider.Context ctx) {
         super(ctx, new CentaurModel(ctx.bakeLayer(WildModels.CENTAUR)), 0.9f);
@@ -22,10 +23,11 @@ public class CentaurRenderer extends MobRenderer<Centaur, CentaurRenderState, Ce
     public void extractRenderState(Centaur c, CentaurRenderState s, float partialTicks) {
         super.extractRenderState(c, s, partialTicks);
         s.aiming = c.isAggressive();
+        s.look = (int) Math.floorMod(c.getUUID().getLeastSignificantBits(), (long) LOOKS.length);
     }
 
     @Override
     public Identifier getTextureLocation(CentaurRenderState s) {
-        return TEXTURE;
+        return LOOKS[s.look];
     }
 }

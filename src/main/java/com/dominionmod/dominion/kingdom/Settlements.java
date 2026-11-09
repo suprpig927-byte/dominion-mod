@@ -514,6 +514,7 @@ public final class Settlements {
             }
             if (st.flag() && level.getBlockEntity(st.pos()) != null) level.getBlockEntity(st.pos()).applyComponentsFromItemStack(k.flag);
             if (st.state().is(Blocks.CHEST)) chests.add(st.pos());
+            com.dominionmod.dominion.build.Furnish.dress(level, st.pos());
         }
         for (Plans.Step st : steps) {
             if (st.isClear() || st.companion() != null) continue;

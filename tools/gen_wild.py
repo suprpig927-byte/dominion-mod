@@ -263,7 +263,7 @@ def totem_top():
 
 def write():
     # deer.png now comes from gen_beasts.py
-    centaur()
+    # centaur textures now come from gen_beasts.py
     orc(False)
     orc(True)
     spell_book().save(os.path.join(ITEM, "spell_book.png"))

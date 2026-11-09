@@ -166,7 +166,14 @@ public final class AutoShot {
         if (t == 1460) shot(mc, "horses");
         if (t == 1462) look(mc, bx - 31.0, by + 1.4, bz + 3.6, 0f, 6f);
         if (t == 1500) shot(mc, "deer");
-        if (t == 1520) {
+        // inside the houses, and the centaurs
+        if (t == 1502) look(mc, bx - 12, by, bz - 17.7, 180f, 18f);
+        if (t == 1540) shot(mc, "interior_cottage");
+        if (t == 1542) look(mc, bx - 26, by, bz - 52.3, 180f, 14f);
+        if (t == 1580) shot(mc, "interior_longhouse");
+        if (t == 1582) look(mc, bx + 0.7, by + 1.0, bz + 12.0, 0f, 4f);
+        if (t == 1620) shot(mc, "centaurs");
+        if (t == 1640) {
             DominionMod.LOGGER.info("AUTOSHOT done");
             mc.stop();
         }

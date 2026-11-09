@@ -183,4 +183,53 @@ final class BeastMeshes {
                 .texOffs(46, 29).addBox(-0.4f, -2.5f, -0.4f, 1f, 2.5f, 1f, new CubeDeformation(-0.15f)), PartPose.offsetAndRotation(0f, -5.2f, 0f, 1.05f, 0f, 0.1f));
         return mesh;
     }
+
+    static MeshDefinition centaur() {
+        MeshDefinition mesh = new MeshDefinition();
+        PartDefinition root = mesh.getRoot();
+        PartDefinition p0 = root.addOrReplaceChild("body", CubeListBuilder.create()
+                .texOffs(0, 0).addBox(-5f, -5f, -9f, 10f, 10f, 20f, new CubeDeformation(0f))
+                .texOffs(70, 30).addBox(-4.5f, -4.5f, -10f, 9f, 9f, 1.5f, new CubeDeformation(0f)), PartPose.offsetAndRotation(0f, 11f, 3f, 0f, 0f, 0f));
+        PartDefinition p1 = p0.addOrReplaceChild("tail", CubeListBuilder.create()
+                .texOffs(56, 30).addBox(-1.5f, 0f, -1.5f, 3f, 13f, 3f, new CubeDeformation(0f)), PartPose.offsetAndRotation(0f, -4f, 11f, 0.55f, 0f, 0f));
+        PartDefinition p2 = root.addOrReplaceChild("right_hind_leg", CubeListBuilder.create()
+                .texOffs(101, 30).addBox(-1.75f, -1f, -1.75f, 3.5f, 5.5f, 3.5f, new CubeDeformation(0f))
+                .texOffs(70, 46).addBox(-1.25f, 4.5f, -1.25f, 2.5f, 3.5f, 2.5f, new CubeDeformation(0f))
+                .texOffs(0, 55).addBox(-1.5f, 8f, -1.5f, 3f, 1f, 3f, new CubeDeformation(0f)), PartPose.offsetAndRotation(-3f, 15f, 11f, 0f, 0f, 0f));
+        PartDefinition p3 = root.addOrReplaceChild("left_hind_leg", CubeListBuilder.create()
+                .texOffs(0, 46).addBox(-1.75f, -1f, -1.75f, 3.5f, 5.5f, 3.5f, new CubeDeformation(0f))
+                .texOffs(80, 46).addBox(-1.25f, 4.5f, -1.25f, 2.5f, 3.5f, 2.5f, new CubeDeformation(0f))
+                .texOffs(12, 55).addBox(-1.5f, 8f, -1.5f, 3f, 1f, 3f, new CubeDeformation(0f)), PartPose.offsetAndRotation(3f, 15f, 11f, 0f, 0f, 0f));
+        PartDefinition p4 = root.addOrReplaceChild("right_front_leg", CubeListBuilder.create()
+                .texOffs(14, 46).addBox(-1.75f, -1f, -1.75f, 3.5f, 5.5f, 3.5f, new CubeDeformation(0f))
+                .texOffs(90, 46).addBox(-1.25f, 4.5f, -1.25f, 2.5f, 3.5f, 2.5f, new CubeDeformation(0f))
+                .texOffs(24, 55).addBox(-1.5f, 8f, -1.5f, 3f, 1f, 3f, new CubeDeformation(0f)), PartPose.offsetAndRotation(-3f, 15f, -4f, 0f, 0f, 0f));
+        PartDefinition p5 = root.addOrReplaceChild("left_front_leg", CubeListBuilder.create()
+                .texOffs(28, 46).addBox(-1.75f, -1f, -1.75f, 3.5f, 5.5f, 3.5f, new CubeDeformation(0f))
+                .texOffs(100, 46).addBox(-1.25f, 4.5f, -1.25f, 2.5f, 3.5f, 2.5f, new CubeDeformation(0f))
+                .texOffs(36, 55).addBox(-1.5f, 8f, -1.5f, 3f, 1f, 3f, new CubeDeformation(0f)), PartPose.offsetAndRotation(3f, 15f, -4f, 0f, 0f, 0f));
+        PartDefinition p6 = root.addOrReplaceChild("torso", CubeListBuilder.create()
+                .texOffs(0, 30).addBox(-4f, -12f, -2f, 8f, 12f, 4f, new CubeDeformation(0f))
+                .texOffs(42, 46).addBox(-4.5f, -2.5f, -2.5f, 9f, 3f, 5f, new CubeDeformation(0f)), PartPose.offsetAndRotation(0f, 8f, -5f, 0f, 0f, 0f));
+        PartDefinition p7 = p6.addOrReplaceChild("head", CubeListBuilder.create()
+                .texOffs(60, 0).addBox(-4f, -8f, -4f, 8f, 8f, 8f, new CubeDeformation(0f)), PartPose.offsetAndRotation(0f, -12f, 0f, 0f, 0f, 0f));
+        PartDefinition p8 = p7.addOrReplaceChild("hair", CubeListBuilder.create()
+                .texOffs(92, 0).addBox(-4f, -8f, -4f, 8f, 8f, 8f, new CubeDeformation(0.45f)), PartPose.offsetAndRotation(0f, 0f, 0f, 0f, 0f, 0f));
+        PartDefinition p9 = p6.addOrReplaceChild("right_arm", CubeListBuilder.create()
+                .texOffs(24, 30).addBox(-3f, -2f, -2f, 4f, 12f, 4f, new CubeDeformation(0f)), PartPose.offsetAndRotation(-5f, -10f, 0f, 0f, 0f, 0f));
+        PartDefinition p10 = p6.addOrReplaceChild("left_arm", CubeListBuilder.create()
+                .texOffs(40, 30).addBox(-1f, -2f, -2f, 4f, 12f, 4f, new CubeDeformation(0f)), PartPose.offsetAndRotation(5f, -10f, 0f, 0f, 0f, 0f));
+        PartDefinition p11 = p10.addOrReplaceChild("bow", CubeListBuilder.create()
+                .texOffs(118, 46).addBox(-0.5f, -2f, -0.5f, 1f, 4f, 1f, new CubeDeformation(0f)), PartPose.offsetAndRotation(1f, 9f, -2.5f, 0f, 0f, 0f));
+        PartDefinition p12 = p11.addOrReplaceChild("bow_upper", CubeListBuilder.create()
+                .texOffs(110, 46).addBox(-0.5f, -5f, -0.5f, 1f, 5f, 1f, new CubeDeformation(-0.1f)), PartPose.offsetAndRotation(0f, -2f, 0f, 0.45f, 0f, 0f));
+        PartDefinition p13 = p11.addOrReplaceChild("bow_lower", CubeListBuilder.create()
+                .texOffs(114, 46).addBox(-0.5f, 0f, -0.5f, 1f, 5f, 1f, new CubeDeformation(-0.1f)), PartPose.offsetAndRotation(0f, 2f, 0f, -0.45f, 0f, 0f));
+        PartDefinition p14 = p11.addOrReplaceChild("bow_string", CubeListBuilder.create()
+                .texOffs(68, 30).addBox(-0.25f, -6.2f, -0.25f, 0.5f, 12.4f, 0.5f, new CubeDeformation(-0.1f)), PartPose.offsetAndRotation(0f, 0f, 2.15f, 0f, 0f, 0f));
+        PartDefinition p15 = p6.addOrReplaceChild("quiver", CubeListBuilder.create()
+                .texOffs(91, 30).addBox(-1.5f, 0f, 0f, 3f, 9f, 2f, new CubeDeformation(0f))
+                .texOffs(48, 55).addBox(-1.25f, -2.5f, 0.25f, 2.5f, 2.5f, 1.5f, new CubeDeformation(0f)), PartPose.offsetAndRotation(1.6f, -10.5f, 2.2f, 0f, 0f, 0.42f));
+        return mesh;
+    }
 }

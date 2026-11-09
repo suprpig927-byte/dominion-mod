@@ -17,7 +17,10 @@ import org.jspecify.annotations.Nullable;
  *  ' ' leave alone   '.' clear to air
  *  C floor/foundation   M lower wall course   W wall   L corner post   P trim/gable   G window
  *  &gt; &lt; roof slopes      r roof ridge          F fence  l lantern (floor)  n lantern (hanging)
- *  D door (lower; u = upper)   h/b bed head/foot (kingdom color)   k carpet (Brick+)   p potted flower (Timber+)
+ *  D door (lower; u = upper)   h/b bed head/foot (kingdom color)   k carpet (Brick+)   0 rug (secondary color, Timber+)
+ *  furniture: t table   5-8 chair facing N/E/S/W   m stove (smoker)   V wash basin   j wall shelf (on the north wall)
+ *  on tables only (never the floor): p potted flower   i candles   a lantern   I decorated pot
+ *  9 : ; ladders hanging on the south/west/east wall (A hangs on the north wall)
  *  K chest  R barrel  Q crafting table  A ladder  B bookshelf  E lectern  Y anvil  U blast furnace  S smithing table
  *  H Research Table  J Training Desk  T Market  N kingdom flag  X/Z wool in primary/secondary color
  *  f farmland  ~ water  y wheat  g fence gate  O spruce log  o spruce fence  s oak slab  c campfire
@@ -50,7 +53,41 @@ public final class Structures {
 
     private static void hidden(String id, String name, String desc, int sink, @Nullable String requires, int minTier, boolean upgradable,
                                String[][] layers) {
+        layers = backLadders(layers);
         HIDDEN.put(id, new Structure(id, name, desc, Kind.BUILDING, sink, List.of(layers), requires, minTier, upgradable));
+    }
+
+    /**
+     * Makes sure every ladder hangs on a solid wall: a window or opening right behind a ladder is
+     * walled up (a ladder can't hang on glass, and glass behind a ladder looks wrong anyway).
+     * 'A' hangs on the block to its north, '9' south, ':' west, ';' east.
+     */
+    private static String[][] backLadders(String[][] layers) {
+        String[][] out = new String[layers.length][];
+        for (int y = 0; y < layers.length; y++) out[y] = layers[y].clone();
+        for (int y = 0; y < out.length; y++) {
+            for (int z = 0; z < out[y].length; z++) {
+                for (int x = 0; x < out[y][z].length(); x++) {
+                    char c = out[y][z].charAt(x);
+                    int bx = x, bz = z;
+                    switch (c) {
+                        case 'A' -> bz = z - 1;
+                        case '9' -> bz = z + 1;
+                        case ':' -> bx = x - 1;
+                        case ';' -> bx = x + 1;
+                        default -> { continue; }
+                    }
+                    if (bz < 0 || bz >= out[y].length || bx < 0 || bx >= out[y][bz].length()) continue;
+                    char behind = out[y][bz].charAt(bx);
+                    if ("G. nlpjiau".indexOf(behind) >= 0) {
+                        char[] row = out[y][bz].toCharArray();
+                        row[bx] = y <= 1 ? 'M' : 'W';
+                        out[y][bz] = new String(row);
+                    }
+                }
+            }
+        }
+        return out;
     }
 
     /** The second-storey version of a house design, if it has one. */
@@ -63,6 +100,7 @@ public final class Structures {
 
     private static void add(String id, String name, String desc, int sink, @Nullable String requires, int minTier, boolean upgradable,
                             String[][] layers) {
+        layers = backLadders(layers);
         ALL.put(id, new Structure(id, name, desc, Kind.BUILDING, sink, List.of(layers), requires, minTier, upgradable));
     }
 
@@ -200,29 +238,29 @@ public final class Structures {
 
     private static final String[][] COTTAGE = {
             {"CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC"},
-            {"LMMMMML", "MhkkkhM", "MbkkkbM", "Mkklk.M", "MkkkkkM", "MQ.pRKM", "LMMDMML"},
-            {"LWWGWWL", "W.....W", "W.....W", "G.....G", "W.....W", "W.....W", "LWGuGWL"},
+            {"LMMMMML", "Mh.m.hM", "Mb...bM", "M.8tt6M", "M.000.M", "MQR.IKM", "LMMDMML"},
+            {"LWWGWWL", "W.j.j.W", "W.....W", "G..pi.G", "W.....W", "W.....W", "LWGuGWL"},
             {"LWWWWWL", "W.....W", "W..n..W", "W.....W", "W.....W", "W.....W", "LPPPPPL"},
     };
 
     private static final String[][] BARRACKS = {
             {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
-            {"LMMMMMMML", "Mh.h.h.hM", "Mb.b.b.bM", "MkkkkkkkM", "M...l...M", "MKR...RKM", "LMMMDMMML"},
-            {"LWWGWGWWL", "W.......W", "W.......W", "G.......G", "W.......W", "W.......W", "LWGWuWGWL"},
+            {"LMMMMMMML", "Mh.h.h.hM", "Mb.b.b.bM", "MkkkkkkkM", "M8tt6..VM", "MKR...RKM", "LMMMDMMML"},
+            {"LWWGWGWWL", "W.j.j.j.W", "W.......W", "G.......G", "W.ia....W", "W.......W", "LWGWuWGWL"},
             {"LWWWWWWWL", "W.......W", "W...n...W", "W.......W", "W.......W", "W.......W", "LPPPPPPPL"},
     };
 
     private static final String[][] STOREHOUSE = {
             {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
-            {"LMMMMMMML", "MRKKRKKRM", "M.......M", "MR.....RM", "M...l...M", "MRK...KRM", "LMMMDMMML"},
-            {"LWWWWWWWL", "WR..R..RW", "W.......W", "G.......G", "W.......W", "WR.....RW", "LWGWuWGWL"},
+            {"LMMMMMMML", "MRKKRKKRM", "M.......M", "MR.....RM", "M..8t...M", "MRK...KRM", "LMMMDMMML"},
+            {"LWWWWWWWL", "WR..R..RW", "W.......W", "G.......G", "W...a...W", "WR.....RW", "LWGWuWGWL"},
             {"LWWWWWWWL", "W.......W", "W.......W", "G...n...G", "W.......W", "W.......W", "LPPPPPPPL"},
     };
 
     private static final String[][] LIBRARY = {
             {"CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC"},
-            {"LMMMMML", "MBBHBBM", "MkkkkkM", "MEkkkEM", "MkkkkkM", "MB.l.BM", "LMMDMML"},
-            {"LWWWWWL", "WBB.BBW", "W.....W", "G.....G", "W.....W", "WB...BW", "LWGuGWL"},
+            {"LMMMMML", "MBBHBBM", "MkkkkkM", "ME8t6EM", "MkkkkkM", "MB...BM", "LMMDMML"},
+            {"LWWWWWL", "WBB.BBW", "W.....W", "G..i..G", "W.....W", "WB...BW", "LWGuGWL"},
             {"LWWWWWL", "W.....W", "W.....W", "G..n..G", "W.....W", "W.....W", "LPPPPPL"},
     };
 
@@ -235,32 +273,32 @@ public final class Structures {
 
     private static final String[][] UNIVERSITY = {
             {"CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC"},
-            {"LMMMMMMMMML", "MBBBBJBBBBM", "MkkkkkkkkkM", "MEkkkkkkkEM", "MkkkklkkkkM", "MEkkkkkkkEM", "MkkkkkkkkkM", "MBR.....RBM", "LMMMMDMMMML"},
-            {"LWWGWWWGWWL", "WBBBB.BBBBW", "W.........W", "G.........G", "W.........W", "G.........G", "W.........W", "WB.......BW", "LWWGWuWGWWL"},
+            {"LMMMMMMMMML", "MBBBBJBBBBM", "MkkkkkkkkkM", "MEkkkkkkkEM", "Mkkk8t6kkkM", "MEkkkkkkkEM", "MkkkkkkkkkM", "MBR.....RBM", "LMMMMDMMMML"},
+            {"LWWGWWWGWWL", "WBBBB.BBBBW", "W.........W", "G.........G", "W....i....W", "G.........G", "W.........W", "WB.......BW", "LWWGWuWGWWL"},
             {"LWWWWWWWWWL", "W.........W", "W.........W", "W....n....W", "W.........W", "W....n....W", "W.........W", "W.........W", "LWWWWWWWWWL"},
             {"LWWGWWWGWWL", "W.........W", "W.........W", "G.........G", "W.........W", "G.........G", "W.........W", "W.........W", "LPPPPPPPPPL"},
     };
 
     private static final String[][] LONGHOUSE = {
             {"CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC", "CCCCCCC"},
-            {"LMMMMML", "MhkhkhM", "MbkbkbM", "M.....M", "MK...KM", "M..l..M", "MR...RM", "M.....M", "MQ...pM", "M.....M", "LMMDMML"},
-            {"LWWGWWL", "W.....W", "W.....W", "G.....G", "W.....W", "W.....W", "W.....W", "G.....G", "W.....W", "W.....W", "LWGuGWL"},
+            {"LMMMMML", "MhkhkhM", "MbkbkbM", "M.....M", "MK.5.KM", "M.8t6.M", "MR8t6RM", "M..7..M", "MQ.0.mM", "MV.0.IM", "LMMDMML"},
+            {"LWWGWWL", "W.j.j.W", "W.....W", "G.....G", "W.....W", "W..p..W", "W..i..W", "G.....G", "W.....W", "W.....W", "LWGuGWL"},
             {"LWWWWWL", "W.....W", "W.....W", "W.....W", "W..n..W", "W.....W", "W..n..W", "W.....W", "W.....W", "W.....W", "LPPPPPL"},
     };
 
     /** A wide farmhouse with a covered porch along the front. */
     private static final String[][] FARMHOUSE = {
             {"CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC", "CCCCCCCCC"},
-            {"LMMMMMMML", "Mh.h.KR.M", "Mb.b....M", "MkkkkkkkM", "MQ..l..pM", "M.......M", "LMMMDMMML", "O.......O"},
-            {"LWWGWGWWL", "W.......W", "W.......W", "G.......G", "W.......W", "W.......W", "LWGWuWGWL", "O.n...n.O"},
+            {"LMMMMMMML", "Mh.h.KRmM", "Mb.b....M", "Mkkk5kkkM", "MQ.8t6.VM", "MI.....RM", "LMMMDMMML", "O.......O"},
+            {"LWWGWGWWL", "W.j.j...W", "W.......W", "G.......G", "W...p...W", "W.......W", "LWGWuWGWL", "O.n...n.O"},
             {"LWWWWWWWL", "W.......W", "W...n...W", "W.......W", "W...n...W", "W.......W", "LPPPPPPPL", "OxxxxxxxO"},
     };
 
     /** A narrow town house with a tall roof. */
     private static final String[][] TOWNHOUSE = {
             {"CCCCC", "CCCCC", "CCCCC", "CCCCC", "CCCCC", "CCCCC", "CCCCC"},
-            {"LMMML", "MhkhM", "MbkbM", "M...M", "MK.QM", "M.l.M", "LMDML"},
-            {"LWGWL", "W...W", "G...G", "W...W", "G...G", "W...W", "LGuGL"},
+            {"LMMML", "MhkhM", "MbkbM", "M8t6M", "MK.QM", "MR.VM", "LMDML"},
+            {"LWGWL", "W...W", "G...G", "W.p.W", "G...G", "W...W", "LGuGL"},
             {"LWWWL", "W...W", "W.n.W", "W...W", "W...W", "W...W", "LPPPL"},
     };
 
@@ -442,7 +480,10 @@ public final class Structures {
         hall[k0z + 1][k1x - 2] = 'R';
         hall[k0z + 4][k0x + 1] = 'Q';
         hall[k0z + 4][k1x - 1] = 'Y';
-        hall[k0z + 4][11] = 'l';
+        hall[k0z + 4][10] = '8';
+        hall[k0z + 4][11] = 't';
+        hall[k0z + 4][12] = '6';
+        g[2][k0z + 4][11] = 'i';
         for (int x = k0x + 3; x <= k1x - 3; x++) hall[k0z + 3][x] = 'k';
         char[][] up = g[6];
         for (int i = 0; i < 3; i++) {

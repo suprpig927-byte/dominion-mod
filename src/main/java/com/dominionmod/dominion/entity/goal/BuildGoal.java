@@ -221,6 +221,7 @@ public class BuildGoal extends Goal {
                 level.sendBlockUpdated(s.pos(), state, state, Block.UPDATE_ALL);
             }
         }
+        com.dominionmod.dominion.build.Furnish.dress(level, s.pos());
         var sound = state.getSoundType().getPlaceSound();
         level.playSound(null, s.pos(), sound, SoundSource.BLOCKS, 0.8f, 1.0f);
     }

@@ -71,7 +71,34 @@ public final class Palette {
             case 'l' -> tier == THATCH ? Blocks.TORCH.defaultBlockState() : Blocks.LANTERN.defaultBlockState();
             case 'n' -> tier == THATCH ? Blocks.AIR.defaultBlockState() : Blocks.LANTERN.defaultBlockState().setValue(LanternBlock.HANGING, true);
             case 'k' -> tier >= BRICK ? Blocks.CARPET.pick(DyeColor.byId(primary)).defaultBlockState() : Blocks.AIR.defaultBlockState();
-            case 'p' -> tier >= TIMBER ? Blocks.POTTED_POPPY.defaultBlockState() : Blocks.AIR.defaultBlockState();
+            // potted flowers stand on tables or sills (never on the floor), a different flower per tier
+            case 'p' -> pick(tier, Blocks.POTTED_FERN, Blocks.POTTED_POPPY, Blocks.POTTED_BLUE_ORCHID, Blocks.POTTED_RED_TULIP,
+                    Blocks.POTTED_ALLIUM);
+            // interior furniture
+            case 't' -> {
+                BlockState slab = pick(tier, Blocks.OAK_SLAB, Blocks.SPRUCE_SLAB, Blocks.SPRUCE_SLAB, Blocks.DARK_OAK_SLAB, Blocks.DARK_OAK_SLAB);
+                yield slab.setValue(net.minecraft.world.level.block.SlabBlock.TYPE, net.minecraft.world.level.block.state.properties.SlabType.TOP);
+            }
+            case '5', '6', '7', '8' -> {
+                Direction d = c == '5' ? Direction.NORTH : c == '6' ? Direction.EAST : c == '7' ? Direction.SOUTH : Direction.WEST;
+                Block wood = switch (tier) {
+                    case THATCH -> Blocks.OAK_STAIRS;
+                    case TIMBER, STONE -> Blocks.SPRUCE_STAIRS;
+                    default -> Blocks.DARK_OAK_STAIRS;
+                };
+                yield wood.defaultBlockState().setValue(StairBlock.FACING, d);
+            }
+            case 'i' -> Blocks.CANDLE.defaultBlockState().setValue(net.minecraft.world.level.block.CandleBlock.CANDLES, 3)
+                    .setValue(net.minecraft.world.level.block.CandleBlock.LIT, true);
+            case 'a' -> Blocks.LANTERN.defaultBlockState();
+            case 'm' -> Blocks.SMOKER.defaultBlockState().setValue(net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
+            case 'V' -> Blocks.WATER_CAULDRON.defaultBlockState().setValue(net.minecraft.world.level.block.LayeredCauldronBlock.LEVEL, 3);
+            case 'j' -> pick(tier, Blocks.OAK_SHELF, Blocks.SPRUCE_SHELF, Blocks.SPRUCE_SHELF, Blocks.DARK_OAK_SHELF, Blocks.DARK_OAK_SHELF)
+                    .setValue(net.minecraft.world.level.block.ShelfBlock.FACING, Direction.SOUTH);
+            case 'I' -> Blocks.DECORATED_POT.defaultBlockState();
+            case '0' -> tier >= TIMBER ? Blocks.CARPET.pick(DyeColor.byId(secondary)).defaultBlockState() : Blocks.AIR.defaultBlockState();
+            case '9', ':', ';' -> Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING,
+                    c == '9' ? Direction.NORTH : c == ':' ? Direction.EAST : Direction.WEST);
             case 's' -> Blocks.OAK_SLAB.defaultBlockState();
             case 'O' -> Blocks.SPRUCE_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, Direction.Axis.Y);
             case 'o' -> Blocks.SPRUCE_FENCE.defaultBlockState();
@@ -137,6 +164,8 @@ public final class Palette {
 
     /** Characters whose block is placed for free (no material needed). */
     public static boolean free(char c) {
-        return c == 'f' || c == '~' || c == 'N' || (c >= '1' && c <= '4') || c == 'v' || c == 'd' || c == 'e' || c == '[' || c == ']' || c == 'w';
+        return c == 'f' || c == '~' || c == 'N' || (c >= '1' && c <= '4') || c == 'v' || c == 'd' || c == 'e' || c == '[' || c == ']' || c == 'w'
+                // interior trimmings: builders bring these along with the furniture
+                || c == 'p' || c == 'i' || c == 'a' || c == 'I' || c == 'V' || c == 'j';
     }
 }
