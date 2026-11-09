@@ -461,16 +461,17 @@ public final class Showcase {
             level.setBlock(pond.offset(dx, -2, dz), Blocks.SAND.defaultBlockState(), Block.UPDATE_CLIENTS);
         }
         for (int i = 0; i < 4; i++) level.setBlock(pond.offset(-6 + i * 4, 1, -4), Blocks.SHORT_GRASS.defaultBlockState(), Block.UPDATE_CLIENTS);
-        Object[][] otters = {{-2.5, 0.45, 0.5, "float", 0}, {2.5, -0.35, -0.5, "swim", 1}, {-4.5, 1.0, 4.5, "sit", 0}, {-2.0, 1.0, 4.8, "pup", 0},
-                {3.5, 1.0, 4.2, "stand", 1}};
+        Object[][] otters = {{-2.5, 0.45, 0.5, "float", 0, 90f}, {2.5, -0.35, -0.5, "swim", 1, 60f}, {-4.5, 1.0, 4.5, "sit", 0, 20f},
+                {-1.5, 1.0, 4.8, "pup", 0, 100f}, {3.5, 1.0, 4.2, "stand", 1, 250f}};
         for (Object[] o : otters) {
             var ot = ModContent.OTTER.get().create(level, EntitySpawnReason.COMMAND);
             if (ot == null) continue;
-            ot.snapTo(pond.getX() + 0.5 + (double) o[0], pond.getY() + (double) o[1], pond.getZ() + 0.5 + (double) o[2], 160, 0);
+            float yaw = (float) o[5];
+            ot.snapTo(pond.getX() + 0.5 + (double) o[0], pond.getY() + (double) o[1], pond.getZ() + 0.5 + (double) o[2], yaw, 0);
             ot.finalizeSpawn(level, level.getCurrentDifficultyAt(pond), EntitySpawnReason.COMMAND, null);
             ot.setVariant((int) o[4]);
-            ot.setYBodyRot(160);
-            ot.setYHeadRot(160);
+            ot.setYBodyRot(yaw);
+            ot.setYHeadRot(yaw);
             switch ((String) o[3]) {
                 case "sit" -> {
                     ot.tame(owner);
@@ -499,13 +500,13 @@ public final class Showcase {
                 default -> ModContent.OTTER.get().create(level, EntitySpawnReason.COMMAND);
             };
             if (pet == null) continue;
-            pet.snapTo(bed.getX() + 0.5, bed.getY() + 0.25, bed.getZ() + 0.5, 180, 0);
+            pet.snapTo(bed.getX() + 0.5, bed.getY() + 0.25, bed.getZ() + 0.5, 20, 0);
             pet.finalizeSpawn(level, level.getCurrentDifficultyAt(bed), EntitySpawnReason.COMMAND, null);
             pet.tame(owner);
             pet.setInSittingPose(true);
             if (pet instanceof net.minecraft.world.entity.animal.feline.Cat cat) cat.setLying(true);
-            pet.setYBodyRot(180);
-            pet.setYHeadRot(180);
+            pet.setYBodyRot(20);
+            pet.setYHeadRot(20);
             pet.setNoAi(true);
             pet.setPermanentlyInvulnerable(true);
             level.addFreshEntity(pet);

@@ -218,10 +218,10 @@ public final class AutoShot {
         // otters and pet beds
         if (t == 2301) {
             mc.gui.setScreen(null);
-            look(mc, bx - 70, by + 3.5, bz - 37, 180f, 22f);
+            look(mc, bx - 70, by + 2.2, bz - 39.5, 180f, 14f);
         }
         if (t == 2340) shot(mc, "otters");
-        if (t == 2342) look(mc, bx - 58.5, by + 2.2, bz - 34.5, 180f, 30f);
+        if (t == 2342) look(mc, bx - 58.5, by + 1.8, bz - 34.0, 180f, 22f);
         if (t == 2380) shot(mc, "pet_beds");
         if (t == 2400) {
             DominionMod.LOGGER.info("AUTOSHOT done");
