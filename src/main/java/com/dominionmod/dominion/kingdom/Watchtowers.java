@@ -51,7 +51,9 @@ public final class Watchtowers {
             {{1, 8, 1}, {5, 8, 5}, {5, 8, 1}, {1, 8, 5}}};
 
     /** Archer -> the spot they're posted to. Rebuilt from the towers every couple of seconds; not saved. */
-    private static final Map<UUID, BlockPos> POSTS = new HashMap<>();
+    private record Post(String dim, BlockPos pos) {}
+
+    private static final Map<UUID, Post> POSTS = new HashMap<>();
     /** Tower -> the next game time it may ring an alarm. */
     private static final Map<UUID, Long> QUIET_UNTIL = new HashMap<>();
     /** Armies each kingdom's towers have already reported. */
@@ -75,7 +77,8 @@ public final class Watchtowers {
     }
 
     public static @Nullable BlockPos postOf(Citizen c) {
-        return POSTS.get(c.getUUID());
+        Post p = POSTS.get(c.getUUID());
+        return p == null ? null : p.pos();
     }
 
     private static BlockPos spot(Building b, int i) {
@@ -97,7 +100,8 @@ public final class Watchtowers {
         if (t % 40 != 17) return;
         KingdomData d = Realm.data(level);
         String dim = KingdomData.dim(level);
-        POSTS.entrySet().removeIf(e -> !(level.getEntity(e.getKey()) instanceof Citizen c) || !c.isAlive());
+        // (every dimension ticks this: only forget posts in this one)
+        POSTS.entrySet().removeIf(e -> e.getValue().dim().equals(dim) && (!(level.getEntity(e.getKey()) instanceof Citizen c) || !c.isAlive()));
         for (Kingdom k : new ArrayList<>(d.all())) {
             if (k.wild) continue;
             for (Building b : d.progress(k).buildings) {
@@ -148,7 +152,7 @@ public final class Watchtowers {
                 Citizen.tellKingdom(level, k, Component.literal(c.baseName() + " climbs the " + b.name() + " to keep watch.").withStyle(ChatFormatting.GRAY));
             }
         }
-        for (int i = 0; i < b.workers.size(); i++) POSTS.put(b.workers.get(i), spot(b, i));
+        for (int i = 0; i < b.workers.size(); i++) POSTS.put(b.workers.get(i), new Post(b.dim, spot(b, i)));
     }
 
     /** Anyone the kingdom should be warned about. */
