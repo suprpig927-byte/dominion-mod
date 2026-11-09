@@ -9,7 +9,9 @@ public enum Order {
     /** Stand at the anchor point and fight only what comes close. */
     HOLD,
     /** Walk a route of waypoints round and round, fighting whatever turns up. */
-    PATROL;
+    PATROL,
+    /** March across country to the anchor (an army on campaign), fighting enemies on the way. */
+    MARCH;
 
     public static Order byId(int i) {
         return values()[Math.floorMod(i, values().length)];

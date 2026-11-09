@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "LS ",
+    "LLS",
+    "PLP"
+  ],
+  "key": {
+    "L": "#minecraft:logs",
+    "S": "minecraft:string",
+    "P": "#minecraft:planks"
+  },
+  "result": {
+    "id": "dominion:trebuchet",
+    "count": 1
+  }
+}

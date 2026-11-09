@@ -73,12 +73,22 @@ public final class Events {
         if (level.dimension() == Level.OVERWORLD) com.dominionmod.dominion.debug.SelfTest.tick(level);
         com.dominionmod.dominion.kingdom.Settlements.tick(level);
         com.dominionmod.dominion.entity.wild.WildLife.tick(level);
+        com.dominionmod.dominion.kingdom.Rivals.tick(level);
+        com.dominionmod.dominion.kingdom.Armies.tick(level);
+        com.dominionmod.dominion.kingdom.OrcWarbands.tick(level);
+        com.dominionmod.dominion.kingdom.Caravans.tick(level);
+        com.dominionmod.dominion.entity.Cavalry.stablesTick(level);
         if (level.dimension() == Level.OVERWORLD && t % 20 == 0) com.dominionmod.dominion.kingdom.Scholarship.tick(level);
         if (t % 2400 == 1200) Realm.birthTick(level);
         if (t % 10 != 0) return;
         KingdomData d = Realm.data(level);
         for (ServerPlayer p : level.players()) {
             borderNotice(p, d);
+            // roads speed everyone along
+            if (!p.isSpectator() && p.onGround() && com.dominionmod.dominion.kingdom.Caravans.onRoad(p)) {
+                p.addEffect(new MobEffectInstance(MobEffects.SPEED, 30, 0, true, false, true));
+                if (p.getVehicle() instanceof LivingEntity mount) mount.addEffect(new MobEffectInstance(MobEffects.SPEED, 30, 0, true, false));
+            }
             if (p.getMainHandItem().is(ModContent.BLUEPRINT.get())) {
                 Kingdom k = d.byPlayer(p.getUUID());
                 int color = k == null ? 0xFFFFFF : DyeColor.byId(k.primary).getTextureDiffuseColor();
@@ -246,6 +256,7 @@ public final class Events {
     public static @Nullable UUID side(@Nullable Entity e) {
         if (e instanceof Projectile proj) e = proj.getOwner();
         if (e instanceof Citizen c) return c.kingdomId();
+        if (e instanceof com.dominionmod.dominion.entity.siege.SiegeEngine se) return se.kingdomId();
         if (e instanceof Player p && p.level().getServer() != null) {
             Kingdom k = KingdomData.get(p.level().getServer()).byPlayer(p.getUUID());
             return k == null ? null : k.id;
@@ -259,13 +270,29 @@ public final class Events {
         Entity attacker = e.getSource().getEntity();
         if (attacker == null || attacker == victim) return;
         UUID a = side(attacker), v = side(victim);
-        // No friendly fire inside a kingdom.
-        if (a != null && a.equals(v)) {
+        // No friendly fire inside a kingdom, or between allies.
+        var server = victim.level().getServer();
+        if (a != null && (a.equals(v) || com.dominionmod.dominion.kingdom.Diplomacy.friendly(server, a, v))) {
             e.setCanceled(true);
             return;
         }
-        // Until wars arrive, players can't hurt other kingdoms' citizens.
-        if (victim instanceof Citizen && v != null && attacker instanceof Player) e.setCanceled(true);
+        // A player striking another kingdom's people: fine in a war; a wild kingdom takes it as a declaration of one;
+        // another player's kingdom has to be at war with you first.
+        if ((victim instanceof Citizen || victim instanceof com.dominionmod.dominion.entity.siege.SiegeEngine) && v != null && attacker instanceof Player pl
+                && !com.dominionmod.dominion.kingdom.Diplomacy.hostile(server, a, v)) {
+            KingdomData d = KingdomData.get(server);
+            Kingdom vk = d.byId(v), ak = d.byId(a);
+            if (vk != null && vk.wild) {
+                if (ak != null && victim.level() instanceof ServerLevel sl) {
+                    com.dominionmod.dominion.kingdom.Diplomacy.declareWar(sl, vk, ak, pl.getName().getString() + " drew first blood");
+                    com.dominionmod.dominion.kingdom.Rivals.onWarDeclared(sl, vk, ak);
+                }
+                return;
+            }
+            e.setCanceled(true);
+            if (vk != null) pl.sendOverlayMessage(Component.literal("You are not at war with " + vk.name
+                    + ". Declare war from the Diplomacy tab of your Realm screen first.").withStyle(ChatFormatting.RED));
+        }
     }
 
     /** When a commander falls, nearby troops waver. */

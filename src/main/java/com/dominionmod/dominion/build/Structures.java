@@ -35,6 +35,11 @@ public final class Structures {
 
     public enum Kind { BUILDING, WALL }
 
+    /** Roads are drawn like walls, but lie flat in the ground, three blocks wide. */
+    public static boolean isRoad(Structure s) {
+        return s.id().equals("road");
+    }
+
     /**
      * @param requires research needed before it can be built (null = none)
      * @param minTier  lowest tier it can be built in
@@ -457,6 +462,14 @@ public final class Structures {
             int lz = north ? 1 : S - 4;
             for (int y = 1; y <= 8; y++) g[y][lz][tx] = 'A';
         }
+        // ladders up the inside of the curtain walls to the wall-walk (beside a gap in the battlements)
+        for (int y = 1; y <= 5; y++) {
+            g[y][1][11] = 'A';
+            g[y][S - 2][7] = '9';
+            g[y][S - 2][15] = '9';
+            g[y][11][1] = ':';
+            g[y][11][S - 2] = ';';
+        }
         // the gatehouse: an opening in the front wall with a portcullis of fences above
         for (int x = 10; x <= 12; x++) {
             for (int y = 1; y <= 3; y++) g[y][S - 1][x] = '.';
@@ -515,6 +528,25 @@ public final class Structures {
             {"     ", "     ", "  @  ", "     ", "     "},
     };
 
+    /** The Stables: three stalls with hay racks, a water trough, a tack chest and wide gates for horses. */
+    private static final String[][] STABLES = {
+            {"CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC", "CCCCCCCCCCC"},
+            {"LMMMMMMMMML", "MV.=F.=F.=M", "M...F..F..M", "M...F..F..M", "M.........M", "MRK.....RRM", "LMMMgggMMML"},
+            {"LWWGWWWGWWL", "W.........W", "W.........W", "G.........G", "W.........W", "W.........W", "LWWW...WWWL"},
+            {"LWWWWWWWWWL", "W.........W", "W....n....W", "W.........W", "W....n....W", "W.........W", "LPPPPPPPPPL"},
+    };
+
+    /** The Warlord's great hut: bone pillars, a hay throne flanked by skulls, and a roof of hides. */
+    private static final String[][] ORC_WARLORD_HUT = {
+            {"#######", "#######", "#######", "#######", "#######", "#######", "#######"},
+            {"O%%%%%O", "%!.=.!%", "%.....%", "%.....%", "%.....%", "%K...K%", "O%%.%%O"},
+            {"O%%%%%O", "%@...@%", "%.....%", "%.....%", "%.....%", "%.....%", "O%%.%%O"},
+            {"O%%%%%O", "%.....%", "%.....%", "%.....%", "%.....%", "%.....%", "O%%%%%O"},
+            {"       ", " %%%%% ", " %...% ", " %...% ", " %...% ", " %%%%% ", "       "},
+            {"       ", "       ", "  %%%  ", "  %O%  ", "  %%%  ", "       ", "       "},
+            {"       ", "       ", "       ", "   @   ", "       ", "       ", "       "},
+    };
+
     /** The war totem: a skull-topped pole and a bonfire in the middle of an orc village. */
     private static final String[][] ORC_TOTEM = {
             {"#####", "#####", "#####", "#####", "#####"},
@@ -537,6 +569,9 @@ public final class Structures {
                 1, "stone", 2, true, castle());
         hidden("orc_hut", "Orc Hut", "", 1, null, 0, false, ORC_HUT);
         hidden("orc_totem", "War Totem", "", 1, null, 0, false, ORC_TOTEM);
+        hidden("orc_warlord_hut", "Warlord's Hut", "", 1, null, 0, false, ORC_WARLORD_HUT);
+        add("stables", "Stables", "Three stalls, hay racks and a trough. Breeds horses for your kingdom and saddles them for soldiers who have none:"
+                + " knights on Clydesdales, horse archers on Mustangs. Comes with two horses.", 1, "horsemanship", 0, true, house(STABLES));
         add("barracks", "Barracks", "Bunks for four soldiers and lockers for their gear. Flies your flag from the ridge.", 1, null, 1, true,
                 house(BARRACKS, ridgeFlag(BARRACKS)));
         add("storehouse", "Storehouse", "A warehouse lined with chests and barrels. Its chests join your storehouse, wherever you build it.", 1,
@@ -575,6 +610,9 @@ public final class Structures {
 
         wall("stone_wall", "Stone Wall", "A wall 4 high with battlements, in your tier's stone. Click two points to draw it.", "stone", 2, "MMMMM", "MMMM ");
         wall("palisade", "Palisade", "A sharpened spruce log fence, 4 high. Click two points to draw it.", null, 0, "OOOOo", "OOOOo");
+        ALL.put("road", new Structure("road", "Road", "A road three blocks wide that follows the lie of the land: packed earth, then cobbles,"
+                + " then stone setts as your tier rises. Everyone (and every caravan) travels faster on a road, and bandits keep off it."
+                + " Click two points to draw it.", Kind.WALL, 0, List.<String[]>of(new String[]{"$^"}), null, 0, false));
     }
 
     public static @Nullable Structure get(String id) {

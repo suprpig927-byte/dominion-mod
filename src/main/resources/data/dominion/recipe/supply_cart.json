@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "WCW",
+    "PCP",
+    "LSL"
+  ],
+  "key": {
+    "W": "minecraft:white_wool",
+    "C": "minecraft:chest",
+    "P": "#minecraft:planks",
+    "L": "#minecraft:logs",
+    "S": "minecraft:stick"
+  },
+  "result": {
+    "id": "dominion:supply_cart",
+    "count": 1
+  }
+}

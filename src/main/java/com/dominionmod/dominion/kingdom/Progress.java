@@ -25,6 +25,10 @@ public final class Progress {
     public final Map<Long, String> labels = new HashMap<>();
     /** Research Tables placed on the kingdom's land (packed positions). */
     public final List<Long> tables = new ArrayList<>();
+    /** Town Halls of towns this kingdom has conquered: its caravans trade with them. */
+    public final List<Long> outposts = new ArrayList<>();
+    /** Guards hired at the market to ride with each caravan (2 coins a trip each). */
+    public int caravanGuards;
 
     /** Scholars seen working this second: citizen -> game time. Not saved. */
     public final Map<UUID, Long> scholars = new HashMap<>();
@@ -36,11 +40,15 @@ public final class Progress {
             Codec.DOUBLE.optionalFieldOf("work", 0.0).forGetter(p -> p.work),
             Building.CODEC.listOf().optionalFieldOf("buildings", List.of()).forGetter(p -> p.buildings),
             Codec.unboundedMap(Codec.STRING, Codec.STRING).optionalFieldOf("labels", Map.of()).forGetter(Progress::labelsAsStrings),
-            Codec.LONG.listOf().optionalFieldOf("tables", List.of()).forGetter(p -> p.tables)
+            Codec.LONG.listOf().optionalFieldOf("tables", List.of()).forGetter(p -> p.tables),
+            Codec.LONG.listOf().optionalFieldOf("outposts", List.of()).forGetter(p -> p.outposts),
+            Codec.INT.optionalFieldOf("caravan_guards", 0).forGetter(p -> p.caravanGuards)
     ).apply(i, Progress::new));
 
     private Progress(UUID kingdom, List<String> researched, String current, double work, List<Building> buildings, Map<String, String> labels,
-                     List<Long> tables) {
+                     List<Long> tables, List<Long> outposts, int caravanGuards) {
+        this.outposts.addAll(outposts);
+        this.caravanGuards = caravanGuards;
         this.kingdom = kingdom;
         this.researched.addAll(researched);
         this.current = current;

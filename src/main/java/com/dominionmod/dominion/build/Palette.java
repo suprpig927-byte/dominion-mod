@@ -100,6 +100,9 @@ public final class Palette {
             case '9', ':', ';' -> Blocks.LADDER.defaultBlockState().setValue(LadderBlock.FACING,
                     c == '9' ? Direction.NORTH : c == ':' ? Direction.EAST : Direction.WEST);
             case 's' -> Blocks.OAK_SLAB.defaultBlockState();
+            // roads: the middle and the edges
+            case '$' -> pick(tier, Blocks.DIRT_PATH, Blocks.DIRT_PATH, Blocks.COBBLESTONE, Blocks.STONE_BRICKS, Blocks.DEEPSLATE_TILES);
+            case '^' -> pick(tier, Blocks.DIRT_PATH, Blocks.COARSE_DIRT, Blocks.ANDESITE, Blocks.POLISHED_ANDESITE, Blocks.POLISHED_DEEPSLATE);
             case 'O' -> Blocks.SPRUCE_LOG.defaultBlockState().setValue(RotatedPillarBlock.AXIS, Direction.Axis.Y);
             case 'o' -> Blocks.SPRUCE_FENCE.defaultBlockState();
             // furniture

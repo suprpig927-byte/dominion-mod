@@ -35,6 +35,7 @@ public final class Buildings {
             BlockPos sign = signSpot(level, s, site.origin, site.rotation);
             b = new Building(UUID.randomUUID(), s.id(), site.dim, site.origin, site.rotation, site.tier, sign);
             pr.buildings.add(b);
+            if (s.id().equals("stables")) com.dominionmod.dominion.entity.Cavalry.stablesBuilt(level, k, site.origin);
         } else {
             b.tier = Math.max(b.tier, site.tier);
             b.structure = site.structure;

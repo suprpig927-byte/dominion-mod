@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "III",
+    "IGL",
+    "L L"
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "G": "minecraft:gunpowder",
+    "L": "#minecraft:logs"
+  },
+  "result": {
+    "id": "dominion:cannon",
+    "count": 1
+  }
+}

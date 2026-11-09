@@ -34,6 +34,11 @@ public final class KingdomData extends SavedData {
         public final String dim;
         public final BlockPos totem;
         public boolean conquered;
+        /** 0 = village, 1 = war camp, 2 = stronghold (palisade, watch platforms, a Warlord). */
+        public int stage;
+        public int days;
+        public long lastDay = -1, lastRaid = -1;
+        public boolean warlordSlain;
 
         public OrcVillage(String dim, BlockPos totem, boolean conquered) {
             this.dim = dim;
@@ -41,11 +46,67 @@ public final class KingdomData extends SavedData {
             this.conquered = conquered;
         }
 
+        private OrcVillage(String dim, BlockPos totem, boolean conquered, int stage, int days, long lastDay, long lastRaid, boolean warlordSlain) {
+            this(dim, totem, conquered);
+            this.stage = stage;
+            this.days = days;
+            this.lastDay = lastDay;
+            this.lastRaid = lastRaid;
+            this.warlordSlain = warlordSlain;
+        }
+
         static final Codec<OrcVillage> CODEC = RecordCodecBuilder.create(i -> i.group(
                 Codec.STRING.fieldOf("dim").forGetter(v -> v.dim),
                 BlockPos.CODEC.fieldOf("totem").forGetter(v -> v.totem),
-                Codec.BOOL.optionalFieldOf("conquered", false).forGetter(v -> v.conquered)
+                Codec.BOOL.optionalFieldOf("conquered", false).forGetter(v -> v.conquered),
+                Codec.INT.optionalFieldOf("stage", 0).forGetter(v -> v.stage),
+                Codec.INT.optionalFieldOf("days", 0).forGetter(v -> v.days),
+                Codec.LONG.optionalFieldOf("last_day", -1L).forGetter(v -> v.lastDay),
+                Codec.LONG.optionalFieldOf("last_raid", -1L).forGetter(v -> v.lastRaid),
+                Codec.BOOL.optionalFieldOf("warlord_slain", false).forGetter(v -> v.warlordSlain)
         ).apply(i, OrcVillage::new));
+
+        public String title() {
+            return stage >= 2 ? "orc stronghold" : stage == 1 ? "orc war camp" : "orc village";
+        }
+    }
+
+    /** How two kingdoms stand with each other (unordered pair). Absent = neutral. */
+    public static final class Pact {
+        public final UUID a, b;
+        public String state;
+        public long since;
+        /** Neither side's AI starts a war before this day (after peace is made). */
+        public long truceUntil;
+
+        public Pact(UUID a, UUID b, String state, long since, long truceUntil) {
+            this.a = a;
+            this.b = b;
+            this.state = state;
+            this.since = since;
+            this.truceUntil = truceUntil;
+        }
+
+        static final Codec<Pact> CODEC = RecordCodecBuilder.create(i -> i.group(
+                UUIDUtil.STRING_CODEC.fieldOf("a").forGetter(p -> p.a),
+                UUIDUtil.STRING_CODEC.fieldOf("b").forGetter(p -> p.b),
+                Codec.STRING.fieldOf("state").forGetter(p -> p.state),
+                Codec.LONG.optionalFieldOf("since", 0L).forGetter(p -> p.since),
+                Codec.LONG.optionalFieldOf("truce", 0L).forGetter(p -> p.truceUntil)
+        ).apply(i, Pact::new));
+
+        public boolean involves(UUID k) { return a.equals(k) || b.equals(k); }
+        public UUID other(UUID k) { return a.equals(k) ? b : a; }
+    }
+
+    /** A block knocked out of a kingdom's walls or buildings in a siege, waiting for a builder to put it back. */
+    public record Ruin(UUID kingdom, String dim, BlockPos pos, net.minecraft.world.level.block.state.BlockState state) {
+        static final Codec<Ruin> CODEC = RecordCodecBuilder.create(i -> i.group(
+                UUIDUtil.STRING_CODEC.fieldOf("kingdom").forGetter(Ruin::kingdom),
+                Codec.STRING.fieldOf("dim").forGetter(Ruin::dim),
+                BlockPos.CODEC.fieldOf("pos").forGetter(Ruin::pos),
+                net.minecraft.world.level.block.state.BlockState.CODEC.fieldOf("state").forGetter(Ruin::state)
+        ).apply(i, Ruin::new));
     }
 
     public static final Codec<KingdomData> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -54,7 +115,12 @@ public final class KingdomData extends SavedData {
             com.dominionmod.dominion.build.Site.CODEC.listOf().optionalFieldOf("sites", List.of()).forGetter(d -> new ArrayList<>(d.sites)),
             Progress.CODEC.listOf().optionalFieldOf("progress", List.of()).forGetter(d -> new ArrayList<>(d.progress.values())),
             Codec.LONG.listOf().optionalFieldOf("settled", List.of()).forGetter(d -> new ArrayList<>(d.settled)),
-            OrcVillage.CODEC.listOf().optionalFieldOf("orc_villages", List.of()).forGetter(d -> new ArrayList<>(d.orcVillages))
+            OrcVillage.CODEC.listOf().optionalFieldOf("orc_villages", List.of()).forGetter(d -> new ArrayList<>(d.orcVillages)),
+            Pact.CODEC.listOf().optionalFieldOf("pacts", List.of()).forGetter(d -> new ArrayList<>(d.pacts)),
+            Rivals.Rival.CODEC.listOf().optionalFieldOf("rivals", List.of()).forGetter(d -> new ArrayList<>(d.rivals.values())),
+            Armies.Army.CODEC.listOf().optionalFieldOf("armies", List.of()).forGetter(d -> new ArrayList<>(d.armies)),
+            Ruin.CODEC.listOf().optionalFieldOf("ruins", List.of()).forGetter(d -> new ArrayList<>(d.ruins)),
+            Caravans.Caravan.CODEC.listOf().optionalFieldOf("caravans", List.of()).forGetter(d -> new ArrayList<>(d.caravans))
     ).apply(i, KingdomData::new));
 
     public static final SavedDataType<KingdomData> TYPE = new SavedDataType<>(DominionMod.id("kingdoms"), KingdomData::new, CODEC);
@@ -72,9 +138,22 @@ public final class KingdomData extends SavedData {
     /** Wild regions already looked at for settlements (see Settlements). */
     public final java.util.Set<Long> settled = new java.util.HashSet<>();
     public final List<OrcVillage> orcVillages = new ArrayList<>();
+    public final List<Pact> pacts = new ArrayList<>();
+    /** The AI state of every kingdom found in the wild. */
+    public final Map<UUID, Rivals.Rival> rivals = new LinkedHashMap<>();
+    /** Armies and raiding parties on the march. */
+    public final List<Armies.Army> armies = new ArrayList<>();
+    public final List<Ruin> ruins = new ArrayList<>();
+    public final List<Caravans.Caravan> caravans = new ArrayList<>();
 
     private KingdomData(List<Kingdom> list, List<Claim> claimList, List<com.dominionmod.dominion.build.Site> siteList, List<Progress> progressList,
-                        List<Long> settledList, List<OrcVillage> villages) {
+                        List<Long> settledList, List<OrcVillage> villages, List<Pact> pactList, List<Rivals.Rival> rivalList, List<Armies.Army> armyList,
+                        List<Ruin> ruinList, List<Caravans.Caravan> caravanList) {
+        ruins.addAll(ruinList);
+        caravans.addAll(caravanList);
+        pacts.addAll(pactList);
+        for (var r : rivalList) rivals.put(r.kingdom, r);
+        armies.addAll(armyList);
         settled.addAll(settledList);
         orcVillages.addAll(villages);
         for (var site : siteList) sites.add(site);
@@ -129,6 +208,11 @@ public final class KingdomData extends SavedData {
         for (Map<Long, UUID> m : claims.values()) m.values().removeIf(k.id::equals);
         sites.removeIf(s -> s.kingdom.equals(k.id));
         progress.remove(k.id);
+        pacts.removeIf(p -> p.involves(k.id));
+        rivals.remove(k.id);
+        armies.removeIf(a -> k.id.equals(a.kingdom) || k.id.equals(a.target));
+        ruins.removeIf(r -> r.kingdom().equals(k.id));
+        caravans.removeIf(c -> k.id.equals(c.kingdom) || k.id.equals(c.partner));
         setDirty();
     }
 
@@ -199,6 +283,25 @@ public final class KingdomData extends SavedData {
     /** Research, buildings and storage labels for a kingdom. */
     public Progress progress(Kingdom k) {
         return progress.computeIfAbsent(k.id, Progress::new);
+    }
+
+    // ------------------------------------------------------------------ diplomacy
+
+    public @Nullable Pact pact(UUID x, UUID y) {
+        for (Pact p : pacts) if (p.involves(x) && p.involves(y) && !x.equals(y)) return p;
+        return null;
+    }
+
+    public Rivals.Rival rival(Kingdom k) {
+        return rivals.computeIfAbsent(k.id, Rivals.Rival::new);
+    }
+
+    /** All claimed chunks (packed) of a kingdom in one dimension. */
+    public List<Long> claimsOf(Kingdom k, String dim) {
+        List<Long> out = new ArrayList<>();
+        Map<Long, UUID> m = claims.get(dim);
+        if (m != null) m.forEach((c, id) -> { if (id.equals(k.id)) out.add(c); });
+        return out;
     }
 
     public void markChanged() {

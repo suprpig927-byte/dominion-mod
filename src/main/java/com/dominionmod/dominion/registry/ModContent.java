@@ -64,6 +64,21 @@ public final class ModContent {
     public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.BreedHorse>> SHETLAND_PONY = horse("shetland_pony",
             com.dominionmod.dominion.entity.wild.BreedHorse.Breed.SHETLAND);
 
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.OrcWarlord>> ORC_WARLORD = ENTITIES.registerEntityType("orc_warlord",
+            com.dominionmod.dominion.entity.wild.OrcWarlord::new, MobCategory.MONSTER, b -> b.sized(0.6f, 1.95f).eyeHeight(1.62f).clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.SupplyCart>> SUPPLY_CART = ENTITIES.registerEntityType("supply_cart",
+            com.dominionmod.dominion.entity.SupplyCart::new, MobCategory.MISC, b -> b.noLootTable().sized(1.3f, 1.4f).clientTrackingRange(10).updateInterval(2));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.siege.SiegeEngine>> BATTERING_RAM = ENTITIES.registerEntityType("battering_ram",
+            com.dominionmod.dominion.entity.siege.SiegeEngine::new, MobCategory.MISC, b -> b.noLootTable().sized(1.9f, 2.0f).eyeHeight(1.4f).clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.siege.SiegeEngine>> TREBUCHET = ENTITIES.registerEntityType("trebuchet",
+            com.dominionmod.dominion.entity.siege.SiegeEngine::new, MobCategory.MISC, b -> b.noLootTable().sized(1.9f, 2.6f).eyeHeight(2.0f).clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.siege.SiegeEngine>> CANNON = ENTITIES.registerEntityType("cannon",
+            com.dominionmod.dominion.entity.siege.SiegeEngine::new, MobCategory.MISC, b -> b.noLootTable().sized(1.3f, 1.2f).eyeHeight(0.9f).clientTrackingRange(10));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.siege.SiegeShot>> BOULDER = ENTITIES.registerEntityType("boulder",
+            com.dominionmod.dominion.entity.siege.SiegeShot::new, MobCategory.MISC, b -> b.noLootTable().sized(0.6f, 0.6f).clientTrackingRange(8).updateInterval(2));
+    public static final DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.siege.SiegeShot>> CANNONBALL_ENTITY = ENTITIES.registerEntityType("cannonball",
+            com.dominionmod.dominion.entity.siege.SiegeShot::new, MobCategory.MISC, b -> b.noLootTable().sized(0.35f, 0.35f).clientTrackingRange(8).updateInterval(1));
+
     private static DeferredHolder<EntityType<?>, EntityType<com.dominionmod.dominion.entity.wild.BreedHorse>> horse(
             String id, com.dominionmod.dominion.entity.wild.BreedHorse.Breed breed) {
         return ENTITIES.registerEntityType(id, (type, level) -> new com.dominionmod.dominion.entity.wild.BreedHorse(type, level, breed),
@@ -109,13 +124,25 @@ public final class ModContent {
     public static final DeferredItem<Item> COOKED_VENISON = ITEMS.registerSimpleItem("cooked_venison",
             p -> p.food(new net.minecraft.world.food.FoodProperties.Builder().nutrition(8).saturationModifier(0.85f).build()));
 
+    // ---------------------------------------------------------------- war and trade
+
+    public static final DeferredItem<com.dominionmod.dominion.item.SupplyCartItem> SUPPLY_CART_ITEM = ITEMS.registerItem("supply_cart",
+            com.dominionmod.dominion.item.SupplyCartItem::new, p -> p.stacksTo(1));
+    public static final DeferredItem<com.dominionmod.dominion.item.SiegeItem> BATTERING_RAM_ITEM = ITEMS.registerItem("battering_ram",
+            p -> new com.dominionmod.dominion.item.SiegeItem(p, BATTERING_RAM::get, "siegecraft"), p -> p.stacksTo(1));
+    public static final DeferredItem<com.dominionmod.dominion.item.SiegeItem> TREBUCHET_ITEM = ITEMS.registerItem("trebuchet",
+            p -> new com.dominionmod.dominion.item.SiegeItem(p, TREBUCHET::get, "siegecraft"), p -> p.stacksTo(1));
+    public static final DeferredItem<com.dominionmod.dominion.item.SiegeItem> CANNON_ITEM = ITEMS.registerItem("cannon",
+            p -> new com.dominionmod.dominion.item.SiegeItem(p, CANNON::get, "gunpowder"), p -> p.stacksTo(1));
+    public static final DeferredItem<Item> CANNONBALL = ITEMS.registerSimpleItem("cannonball", p -> p.stacksTo(16));
+
     // ---------------------------------------------------------------- spawn eggs
 
     /** One spawn egg per mob the mod adds. Entity types register before items, so each egg can name its mob directly. */
     public static final java.util.Map<String, DeferredItem<net.minecraft.world.item.SpawnEggItem>> SPAWN_EGGS = new java.util.LinkedHashMap<>();
 
     static {
-        for (String mob : List.of("citizen", "deer", "orc", "centaur", "clydesdale", "mustang", "shetland_pony"))
+        for (String mob : List.of("citizen", "deer", "orc", "orc_warlord", "centaur", "clydesdale", "mustang", "shetland_pony"))
             SPAWN_EGGS.put(mob, ITEMS.registerItem(mob + "_spawn_egg", net.minecraft.world.item.SpawnEggItem::new, p -> p.spawnEgg(eggMob(mob))));
     }
 
@@ -124,6 +151,7 @@ public final class ModContent {
             case "citizen" -> CITIZEN.get();
             case "deer" -> DEER.get();
             case "orc" -> ORC.get();
+            case "orc_warlord" -> ORC_WARLORD.get();
             case "centaur" -> CENTAUR.get();
             case "clydesdale" -> CLYDESDALE.get();
             case "mustang" -> MUSTANG.get();
@@ -203,6 +231,11 @@ public final class ModContent {
                 out.accept(SPELL_BOOK.get());
                 out.accept(VENISON.get());
                 out.accept(COOKED_VENISON.get());
+                out.accept(SUPPLY_CART_ITEM.get());
+                out.accept(BATTERING_RAM_ITEM.get());
+                out.accept(TREBUCHET_ITEM.get());
+                out.accept(CANNON_ITEM.get());
+                out.accept(CANNONBALL.get());
                 SPAWN_EGGS.values().forEach(egg -> out.accept(egg.get()));
             }).build());
 
@@ -219,6 +252,10 @@ public final class ModContent {
             e.put(DEER.get(), com.dominionmod.dominion.entity.wild.Deer.createAttributes().build());
             e.put(ORC.get(), com.dominionmod.dominion.entity.wild.Orc.createAttributes().build());
             e.put(CENTAUR.get(), com.dominionmod.dominion.entity.wild.Centaur.createAttributes().build());
+            e.put(ORC_WARLORD.get(), com.dominionmod.dominion.entity.wild.OrcWarlord.createWarlordAttributes().build());
+            e.put(BATTERING_RAM.get(), com.dominionmod.dominion.entity.siege.SiegeEngine.createAttributes(com.dominionmod.dominion.entity.siege.SiegeEngine.Kind.RAM).build());
+            e.put(TREBUCHET.get(), com.dominionmod.dominion.entity.siege.SiegeEngine.createAttributes(com.dominionmod.dominion.entity.siege.SiegeEngine.Kind.TREBUCHET).build());
+            e.put(CANNON.get(), com.dominionmod.dominion.entity.siege.SiegeEngine.createAttributes(com.dominionmod.dominion.entity.siege.SiegeEngine.Kind.CANNON).build());
             e.put(CLYDESDALE.get(), com.dominionmod.dominion.entity.wild.BreedHorse.createAttributes(com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE).build());
             e.put(MUSTANG.get(), com.dominionmod.dominion.entity.wild.BreedHorse.createAttributes(com.dominionmod.dominion.entity.wild.BreedHorse.Breed.MUSTANG).build());
             e.put(SHETLAND_PONY.get(), com.dominionmod.dominion.entity.wild.BreedHorse.createAttributes(com.dominionmod.dominion.entity.wild.BreedHorse.Breed.SHETLAND).build());

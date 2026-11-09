@@ -70,7 +70,7 @@ public final class Payloads {
     /** Client -> server: a Realm screen button (or opening the screen, which asks for fresh info). */
     public record RealmAction(int action, String arg) implements CustomPacketPayload {
         public static final int REFRESH = 0, CLAIM = 1, UNCLAIM = 2, TOGGLE_PEACEFUL = 3, OPEN = 4, BLUEPRINT = 5, CANCEL_SITE = 6, SET_FLAG = 7, MAP = 8,
-                START_RESEARCH = 9, TRAIN = 10;
+                START_RESEARCH = 9, TRAIN = 10, DIPLOMACY = 11;
 
         public RealmAction(int action) {
             this(action, "");
@@ -93,7 +93,7 @@ public final class Payloads {
     public record RealmInfo(boolean open, boolean has, String name, int primary, int secondary, double influence, double daily,
                             int claimCost, int chunks, int beds, List<Integer> jobs, int coins, int food, String here,
                             boolean peaceful, List<Integer> map, String message, boolean ruler, String flag,
-                            List<String> roster, List<String> sites, int openTab, List<String> research, int scholars)
+                            List<String> roster, List<String> sites, int openTab, List<String> research, int scholars, List<String> diplomacy)
             implements CustomPacketPayload {
         public static final Type<RealmInfo> TYPE = new Type<>(DominionMod.id("realm_info"));
         public static final StreamCodec<RegistryFriendlyByteBuf, RealmInfo> CODEC = StreamCodec.of(
@@ -122,11 +122,12 @@ public final class Payloads {
                     buf.writeVarInt(p.openTab + 1);
                     writeStrings(buf, p.research);
                     buf.writeVarInt(p.scholars);
+                    writeStrings(buf, p.diplomacy);
                 },
                 buf -> new RealmInfo(buf.readBoolean(), buf.readBoolean(), buf.readUtf(), buf.readVarInt(), buf.readVarInt(), buf.readDouble(),
                         buf.readDouble(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), readInts(buf), buf.readVarInt(), buf.readVarInt(),
                         buf.readUtf(), buf.readBoolean(), readInts(buf), buf.readUtf(), buf.readBoolean(), buf.readUtf(2048),
-                        readStrings(buf), readStrings(buf), buf.readVarInt() - 1, readStrings(buf), buf.readVarInt()));
+                        readStrings(buf), readStrings(buf), buf.readVarInt() - 1, readStrings(buf), buf.readVarInt(), readStrings(buf)));
 
         @Override
         public Type<? extends CustomPacketPayload> type() { return TYPE; }
@@ -288,6 +289,14 @@ public final class Payloads {
                 case RealmAction.TRAIN -> msg = com.dominionmod.dominion.kingdom.Scholarship.train(sp, p.arg()).getString();
                 case RealmAction.BLUEPRINT -> msg = com.dominionmod.dominion.build.Construction.giveBlueprint(sp, p.arg()).getString();
                 case RealmAction.CANCEL_SITE -> msg = com.dominionmod.dominion.build.Construction.cancel(sp, p.arg()).getString();
+                case RealmAction.DIPLOMACY -> {
+                    String[] f = p.arg().split("\\|", 2);
+                    try {
+                        msg = f.length < 2 ? "" : com.dominionmod.dominion.kingdom.Diplomacy.act(sp, f[0], java.util.UUID.fromString(f[1])).getString();
+                    } catch (IllegalArgumentException e) {
+                        msg = "No such kingdom.";
+                    }
+                }
                 default -> {}
             }
             if (p.action() == RealmAction.TRAIN) {
@@ -323,7 +332,7 @@ public final class Payloads {
         String hereName = here == null ? "" : here.name;
         if (k == null) {
             PacketDistributor.sendToPlayer(p, new RealmInfo(open, false, "", 0, 0, 0, 0, 0, 0, 0, List.of(), 0, 0, hereName, false, map, message,
-                    false, "", List.of(), List.of(), tab, List.of(), 0));
+                    false, "", List.of(), List.of(), tab, List.of(), 0, List.of()));
             return;
         }
         List<Integer> jobs = new ArrayList<>();
@@ -358,6 +367,6 @@ public final class Payloads {
         PacketDistributor.sendToPlayer(p, new RealmInfo(open, true, k.name, k.primary, k.secondary, k.influence, Realm.dailyInfluence(k),
                 Realm.claimCost(d, k), d.claimCount(k), Realm.beds(level, k), jobs, coins, food, hereName, k.peaceful, map, message,
                 k.owner.equals(p.getUUID()), com.dominionmod.dominion.kingdom.Flags.fromBanner(k.flag), roster, sites, tab, research,
-                pr.scholarsWorking(level.getGameTime())));
+                pr.scholarsWorking(level.getGameTime()), com.dominionmod.dominion.kingdom.Diplomacy.rows(level, k)));
     }
 }

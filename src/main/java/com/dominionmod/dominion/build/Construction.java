@@ -123,12 +123,12 @@ public final class Construction {
                 t.remove("AX");
                 t.remove("BX");
                 save(stack, t);
-                return Component.literal("Wall cleared. Click the first end of the wall.").withStyle(ChatFormatting.GRAY);
+                return Component.literal(s.name() + " cleared. Click the first end.").withStyle(ChatFormatting.GRAY);
             }
             if (!t.contains("AX")) {
                 put(t, "A", pos);
                 save(stack, t);
-                return Component.literal("Wall starts here. Now click where it should end.").withStyle(ChatFormatting.YELLOW);
+                return Component.literal(s.name() + " starts here. Now click where it should end.").withStyle(ChatFormatting.YELLOW);
             }
             BlockPos a = get(t, "A");
             if (t.contains("BX") && get(t, "B").equals(pos)) return confirmWall(p, stack, s, k, a, pos);
@@ -136,7 +136,7 @@ public final class Construction {
             if (len > MAX_WALL) return Realm.err("Walls can be at most " + MAX_WALL + " blocks per blueprint (that's " + len + ").");
             put(t, "B", pos);
             save(stack, t);
-            return Component.literal("Wall of " + len + " blocks. Click the end again to confirm, or sneak + click to start over.")
+            return Component.literal(s.name() + " of " + len + " blocks. Click the end again to confirm, or sneak + click to start over.")
                     .withStyle(ChatFormatting.YELLOW);
         }
 

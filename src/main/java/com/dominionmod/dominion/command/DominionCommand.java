@@ -108,7 +108,103 @@ public final class DominionCommand {
                             Component.literal(other.getName().getString() + " now rules " + k.name + ".").withStyle(ChatFormatting.GOLD));
                     return 1;
                 })))
+                .then(Commands.literal("diplomacy")
+                        .then(Commands.literal("accept").then(Commands.argument("id", IntegerArgumentType.integer()).executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            p.sendSystemMessage(com.dominionmod.dominion.kingdom.Diplomacy.respond(p, IntegerArgumentType.getInteger(ctx, "id"), true));
+                            return 1;
+                        })))
+                        .then(Commands.literal("refuse").then(Commands.argument("id", IntegerArgumentType.integer()).executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            p.sendSystemMessage(com.dominionmod.dominion.kingdom.Diplomacy.respond(p, IntegerArgumentType.getInteger(ctx, "id"), false));
+                            return 1;
+                        })))
+                        .then(Commands.argument("action", StringArgumentType.word())
+                                .suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(
+                                        new String[]{"war", "peace", "trade", "alliance", "tribute", "break"}, b))
+                                .then(Commands.argument("kingdom", StringArgumentType.greedyString()).executes(ctx -> {
+                                    ServerPlayer p = ctx.getSource().getPlayerOrException();
+                                    Kingdom other = KingdomData.get(ctx.getSource().getServer()).byName(StringArgumentType.getString(ctx, "kingdom"));
+                                    if (other == null) {
+                                        p.sendSystemMessage(Realm.err("No kingdom by that name."));
+                                        return 0;
+                                    }
+                                    p.sendSystemMessage(com.dominionmod.dominion.kingdom.Diplomacy.act(p, StringArgumentType.getString(ctx, "action"), other.id));
+                                    return 1;
+                                }))))
+                .then(Commands.literal("caravan").then(Commands.literal("guards").then(Commands.argument("count", IntegerArgumentType.integer(0, 6))
+                        .executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            Kingdom k = Realm.of(p);
+                            if (k == null || !k.owner.equals(p.getUUID())) {
+                                p.sendSystemMessage(Realm.err("Only your ruler hires caravan guards."));
+                                return 0;
+                            }
+                            KingdomData d = Realm.data((ServerLevel) p.level());
+                            d.progress(k).caravanGuards = IntegerArgumentType.getInteger(ctx, "count");
+                            d.markChanged();
+                            p.sendSystemMessage(Component.literal("Each caravan will now take " + d.progress(k).caravanGuards + " hired guards (2 coins each a trip).")
+                                    .withStyle(ChatFormatting.GOLD));
+                            return 1;
+                        }))))
                 .then(Commands.literal("admin").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                        .then(Commands.literal("war").then(Commands.argument("kingdom", StringArgumentType.greedyString()).executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            ServerLevel level = (ServerLevel) p.level();
+                            KingdomData d = Realm.data(level);
+                            Kingdom mine = d.byPlayer(p.getUUID()), other = d.byName(StringArgumentType.getString(ctx, "kingdom"));
+                            if (mine == null || other == null) {
+                                ctx.getSource().sendFailure(Component.literal("Need your own kingdom and a kingdom by that name."));
+                                return 0;
+                            }
+                            com.dominionmod.dominion.kingdom.Diplomacy.declareWar(level, other, mine, "by admin command");
+                            var army = com.dominionmod.dominion.kingdom.Armies.raise(level, other, mine);
+                            ctx.getSource().sendSuccess(() -> Component.literal(army == null ? "War declared." : "War declared; an army marches."), true);
+                            return 1;
+                        })))
+                        .then(Commands.literal("envoy").then(Commands.argument("kind", StringArgumentType.word())
+                                .suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(new String[]{"tribute", "trade", "alliance", "peace"}, b))
+                                .then(Commands.argument("kingdom", StringArgumentType.greedyString()).executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            ServerLevel level = (ServerLevel) p.level();
+                            KingdomData d = Realm.data(level);
+                            Kingdom mine = d.byPlayer(p.getUUID()), other = d.byName(StringArgumentType.getString(ctx, "kingdom"));
+                            if (mine == null || other == null) return 0;
+                            var kind = com.dominionmod.dominion.kingdom.Diplomacy.Kind.valueOf(StringArgumentType.getString(ctx, "kind").toUpperCase());
+                            com.dominionmod.dominion.kingdom.Rivals.envoy(level, other, mine, com.dominionmod.dominion.kingdom.Diplomacy.newOffer(level, other, mine, kind,
+                                    kind == com.dominionmod.dominion.kingdom.Diplomacy.Kind.TRIBUTE ? 20 : 0));
+                            return 1;
+                        }))))
+                        .then(Commands.literal("armies").executes(ctx -> {
+                            ServerLevel level = ctx.getSource().getLevel();
+                            for (String line : com.dominionmod.dominion.kingdom.Armies.describe(level)) ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+                            for (String line : com.dominionmod.dominion.kingdom.Caravans.describe(level)) ctx.getSource().sendSuccess(() -> Component.literal(line), false);
+                            return 1;
+                        }))
+                        .then(Commands.literal("raid").executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            ServerLevel level = (ServerLevel) p.level();
+                            Kingdom mine = Realm.of(p);
+                            if (mine == null || mine.hall.isEmpty()) return 0;
+                            var look = p.getLookAngle();
+                            var from = mine.hall.get().offset((int) (look.x * 120), 0, (int) (look.z * 120));
+                            com.dominionmod.dominion.kingdom.Armies.raid(level, from, mine, 6, false);
+                            return 1;
+                        }))
+                        .then(Commands.literal("stronghold").executes(ctx -> {
+                            ServerPlayer p = ctx.getSource().getPlayerOrException();
+                            ServerLevel level = (ServerLevel) p.level();
+                            KingdomData d = Realm.data(level);
+                            KingdomData.OrcVillage best = null;
+                            for (var v : d.orcVillages) if (!v.conquered && (best == null || v.totem.distSqr(p.blockPosition()) < best.totem.distSqr(p.blockPosition()))) best = v;
+                            if (best == null) {
+                                ctx.getSource().sendFailure(Component.literal("No orc village known. /dominion admin settle orc first."));
+                                return 0;
+                            }
+                            com.dominionmod.dominion.kingdom.OrcWarbands.fastForward(level, best);
+                            ctx.getSource().sendSuccess(() -> Component.literal("The orc village has grown into a stronghold."), true);
+                            return 1;
+                        }))
                         .then(Commands.literal("settle").then(Commands.argument("kind", com.mojang.brigadier.arguments.StringArgumentType.word())
                                 .suggests((c, b) -> net.minecraft.commands.SharedSuggestionProvider.suggest(new String[]{"orc", "town", "kingdom"}, b))
                                 .executes(ctx -> {

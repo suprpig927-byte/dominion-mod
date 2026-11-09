@@ -18,6 +18,7 @@ EGGS = {
     "citizen": ((190, 142, 98), (64, 86, 156), "band"),        # villager skin, kingdom-blue tabard band
     "deer": ((156, 104, 62), (238, 230, 216), "spots"),        # fawn spots
     "orc": ((84, 116, 54), (46, 34, 26), "tusks"),             # green hide, war paint
+    "orc_warlord": ((58, 66, 44), (150, 22, 18), "tusks"),     # ash hide, red war paint
     "centaur": ((214, 168, 128), (122, 78, 44), "half"),       # rider's skin over a bay horse body
     "clydesdale": ((120, 62, 32), (242, 238, 232), "feather"),  # bay with white feathered base
     "mustang": ((200, 162, 100), (40, 30, 24), "dorsal"),      # buckskin with a dark stripe

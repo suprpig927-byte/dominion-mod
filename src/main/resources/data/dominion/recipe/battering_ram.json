@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "PPP",
+    "LLI",
+    "LSL"
+  ],
+  "key": {
+    "P": "#minecraft:planks",
+    "L": "#minecraft:logs",
+    "I": "minecraft:iron_block",
+    "S": "minecraft:iron_chain"
+  },
+  "result": {
+    "id": "dominion:battering_ram",
+    "count": 1
+  }
+}

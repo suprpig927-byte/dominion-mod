@@ -41,5 +41,18 @@
   "item.dominion.centaur_spawn_egg": "Centaur Spawn Egg",
   "item.dominion.clydesdale_spawn_egg": "Clydesdale Spawn Egg",
   "item.dominion.mustang_spawn_egg": "Mustang Spawn Egg",
-  "item.dominion.shetland_pony_spawn_egg": "Shetland Pony Spawn Egg"
+  "item.dominion.shetland_pony_spawn_egg": "Shetland Pony Spawn Egg",
+  "entity.dominion.orc_warlord": "Orc Warlord",
+  "entity.dominion.supply_cart": "Supply Cart",
+  "entity.dominion.battering_ram": "Battering Ram",
+  "entity.dominion.trebuchet": "Trebuchet",
+  "entity.dominion.cannon": "Cannon",
+  "entity.dominion.boulder": "Boulder",
+  "entity.dominion.cannonball": "Cannonball",
+  "item.dominion.supply_cart": "Supply Cart",
+  "item.dominion.battering_ram": "Battering Ram",
+  "item.dominion.trebuchet": "Trebuchet",
+  "item.dominion.cannon": "Cannon",
+  "item.dominion.cannonball": "Cannonball",
+  "item.dominion.orc_warlord_spawn_egg": "Orc Warlord Spawn Egg"
 }

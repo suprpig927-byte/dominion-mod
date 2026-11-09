@@ -30,6 +30,7 @@ public final class Orders {
         HOLD("Hold", "hold where they stand"),
         DUTY("Return to duty", "go back to their posts"),
         PATROL("Patrol route", "walk the route you marked (right-click blocks to mark waypoints)"),
+        SIEGE("Siege target", "stand down (right-click a wall or building to make your siege engines nearby batter or bombard it)"),
         CLEAR("Clear selection", "");
 
         public final String label, desc;
@@ -113,6 +114,13 @@ public final class Orders {
             p.sendOverlayMessage(Component.literal("Selection cleared.").withStyle(ChatFormatting.GRAY));
             return;
         }
+        if (s.mode == Mode.SIEGE) {
+            Kingdom k = Realm.of(p);
+            if (k != null) for (var e : p.level().getEntitiesOfClass(com.dominionmod.dominion.entity.siege.SiegeEngine.class,
+                    p.getBoundingBox().inflate(64), e -> k.id.equals(e.kingdomId()))) e.setFireAt(null);
+            p.sendOverlayMessage(Component.literal("Your siege engines stand down.").withStyle(ChatFormatting.YELLOW));
+            return;
+        }
         List<Citizen> sel = selectedCitizens(p);
         if (sel.isEmpty()) {
             p.sendOverlayMessage(Component.literal("Nobody selected. Right-click a citizen, or sneak + right-click one to select every soldier nearby.")
@@ -157,6 +165,22 @@ public final class Orders {
     /** Right-click a block: soldiers march there and hold it; workers make it their new work spot. */
     public static void orderTo(ServerPlayer p, BlockPos pos) {
         State st = state(p);
+        if (st.mode == Mode.SIEGE) {
+            Kingdom k = Realm.of(p);
+            if (k == null) return;
+            int n = 0;
+            for (var e : p.level().getEntitiesOfClass(com.dominionmod.dominion.entity.siege.SiegeEngine.class, p.getBoundingBox().inflate(64),
+                    e -> k.id.equals(e.kingdomId()))) {
+                e.setFireAt(pos);
+                n++;
+            }
+            ((ServerLevel) p.level()).sendParticles(p, ParticleTypes.FLAME, true, false, pos.getX() + 0.5, pos.getY() + 1.1, pos.getZ() + 0.5,
+                    12, 0.3, 0.3, 0.3, 0.01);
+            p.sendOverlayMessage(Component.literal(n == 0 ? "None of your siege engines are within 64 blocks." :
+                    n + " siege engine" + (n == 1 ? "" : "s") + " take aim. Each needs a crew (one of your people beside it) and shot.")
+                    .withStyle(n == 0 ? ChatFormatting.RED : ChatFormatting.GOLD));
+            return;
+        }
         if (st.mode == Mode.PATROL) {
             BlockPos wp = pos.above().immutable();
             if (!st.route.isEmpty() && st.route.get(st.route.size() - 1).equals(wp)) {

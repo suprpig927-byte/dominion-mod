@@ -23,7 +23,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** Sell your surplus for Gold Coins. Right-click with a stack to sell all of it. */
+/**
+ * Sell your surplus for Gold Coins. Right-click with a stack to sell all of it. Prices follow
+ * supply: whatever the kingdom's storehouses are already full of fetches less, and what's scarce
+ * fetches more. Right-click with an empty hand for the price list and to hire caravan guards.
+ */
 public class MarketBlock extends Block {
     /** How many of an item buy one Gold Coin. */
     private static final Map<Item, Integer> PER_COIN = new LinkedHashMap<>();
@@ -59,6 +63,11 @@ public class MarketBlock extends Block {
         return 1;
     }
 
+    private static Component link(String text, String command) {
+        return Component.literal(text).withStyle(st -> st.withColor(ChatFormatting.GREEN).withBold(true)
+                .withClickEvent(new net.minecraft.network.chat.ClickEvent.RunCommand(command)));
+    }
+
     public MarketBlock(Properties props) {
         super(props);
     }
@@ -68,6 +77,17 @@ public class MarketBlock extends Block {
         if (n != null) return n;
         for (var e : TAG_PER_COIN.entrySet()) if (s.is(e.getKey())) return e.getValue();
         return 0;
+    }
+
+    /** Items per coin at this market right now, given what the land's kingdom already has in store. */
+    public static int priceAt(Level level, BlockPos pos, ItemStack s) {
+        int base = perCoin(s);
+        if (base <= 0 || !(level instanceof net.minecraft.server.level.ServerLevel sl)) return base;
+        var k = com.dominionmod.dominion.kingdom.KingdomData.get(sl.getServer()).ownerAt(level, pos);
+        if (k == null) return base;
+        int stock = com.dominionmod.dominion.kingdom.Storehouse.count(com.dominionmod.dominion.kingdom.Storehouse.containers(sl, k), x -> x.is(s.getItem()));
+        double f = stock < base * 2 ? 0.75 : 1.0 + stock / (base * 48.0);
+        return Math.max(1, (int) Math.round(base * Math.min(f, 4.0)));
     }
 
     @Override
@@ -80,6 +100,7 @@ public class MarketBlock extends Block {
             return InteractionResult.SUCCESS;
         }
         if (!(player instanceof ServerPlayer sp)) return InteractionResult.SUCCESS;
+        per = priceAt(level, pos, stack);
         int lots = stack.getCount() / per;
         if (lots == 0) {
             sp.sendOverlayMessage(Realm.err("You need at least " + per + " " + stack.getHoverName().getString() + " for one coin."));
@@ -98,16 +119,30 @@ public class MarketBlock extends Block {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
-        player.sendSystemMessage(Component.literal("== Market: items per Gold Coin ==").withStyle(ChatFormatting.GOLD));
+        player.sendSystemMessage(Component.literal("== Market: items per Gold Coin (by today's supply) ==").withStyle(ChatFormatting.GOLD));
         StringBuilder sb = new StringBuilder();
         PER_COIN.forEach((item, n) -> {
             if (!sb.isEmpty()) sb.append(", ");
             int b = bonus(item);
-            sb.append(new ItemStack(item).getHoverName().getString()).append(' ').append(b > 1 ? "1 = " + b + " coins" : String.valueOf(n));
+            int now = priceAt(level, pos, new ItemStack(item));
+            String trend = now > n ? " (glut)" : now < n ? " (scarce)" : "";
+            sb.append(new ItemStack(item).getHoverName().getString()).append(' ').append(b > 1 ? "1 = " + b + " coins" : String.valueOf(now)).append(trend);
         });
         sb.append(", any logs 8, any planks 32, any wool 8");
         player.sendSystemMessage(Component.literal(sb.toString()).withStyle(ChatFormatting.GRAY));
         player.sendSystemMessage(Component.literal("Right-click with a stack to sell all of it.").withStyle(ChatFormatting.DARK_GRAY));
+        if (level instanceof net.minecraft.server.level.ServerLevel sl) {
+            var d = com.dominionmod.dominion.kingdom.KingdomData.get(sl.getServer());
+            var k = d.byPlayer(player.getUUID());
+            if (k != null && k == d.ownerAt(level, pos)) {
+                int g = d.progress(k).caravanGuards;
+                player.sendSystemMessage(Component.literal("Caravan guards: " + g + " per trip (2 coins each a trip). ").withStyle(ChatFormatting.YELLOW)
+                        .append(link("[+1]", "/dominion caravan guards " + Math.min(6, g + 1))).append(Component.literal(" "))
+                        .append(link("[-1]", "/dominion caravan guards " + Math.max(0, g - 1))));
+                for (String line : com.dominionmod.dominion.kingdom.Caravans.describe(sl))
+                    if (line.startsWith(k.name + " ")) player.sendSystemMessage(Component.literal("  " + line).withStyle(ChatFormatting.GRAY));
+            }
+        }
         return InteractionResult.SUCCESS_SERVER;
     }
 }

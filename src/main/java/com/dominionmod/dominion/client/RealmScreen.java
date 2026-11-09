@@ -69,7 +69,7 @@ public class RealmScreen extends Screen {
     protected void init() {
         int l = left(), t = top();
         if (info.has()) {
-            String[] names = {"Overview", "Citizens", "Build", "Research"};
+            String[] names = {"Overview", "Citizens", "Build", "Research", "Diplomacy"};
             for (int i = 0; i < names.length; i++) {
                 final int idx = i;
                 Button b = Button.builder(Component.literal(names[i]), x -> setTab(idx)).bounds(l + 10 + i * 74, t - 18, 72, 18).build();
@@ -83,6 +83,7 @@ public class RealmScreen extends Screen {
             case 1 -> initCitizens(l, t);
             case 2 -> initBuild(l, t);
             case 3 -> initResearch(l, t);
+            case 4 -> initDiplomacy(l, t);
             default -> initOverview(l, t);
         }
         addRenderableWidget(Button.builder(Component.literal("Close"), b -> onClose()).bounds(l + W - 70, t + H - 26, 60, 20).build());
@@ -185,18 +186,102 @@ public class RealmScreen extends Screen {
         }
     }
 
+    private static final int RESEARCH_PAGE = 6;
+
     private void initResearch(int l, int t) {
+        int n = com.dominionmod.dominion.kingdom.Research.all().size();
+        if (scroll >= n) scroll = 0;
+        if (n > RESEARCH_PAGE) {
+            addRenderableWidget(Button.builder(Component.literal("^"), b -> { scroll = Math.max(0, scroll - RESEARCH_PAGE); rebuildWidgets(); })
+                    .bounds(l + 10, t + H - 26, 30, 20).build());
+            addRenderableWidget(Button.builder(Component.literal("v"), b -> { scroll = Math.min(n - 1, scroll + RESEARCH_PAGE); rebuildWidgets(); })
+                    .bounds(l + 44, t + H - 26, 30, 20).build());
+        }
         if (!info.ruler()) return;
         int i = 0;
         boolean busy = info.research().stream().anyMatch(r -> r.contains("|current|"));
         for (var tech : com.dominionmod.dominion.kingdom.Research.all()) {
             String status = statusOf(tech.id());
-            if (status.equals("open") && !busy) {
+            int row = i - scroll;
+            if (status.equals("open") && !busy && row >= 0 && row < RESEARCH_PAGE) {
                 addRenderableWidget(Button.builder(Component.literal("Research"), b -> send(Payloads.RealmAction.START_RESEARCH, tech.id()))
-                        .bounds(l + W - 80, t + 38 + i * 34, 70, 16).build());
+                        .bounds(l + W - 80, t + 38 + row * 34, 70, 16).build());
             }
             i++;
         }
+    }
+
+    // ------------------------------------------------------------------ diplomacy
+
+    private void initDiplomacy(int l, int t) {
+        if (!info.ruler()) return;
+        List<String> rows = info.diplomacy();
+        for (int i = scroll; i < Math.min(rows.size(), scroll + 9); i++) {
+            String[] f = rows.get(i).split("\\|", -1);
+            String id = f[0], rel = f[3];
+            boolean wild = Boolean.parseBoolean(f[6]);
+            int y = t + 40 + (i - scroll) * 22;
+            List<String[]> acts = new java.util.ArrayList<>();
+            switch (rel) {
+                case "WAR" -> acts.add(new String[]{"Peace", "peace"});
+                case "TRADING" -> {
+                    acts.add(new String[]{"Ally", "alliance"});
+                    acts.add(new String[]{"End", "break"});
+                    acts.add(new String[]{"War", "war"});
+                }
+                case "ALLIED" -> acts.add(new String[]{"End", "break"});
+                default -> {
+                    acts.add(new String[]{"War", "war"});
+                    acts.add(new String[]{"Trade", "trade"});
+                    if (wild) acts.add(new String[]{"Tribute", "tribute"});
+                }
+            }
+            int x = l + W - 10;
+            for (int a = acts.size() - 1; a >= 0; a--) {
+                String[] act = acts.get(a);
+                int w = this.font.width(act[0]) + 12;
+                x -= w + 2;
+                addRenderableWidget(Button.builder(Component.literal(act[0]), b -> send(Payloads.RealmAction.DIPLOMACY, act[1] + "|" + id))
+                        .bounds(x, y - 3, w, 16).build());
+            }
+        }
+        if (rows.size() > 9) {
+            addRenderableWidget(Button.builder(Component.literal("^"), b -> { scroll = Math.max(0, scroll - 9); rebuildWidgets(); })
+                    .bounds(l + 10, t + H - 26, 30, 20).build());
+            addRenderableWidget(Button.builder(Component.literal("v"), b -> { scroll = Math.min(Math.max(0, rows.size() - 9), scroll + 9); rebuildWidgets(); })
+                    .bounds(l + 44, t + H - 26, 30, 20).build());
+        }
+    }
+
+    private void drawDiplomacy(GuiGraphicsExtractor g, int l, int t, int p) {
+        g.text(this.font, "Diplomacy", l + 10, t + 10, p, true);
+        g.text(this.font, "Other kingdoms, nearest first. Wild kingdoms answer at once; other rulers get your offer.", l + 10, t + 22, 0xFF999999, false);
+        List<String> rows = info.diplomacy();
+        if (rows.isEmpty()) g.text(this.font, "You know of no other kingdoms yet. Explore: wild kingdoms rise in the lands around you.",
+                l + 10, t + 44, 0xFFCCCCCC, false);
+        for (int i = scroll; i < Math.min(rows.size(), scroll + 9); i++) {
+            String[] f = rows.get(i).split("\\|", -1);
+            int y = t + 40 + (i - scroll) * 22;
+            g.fill(l + 8, y - 5, l + W - 8, y + 14, 0x30FFFFFF);
+            g.text(this.font, f[1], l + 12, y, color(Integer.parseInt(f[2])), true);
+            String rel = switch (f[3]) {
+                case "WAR" -> "At war";
+                case "TRADING" -> "Trading";
+                case "ALLIED" -> "Allied";
+                default -> "At peace";
+            };
+            int relColor = switch (f[3]) {
+                case "WAR" -> 0xFFFF6060;
+                case "TRADING" -> 0xFFFFD86B;
+                case "ALLIED" -> 0xFF8BE07A;
+                default -> 0xFFBBBBBB;
+            };
+            String dist = f[5].equals("-1") ? "far away" : f[5] + " blocks";
+            String truce = !f[7].equals("0") ? ", truce " + f[7] + "d" : "";
+            g.text(this.font, rel + truce, l + 120, y, relColor, false);
+            g.text(this.font, "~" + f[4] + " soldiers, " + dist, l + 120, y + 9, 0xFF999999, false);
+        }
+        if (!info.ruler()) g.text(this.font, "Only the ruler deals with other kingdoms.", l + 80, t + H - 20, 0xFF888888, false);
     }
 
     private String statusOf(String id) {
@@ -222,7 +307,12 @@ public class RealmScreen extends Screen {
         g.text(this.font, sch, l + 10, t + 22, info.scholars() == 0 ? 0xFFFFB070 : 0xFFA0D890, false);
         int i = 0;
         for (var tech : com.dominionmod.dominion.kingdom.Research.all()) {
-            int y = t + 38 + i * 34;
+            int row = i - scroll;
+            if (row < 0 || row >= RESEARCH_PAGE) {
+                i++;
+                continue;
+            }
+            int y = t + 38 + row * 34;
             String status = statusOf(tech.id());
             int color = switch (status) {
                 case "done" -> 0xFF8BE07A;
@@ -251,8 +341,8 @@ public class RealmScreen extends Screen {
             }
             i++;
         }
-        if (!info.ruler()) g.text(this.font, "Only the ruler can start research.", l + 10, t + H - 20, 0xFF888888, false);
-        else g.text(this.font, "Research is paid from the storehouse.", l + 10, t + H - 20, 0xFF888888, false);
+        if (!info.ruler()) g.text(this.font, "Only the ruler can start research.", l + 80, t + H - 20, 0xFF888888, false);
+        else g.text(this.font, "Research is paid from the storehouse.", l + 80, t + H - 20, 0xFF888888, false);
     }
 
     @Override
@@ -276,6 +366,7 @@ public class RealmScreen extends Screen {
             case 1 -> drawCitizens(g, l, t, p);
             case 2 -> drawBuild(g, l, t, p);
             case 3 -> drawResearch(g, l, t, p);
+            case 4 -> drawDiplomacy(g, l, t, p);
             default -> drawOverview(g, l, t, p, s);
         }
         if (!info.message().isEmpty()) {

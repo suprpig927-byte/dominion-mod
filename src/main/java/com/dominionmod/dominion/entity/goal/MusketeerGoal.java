@@ -29,7 +29,7 @@ public class MusketeerGoal extends Goal {
     @Override
     public boolean canUse() {
         LivingEntity t = c.getTarget();
-        return c.job() == Job.MUSKETEER && gun() != null && t != null && t.isAlive();
+        return c.job() == Job.MUSKETEER && gun() != null && t != null && t.isAlive() && c.hasAmmo();
     }
 
     @Override
@@ -72,6 +72,7 @@ public class MusketeerGoal extends Goal {
                 float xRot = (float) -(Mth.atan2(dy, Math.sqrt(dx * dx + dz * dz)) * Mth.RAD_TO_DEG);
                 c.swingForAttack(InteractionHand.MAIN_HAND);
                 FirearmItem.fire(level, c, xRot, yRot, gun);
+                c.spendAmmo();
                 reload = gun.loadTicks * 2;
                 aim = 0;
             }

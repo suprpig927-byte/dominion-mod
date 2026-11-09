@@ -30,6 +30,9 @@ public final class Research {
         add("brick", "Brickworks", "Brick buildings with dark oak trim and carpets.", 60, 20, 0.75, "stone");
         add("university", "Higher Learning", "The University: train Wizards, Barbarians, Monks and Engineers.", 80, 30, 1.0, "stone");
         add("royal", "Royal Architecture", "Royal buildings: deepslate walls and copper roofs.", 120, 40, 1.0, "brick");
+        add("horsemanship", "Horsemanship", "The Stables: soldiers ride to war as knights and horse archers. Supply carts for ponies.", 35, 10, 0.5, "timber");
+        add("siegecraft", "Siegecraft", "Battering Rams and Trebuchets to break enemy walls.", 50, 16, 0.75, "stone");
+        add("gunpowder", "Gunpowder", "Cannons, and Cannonballs to load them.", 70, 24, 0.75, "siegecraft", "blacksmithing");
     }
 
     public static java.util.Collection<Tech> all() {

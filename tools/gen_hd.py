@@ -626,6 +626,11 @@ if __name__ == "__main__":
     gen_beasts.write()
     import gen_eggs  # spawn eggs
     gen_eggs.write()
+    import gen_engines  # supply cart + siege engines: meshes, textures, item icons
+    gen_engines.write()
+    gen_engines.write_items()
+    import gen_warlord  # derived from the chieftain skin
+    gen_warlord.write()
     town_hall()
     market()
     research_table()

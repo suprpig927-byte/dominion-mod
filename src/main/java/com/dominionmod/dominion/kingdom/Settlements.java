@@ -337,6 +337,7 @@ public final class Settlements {
 
         jobs.add(() -> {
             d.add(k);
+            Rivals.born(d, k, large, r);
             int claimR = large ? 2 : 1;
             ChunkPos cc = ChunkPos.containing(center);
             for (int dx = -claimR; dx <= claimR; dx++) {
@@ -459,6 +460,132 @@ public final class Settlements {
         return c;
     }
 
+    // ------------------------------------------------------------------ a living kingdom
+
+    /** Raises one more building for a kingdom in the wild: on its own land, clear of the others, facing its hall. */
+    public static boolean raiseBuilding(ServerLevel level, Kingdom k, String id, int maxDist, RandomSource r) {
+        Structures.Structure s = Structures.get(id);
+        if (s == null || k.hall.isEmpty()) return false;
+        KingdomData d = Realm.data(level);
+        BlockPos hall = k.hall.get();
+        double rad = Math.max(s.width(), s.depth()) / 2.0 + 1.5;
+        for (int attempt = 0; attempt < 30; attempt++) {
+            double ang = r.nextDouble() * Math.PI * 2, dist = 16 + r.nextDouble() * Math.max(1, maxDist - 16);
+            int x = hall.getX() + (int) (Math.cos(ang) * dist), z = hall.getZ() + (int) (Math.sin(ang) * dist);
+            if (!loaded(level, x, z, (int) rad + 2)) continue;
+            boolean ok = true;
+            for (int dx = -1; dx <= 1 && ok; dx += 2)
+                for (int dz = -1; dz <= 1 && ok; dz += 2)
+                    if (d.ownerAt(level, new BlockPos(x + dx * (int) rad, 0, z + dz * (int) rad)) != k) ok = false;
+            if (!ok) continue;
+            for (var b : d.progress(k).buildings) {
+                Structures.Structure o = Structures.get(b.structure);
+                double orad = o == null ? 6 : Math.max(o.width(), o.depth()) / 2.0 + 1.5;
+                if (Math.hypot(b.origin.getX() - x, b.origin.getZ() - z) < rad + orad + 2) ok = false;
+            }
+            if (!ok || Math.hypot(hall.getX() - x, hall.getZ() - z) < rad + 6) continue;
+            BlockPos col = new BlockPos(x, 0, z);
+            int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+            for (int dx = -1; dx <= 1; dx++) for (int dz = -1; dz <= 1; dz++) {
+                BlockPos sp = surface(level, x + dx * (int) rad, z + dz * (int) rad);
+                lo = Math.min(lo, sp.getY());
+                hi = Math.max(hi, sp.getY());
+                if (!level.getFluidState(sp).isEmpty()) ok = false;
+            }
+            if (!ok || hi - lo > 4) continue;
+            int y = groundFor(level, s, col, hall.getY());
+            Direction look = Math.abs(x - hall.getX()) > Math.abs(z - hall.getZ())
+                    ? (x > hall.getX() ? Direction.EAST : Direction.WEST) : (z > hall.getZ() ? Direction.SOUTH : Direction.NORTH);
+            int tier = Math.max(s.minTier(), d.progress(k).maxTier() - r.nextInt(2));
+            BlockPos ground = col.atY(y);
+            int rot = Plans.rotationFacing(look);
+            JOBS.add(() -> {
+                place(level, k, id, ground, rot, tier, true);
+                if (id.equals("storehouse")) k.storehouses.add(ground.above().asLong());
+                Realm.data(level).markChanged();
+            });
+            return true;
+        }
+        return false;
+    }
+
+    private static String lookOf(ServerLevel level, BlockPos at) {
+        var biome = level.getBiome(at);
+        return biome.is(BiomeTags.IS_TAIGA) ? "taiga" : biome.is(BiomeTags.IS_SAVANNA) ? "savanna" : "plains";
+    }
+
+    /** One of a wild kingdom's levies reports for duty at its Town Hall. */
+    public static @Nullable Citizen musterSoldier(ServerLevel level, Kingdom k, RandomSource r) {
+        if (k.hall.isEmpty()) return null;
+        BlockPos hall = k.hall.get();
+        BlockPos at = surface(level, hall.getX() + r.nextInt(13) - 6, hall.getZ() + 6 + r.nextInt(5)).above();
+        Citizen c = spawnCitizen(level, k, at, kit(Realm.data(level).progress(k).maxTier(), r.nextInt(3) == 0 ? "archer" : "militia"), lookOf(level, at), r);
+        return c;
+    }
+
+    /** The gear a soldier of a given kind carries, at a kingdom's tier: {main hand, off hand, chest, head}. */
+    public static ItemStack[] kit(int tier, String troop) {
+        ItemStack armor = new ItemStack(tier >= 2 ? Items.IRON_CHESTPLATE : Items.LEATHER_CHESTPLATE);
+        ItemStack helm = new ItemStack(tier >= 1 ? Items.IRON_HELMET : Items.LEATHER_HELMET);
+        return switch (troop) {
+            case "archer", "horse_archer" -> new ItemStack[]{new ItemStack(Items.BOW), ItemStack.EMPTY, new ItemStack(Items.LEATHER_CHESTPLATE),
+                    new ItemStack(Items.LEATHER_HELMET)};
+            case "musketeer" -> new ItemStack[]{new ItemStack(ModContent.MUSKET.get()), ItemStack.EMPTY, armor, helm};
+            case "pikeman" -> new ItemStack[]{new ItemStack(ModContent.HALBERD.get()), ItemStack.EMPTY, armor, helm};
+            case "knight" -> new ItemStack[]{new ItemStack(ModContent.LONGSWORD.get()), new ItemStack(ModContent.IRON_SHIELD.get()),
+                    new ItemStack(Items.IRON_CHESTPLATE), new ItemStack(Items.IRON_HELMET)};
+            default -> new ItemStack[]{new ItemStack(tier >= 2 ? ModContent.LONGSWORD.get() : Items.IRON_SWORD),
+                    new ItemStack(ModContent.IRON_SHIELD.get()), armor, helm};
+        };
+    }
+
+    /** A soldier (or siege engine) of a marching army, set on the road to its target. */
+    public static net.minecraft.world.entity.@Nullable Entity spawnTrooper(ServerLevel level, Kingdom k, String troop, BlockPos at, BlockPos dest,
+                                                                    RandomSource r) {
+        if (troop.equals("ram") || troop.equals("trebuchet") || troop.equals("cannon")) {
+            return com.dominionmod.dominion.entity.siege.SiegeEngine.spawnFor(level, k, troop, at, dest);
+        }
+        int tier = Realm.data(level).progress(k).maxTier();
+        Citizen c = spawnCitizen(level, k, at, kit(tier, troop), lookOf(level, at), r);
+        if (c == null) return null;
+        if (troop.equals("knight")) com.dominionmod.dominion.entity.Cavalry.mountNew(level, c, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE);
+        if (troop.equals("horse_archer")) com.dominionmod.dominion.entity.Cavalry.mountNew(level, c, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.MUSTANG);
+        c.march(dest);
+        return c;
+    }
+
+    /** One of an orc warband. */
+    public static @Nullable Orc spawnRaider(ServerLevel level, String troop, BlockPos at, BlockPos dest, RandomSource r) {
+        Orc orc = (troop.equals("warlord") ? ModContent.ORC_WARLORD.get() : ModContent.ORC.get()).create(level, EntitySpawnReason.EVENT);
+        if (orc == null) return null;
+        orc.snapTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, r.nextFloat() * 360, 0);
+        orc.finalizeSpawn(level, level.getCurrentDifficultyAt(at), EntitySpawnReason.EVENT, null);
+        if (troop.equals("orc_chief")) orc.makeChief();
+        orc.setPersistenceRequired();
+        orc.setHomeTo(dest, 10);
+        level.addFreshEntity(orc);
+        return orc;
+    }
+
+    /** An envoy of {@code from}, carrying its banner, sets out to find a member of another kingdom. */
+    public static @Nullable Citizen spawnEnvoy(ServerLevel level, Kingdom from, ServerPlayer to, int offer) {
+        RandomSource r = level.getRandom();
+        for (int attempt = 0; attempt < 12; attempt++) {
+            double ang = r.nextDouble() * Math.PI * 2, dist = 18 + r.nextDouble() * 8;
+            int x = to.getBlockX() + (int) (Math.cos(ang) * dist), z = to.getBlockZ() + (int) (Math.sin(ang) * dist);
+            if (!level.hasChunk(x >> 4, z >> 4)) continue;
+            BlockPos ground = new BlockPos(x, level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1, z);
+            if (!level.getFluidState(ground).isEmpty() || Math.abs(ground.getY() - to.getBlockY()) > 12) continue;
+            ItemStack banner = from.flag.isEmpty() ? Realm.plainBanner(from.primary) : from.flag.copy();
+            Citizen c = spawnCitizen(level, from, ground.above(), new ItemStack[]{banner, ItemStack.EMPTY,
+                    new ItemStack(Items.LEATHER_CHESTPLATE)}, lookOf(level, ground), r);
+            if (c == null) continue;
+            c.becomeEnvoy(to.getUUID(), offer);
+            return c;
+        }
+        return null;
+    }
+
     // ------------------------------------------------------------------ building
 
     /** Flattens the ground for a plot: fills hollows with dirt, clears hills, trees and plants above. */
@@ -572,6 +699,7 @@ public final class Settlements {
         }
         Progress from = d.progress(wild), to = d.progress(mine);
         to.buildings.addAll(from.buildings);
+        if (wild.hall.isPresent()) to.outposts.add(wild.hall.get().asLong());
         mine.storehouses.addAll(wild.storehouses);
         List<Citizen> people = level.getEntitiesOfClass(Citizen.class,
                 new net.minecraft.world.phys.AABB(wild.hall.orElse(BlockPos.ZERO)).inflate(96), c -> c.sameKingdom(wild.id));
@@ -613,9 +741,9 @@ public final class Settlements {
             return;
         }
         ChunkPos hc = ChunkPos.containing(totem);
-        int got = 0;
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dz = -1; dz <= 1; dz++) {
+        int got = 0, rr = v.stage >= 2 ? 2 : 1, plunder = 25 + 25 * v.stage;
+        for (int dx = -rr; dx <= rr; dx++) {
+            for (int dz = -rr; dz <= rr; dz++) {
                 ChunkPos cp = new ChunkPos(hc.x() + dx, hc.z() + dz);
                 if (d.ownerId(level, cp) == null) {
                     d.claim(level, cp, mine);
@@ -625,9 +753,9 @@ public final class Settlements {
         }
         v.conquered = true;
         d.markChanged();
-        Realm.give(p, new ItemStack(ModContent.GOLD_COIN.get(), 25));
+        Realm.give(p, new ItemStack(ModContent.GOLD_COIN.get(), plunder));
         level.playSound(null, totem, SoundEvents.RAID_HORN.value(), SoundSource.PLAYERS, 3.0f, 1.2f);
-        p.sendSystemMessage(Component.literal("The orc village is yours: " + got + " chunks of land and 25 gold coins of plunder.")
+        p.sendSystemMessage(Component.literal("The " + v.title() + " is yours: " + got + " chunks of land and " + plunder + " gold coins of plunder.")
                 .withStyle(ChatFormatting.GOLD));
     }
 }

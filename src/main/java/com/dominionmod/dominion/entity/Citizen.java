@@ -147,12 +147,12 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new OpenDoorGoal(this, true));
         this.goalSelector.addGoal(2, new RangedBowAttackGoal<Citizen>(this, 0.75, 20, 16.0f) {
-            @Override public boolean canUse() { return job() == Job.ARCHER && super.canUse(); }
-            @Override public boolean canContinueToUse() { return job() == Job.ARCHER && super.canContinueToUse(); }
+            @Override public boolean canUse() { return job() == Job.ARCHER && hasAmmo() && super.canUse(); }
+            @Override public boolean canContinueToUse() { return job() == Job.ARCHER && hasAmmo() && super.canContinueToUse(); }
         });
         this.goalSelector.addGoal(2, new MeleeAttackGoal(this, 0.85, true) {
-            @Override public boolean canUse() { return job().melee() && super.canUse(); }
-            @Override public boolean canContinueToUse() { return job().melee() && super.canContinueToUse(); }
+            @Override public boolean canUse() { return fightsHandToHand() && super.canUse(); }
+            @Override public boolean canContinueToUse() { return fightsHandToHand() && super.canContinueToUse(); }
         });
         this.goalSelector.addGoal(2, new com.dominionmod.dominion.entity.goal.WizardGoal(this));
         this.goalSelector.addGoal(2, new com.dominionmod.dominion.entity.goal.MusketeerGoal(this));
@@ -164,9 +164,13 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.goalSelector.addGoal(3, new FormationGoal(this));
         this.goalSelector.addGoal(4, new HoldGoal(this));
         this.goalSelector.addGoal(4, new com.dominionmod.dominion.entity.goal.PatrolGoal(this));
+        this.goalSelector.addGoal(4, new com.dominionmod.dominion.entity.goal.MarchGoal(this));
+        this.goalSelector.addGoal(1, new com.dominionmod.dominion.entity.goal.EnvoyGoal(this));
         this.goalSelector.addGoal(5, new FarmGoal(this));
         this.goalSelector.addGoal(5, new LumberGoal(this));
         this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.BuildGoal(this));
+        this.goalSelector.addGoal(5, new com.dominionmod.dominion.entity.goal.RepairGoal(this));
+        this.goalSelector.addGoal(3, new com.dominionmod.dominion.entity.goal.BattlementGoal(this));
         this.goalSelector.addGoal(4, new com.dominionmod.dominion.entity.goal.SleepGoal(this));
         this.goalSelector.addGoal(6, new DepositGoal(this));
         this.goalSelector.addGoal(7, new WaterAvoidingRandomStrollGoal(this, 0.45) {
@@ -182,6 +186,26 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
                 (target, level) -> target instanceof Enemy && !(target instanceof Creeper && order == Order.RALLY)) {
             @Override public boolean canUse() { return job().soldier && super.canUse(); }
         });
+        // At war: the enemy's soldiers, people and members are fair game.
+        this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true,
+                (target, level) -> isEnemy(target)) {
+            @Override public boolean canUse() { return job().soldier && super.canUse(); }
+        });
+    }
+
+    /** Someone this citizen's kingdom is at war with (a soldier or subject of theirs, or one of its members). */
+    public boolean isEnemy(LivingEntity target) {
+        if (kingdomId == null || !target.isAlive() || this.level().getServer() == null) return false;
+        if (target instanceof Citizen c) return c.kingdomId() != null && com.dominionmod.dominion.kingdom.Diplomacy.hostile(this.level().getServer(), kingdomId, c.kingdomId());
+        if (target instanceof com.dominionmod.dominion.entity.siege.SiegeEngine se)
+            return se.kingdomId() != null && com.dominionmod.dominion.kingdom.Diplomacy.hostile(this.level().getServer(), kingdomId, se.kingdomId())
+                    && distanceToSqr(se) < 24 * 24;
+        if (target instanceof Player p) {
+            if (p.isCreative() || p.isSpectator()) return false;
+            var k = KingdomData.get(this.level().getServer()).byPlayer(p.getUUID());
+            return k != null && com.dominionmod.dominion.kingdom.Diplomacy.hostile(this.level().getServer(), kingdomId, k.id);
+        }
+        return false;
     }
 
     @Override
@@ -198,6 +222,83 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             Projectile.spawnProjectileUsingShoot(arrow, level, arrows, dx, dy + dist * 0.2, dz, 1.6f, 4.0f);
         }
         this.playSound(SoundEvents.SKELETON_SHOOT, 1.0f, 1.0f / (this.getRandom().nextFloat() * 0.4f + 0.8f));
+        spendAmmo();
+    }
+
+    // ------------------------------------------------------------------ ammunition in the field
+
+    public static final int MAX_AMMO = 40;
+    private int ammo = MAX_AMMO;
+    private boolean warnedDry;
+
+    private boolean shoots() {
+        Job j = job();
+        return j == Job.ARCHER || j == Job.MUSKETEER;
+    }
+
+    /** Away from home (more than a long bowshot from the Town Hall), a player kingdom's archers and musketeers live on what they carry. */
+    public boolean inField() {
+        Kingdom k = kingdom();
+        if (k == null || k.wild || k.hall.isEmpty()) return false;
+        if (!k.hallDim.equals(KingdomData.dim(this.level()))) return true;
+        return k.hall.get().distSqr(blockPosition()) > Realm.HOUSING_RADIUS * Realm.HOUSING_RADIUS;
+    }
+
+    public boolean hasAmmo() {
+        return !shoots() || ammo > 0 || !inField();
+    }
+
+    public int ammo() { return ammo; }
+
+    public void spendAmmo() {
+        if (!shoots() || !inField()) return;
+        ammo = Math.max(0, ammo - 1);
+        if (ammo == 0 && !warnedDry && this.level() instanceof ServerLevel level && kingdom() != null) {
+            warnedDry = true;
+            tellKingdom(level, kingdom(), Component.literal(baseName + " the " + job().title + " is out of "
+                    + (job() == Job.MUSKETEER ? "shot" : "arrows") + " and draws a knife. A supply cart nearby would keep them stocked.")
+                    .withStyle(ChatFormatting.YELLOW));
+        }
+    }
+
+    /** Takes up to {@code n} rounds; returns how many were taken. */
+    public int resupply(int n) {
+        int take = Math.min(n, MAX_AMMO - ammo);
+        ammo += take;
+        if (ammo > 0) warnedDry = false;
+        return take;
+    }
+
+    public boolean needsAmmo() {
+        return shoots() && ammo < MAX_AMMO - 8;
+    }
+
+    /** Melee soldiers, and archers or musketeers who've run dry. */
+    private boolean fightsHandToHand() {
+        return job().melee() || shoots() && !hasAmmo();
+    }
+
+    // ------------------------------------------------------------------ cavalry
+
+    private @Nullable UUID steed;
+
+    public @Nullable UUID steed() { return steed; }
+    public void setSteed(@Nullable UUID id) { this.steed = id; }
+
+    @Override
+    public boolean doHurtTarget(ServerLevel level, net.minecraft.world.entity.Entity target) {
+        float bonus = Cavalry.chargeBonus(this);
+        var dmg = getAttribute(Attributes.ATTACK_DAMAGE);
+        var id = com.dominionmod.dominion.DominionMod.id("charge");
+        if (bonus > 1.5f && dmg != null) dmg.addOrUpdateTransientModifier(new net.minecraft.world.entity.ai.attributes.AttributeModifier(id, bonus,
+                net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation.ADD_VALUE));
+        boolean hit = super.doHurtTarget(level, target);
+        if (dmg != null && dmg.hasModifier(id)) dmg.removeModifier(id);
+        if (hit && bonus > 1.5f && target instanceof LivingEntity le) {
+            le.knockback(1.4, getX() - le.getX(), getZ() - le.getZ(), damageSources().mobAttack(this), bonus);
+            level.sendParticles(net.minecraft.core.particles.ParticleTypes.CRIT, le.getX(), le.getY() + 1, le.getZ(), 10, 0.4, 0.4, 0.4, 0.2);
+        }
+        return hit;
     }
 
     /** When one of a kingdom's people is attacked, its soldiers nearby turn on the attacker. */
@@ -231,6 +332,12 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (this.tickCount % 100 == 0) refreshFromKingdom(level);
         if (job.worker()) pickUpNearbyItems(level);
         if (job.soldier) commanderBonus(level);
+        if (!inField()) ammo = MAX_AMMO;
+        if (com.dominionmod.dominion.kingdom.Caravans.onRoad(isPassenger() && getVehicle() != null ? getVehicle() : this)) {
+            addEffect(new MobEffectInstance(MobEffects.SPEED, 40, 0, true, false));
+            if (getVehicle() instanceof LivingEntity mount) mount.addEffect(new MobEffectInstance(MobEffects.SPEED, 40, 0, true, false));
+        }
+        Cavalry.tick(level, this);
         if (isChild() && (growTicks -= 20) <= 0) growUp(level);
         if (job == Job.MONK && this.tickCount % 100 == 0) monkBlessing(level);
         if (job == Job.BARBARIAN && getHealth() < getMaxHealth() / 2 && getTarget() != null) {
@@ -258,7 +365,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         refreshName();
         KingdomData d = Realm.data(level);
         Kingdom k = d.byId(kingdomId);
-        if (k != null) Realm.addCitizen(k, getUUID(), job, d);
+        if (k != null && !temporary) Realm.addCitizen(k, getUUID(), job, d);
         if (!job.soldier) setTarget(null);
     }
 
@@ -334,7 +441,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     /** Keeps colors and flag in step with the kingdom, and makes sure they have a bed. */
     private void refreshFromKingdom(ServerLevel level) {
         Kingdom k = kingdom();
-        if (k == null) return;
+        if (k == null || temporary) return;
         if (getPrimary() != k.primary) this.entityData.set(PRIMARY, k.primary);
         if (getSecondary() != k.secondary) this.entityData.set(SECONDARY, k.secondary);
         if (!ItemStack.matches(this.entityData.get(FLAG), k.flag)) this.entityData.set(FLAG, k.flag.copy());
@@ -395,7 +502,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     private void upkeep(ServerLevel level, long day) {
         Kingdom k = kingdom();
         lastUpkeepDay = day;
-        if (k == null || k.wild) return; // wild kingdoms look after their own
+        if (k == null || k.wild || temporary) return; // wild kingdoms look after their own
         var store = Storehouse.containers(level, k);
         if (store.isEmpty() && k.hall.isPresent() && !level.isLoaded(k.hall.get())) return; // can't reach the town right now
 
@@ -481,10 +588,20 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     public void die(DamageSource source) {
         if (this.level() instanceof ServerLevel level) {
             Kingdom k = kingdom();
-            if (k != null) tellKingdom(level, k, Component.literal(baseName + " the " + job().title + " has died.").withStyle(ChatFormatting.GRAY));
+            if (k != null && !temporary && !k.wild) tellKingdom(level, k, Component.literal(baseName + " the " + job().title + " has died.").withStyle(ChatFormatting.GRAY));
             for (ItemStack s : inventory.removeAllItems()) spawnAtLocation(level, s);
             for (ItemStack s : materials.removeAllItems()) spawnAtLocation(level, s);
-            Realm.removeCitizen(level, kingdomId, getUUID());
+            if (k != null && k.wild && job().soldier) spawnAtLocation(level, new ItemStack(ModContent.GOLD_COIN.get(), 1 + this.random.nextInt(3)));
+            // murdering an envoy is an act of war
+            if (k != null && onEnvoyErrand() && source.getEntity() instanceof Player killer) {
+                Kingdom theirs = Realm.data(level).byPlayer(killer.getUUID());
+                if (theirs != null && theirs != k) {
+                    com.dominionmod.dominion.kingdom.Diplomacy.declareWar(level, k, theirs, "their envoy was murdered");
+                    com.dominionmod.dominion.kingdom.Rivals.onWarDeclared(level, k, theirs);
+                }
+            }
+            if (!temporary) Realm.removeCitizen(level, kingdomId, getUUID());
+            com.dominionmod.dominion.kingdom.Armies.onDeath(level, getUUID());
         }
         super.die(source);
     }
@@ -494,6 +611,10 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
         ItemStack held = player.getItemInHand(hand);
+        if (isEnvoy() && !envoySpoken() && envoyFor != null && envoyFor.equals(player.getUUID())) {
+            if (this.level() instanceof ServerLevel) deliverEnvoy();
+            return InteractionResult.SUCCESS;
+        }
         if (held.is(ModContent.COMMAND_BATON.get())) return InteractionResult.PASS; // the baton handles it
         if (!(this.level() instanceof ServerLevel level)) return InteractionResult.SUCCESS;
         Kingdom k = kingdom();
@@ -508,6 +629,8 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
             else player.sendOverlayMessage(Component.literal(baseName + " is too young to work. They'll grow up in a day or so."));
             return InteractionResult.SUCCESS_SERVER;
         }
+        // Leading a saddled horse? The soldier takes it.
+        if (held.isEmpty() && !player.isShiftKeyDown() && Cavalry.giveLedHorse(player, this)) return InteractionResult.SUCCESS_SERVER;
         // Armor goes on, a shield goes in the off hand, a tool or weapon becomes their job.
         Equippable eq = held.get(DataComponents.EQUIPPABLE);
         if (!held.isEmpty() && eq != null && eq.slot().getType() == EquipmentSlot.Type.HUMANOID_ARMOR) {
@@ -553,6 +676,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
                     setItemSlot(slot, ItemStack.EMPTY);
                 }
             }
+            if (steed != null || isPassenger()) Cavalry.release(this);
             player.sendOverlayMessage(Component.literal(baseName + " hands back their gear."));
             return InteractionResult.SUCCESS_SERVER;
         }
@@ -595,10 +719,13 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         if (job().soldier) mood += unpaidDays > 0 ? ", unpaid" : ", paid";
         BlockPos bed = home();
         mood += bed == null ? ", no bed" : ", sleeps at " + bed.getX() + " " + bed.getY() + " " + bed.getZ();
+        mood += Cavalry.describe(this);
+        if (shoots() && inField()) mood += ", " + ammo + " rounds";
         String orderText = switch (order) {
             case RALLY -> "rallied to their commander";
             case HOLD -> "holding position";
             case PATROL -> "patrolling a route of " + patrol.size() + " waypoints";
+            case MARCH -> "on campaign";
             default -> job().worker() ? "working" : "on duty";
         };
         return Component.literal(baseName + " the " + job().title).withStyle(s -> s.withColor(colorOf(getPrimary())).withBold(true))
@@ -607,6 +734,23 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     }
 
     // ------------------------------------------------------------------ kingdom
+
+    /** Merchants and hired guards: wear a kingdom's colors without joining its rolls (no bed, no wages, gone after the trip). */
+    private boolean temporary;
+
+    public void joinTemporarily(Kingdom k, String title) {
+        this.kingdomId = k.id;
+        this.temporary = true;
+        this.entityData.set(PRIMARY, k.primary);
+        this.entityData.set(SECONDARY, k.secondary);
+        this.entityData.set(LOOK, this.random.nextInt(4));
+        this.entityData.set(FLAG, k.flag.copy());
+        if (baseName.isEmpty()) baseName = NAMES[this.random.nextInt(NAMES.length)];
+        setCustomName(Component.literal(baseName + " (" + title + ")").withStyle(s -> s.withColor(colorOf(getPrimary()))));
+        setCustomNameVisible(false);
+    }
+
+    public boolean temporary() { return temporary; }
 
     public void joinKingdom(Kingdom k, ServerLevel level) {
         this.kingdomId = k.id;
@@ -624,6 +768,7 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
     }
 
     private void refreshName() {
+        if (temporary) return;
         setCustomName(Component.literal(baseName + " (" + (isChild() ? "Child" : job().title) + ")").withStyle(s -> s.withColor(colorOf(getPrimary()))));
         setCustomNameVisible(false);
     }
@@ -705,6 +850,48 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         }
     }
 
+    /** Set out across country for {@code dest}, on campaign. */
+    public void march(BlockPos dest) {
+        this.order = Order.MARCH;
+        this.anchor = dest.immutable();
+        this.commander = null;
+        this.patrol.clear();
+    }
+
+    // envoys: carry an offer to a member of another kingdom, then go home
+    private @Nullable UUID envoyFor;
+    private int envoyOffer = -1;
+    private int envoyTicks;
+
+    public void becomeEnvoy(UUID player, int offer) {
+        this.envoyFor = player;
+        this.envoyOffer = offer;
+        this.envoyTicks = 0;
+        setCustomNameVisible(true);
+        setCustomName(Component.literal(baseName + ", Envoy of " + (kingdom() == null ? "?" : kingdom().name))
+                .withStyle(s -> s.withColor(colorOf(getPrimary()))));
+    }
+
+    public boolean isEnvoy() { return envoyOffer >= 0; }
+    /** Any envoy business at all: on the way, waiting after speaking, or left over from before a reload. */
+    public boolean onEnvoyErrand() { return envoyOffer != -1; }
+    public boolean envoyStale() { return envoyOffer == -3; }
+    public @Nullable UUID envoyFor() { return envoyFor; }
+    public int envoyOffer() { return envoyOffer; }
+    public int envoyTicks() { return envoyTicks; }
+    public void tickEnvoy() { envoyTicks++; }
+
+    /** The envoy has spoken (or given up): they say their piece once. */
+    public void deliverEnvoy() {
+        if (envoyOffer < 0 || !(this.level() instanceof ServerLevel level)) return;
+        var offer = com.dominionmod.dominion.kingdom.Diplomacy.offer(envoyOffer);
+        if (offer != null) com.dominionmod.dominion.kingdom.Diplomacy.present(level, offer, baseName + ", envoy of ");
+        envoyOffer = -2; // spoken; now waiting to leave
+        envoyTicks = 0;
+    }
+
+    public boolean envoySpoken() { return envoyOffer == -2; }
+
     public java.util.List<BlockPos> patrolRoute() { return patrol; }
     public int patrolIndex() { return patrolIndex; }
     public void nextWaypoint() { if (!patrol.isEmpty()) patrolIndex = (patrolIndex + 1) % patrol.size(); }
@@ -785,6 +972,9 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         out.putInt("Spec", this.entityData.get(SPEC));
         out.putBoolean("Child", isChild());
         out.putInt("GrowTicks", growTicks);
+        out.putBoolean("Envoy", envoyOffer != -1 || temporary);
+        out.putInt("Ammo", ammo);
+        if (steed != null) out.putString("Steed", steed.toString());
         writeInventoryToTag(out);
         materials.storeAsItemList(out.list("Materials", ItemStack.CODEC));
     }
@@ -823,6 +1013,15 @@ public class Citizen extends PathfinderMob implements RangedAttackMob, Inventory
         this.entityData.set(SPEC, in.getIntOr("Spec", -1));
         this.entityData.set(CHILD, in.getBooleanOr("Child", false));
         this.growTicks = in.getIntOr("GrowTicks", 0);
+        if (in.getBooleanOr("Envoy", false)) this.envoyOffer = -3; // an envoy from before a reload: leaves at once
+        this.ammo = in.getIntOr("Ammo", MAX_AMMO);
+        in.getString("Steed").ifPresent(st -> {
+            try {
+                steed = UUID.fromString(st);
+            } catch (IllegalArgumentException ignored) {
+            }
+        });
+        if (order == Order.MARCH && anchor == null) order = Order.DUTY;
         applyStats();
         readInventoryFromTag(in);
         in.list("Materials", ItemStack.CODEC).ifPresent(list -> materials.fromItemList(list));

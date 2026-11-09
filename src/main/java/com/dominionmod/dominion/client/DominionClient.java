@@ -29,12 +29,23 @@ public class DominionClient {
             e.registerEntityRenderer(ModContent.DEER.get(), com.dominionmod.dominion.client.render.wild.DeerRenderer::new);
             e.registerEntityRenderer(ModContent.CENTAUR.get(), com.dominionmod.dominion.client.render.wild.CentaurRenderer::new);
             e.registerEntityRenderer(ModContent.ORC.get(), com.dominionmod.dominion.client.render.wild.OrcRenderer::new);
+            e.registerEntityRenderer(ModContent.ORC_WARLORD.get(), com.dominionmod.dominion.client.render.wild.OrcRenderer::new);
+            e.registerEntityRenderer(ModContent.SUPPLY_CART.get(), com.dominionmod.dominion.client.render.siege.SupplyCartRenderer::new);
+            e.registerEntityRenderer(ModContent.BATTERING_RAM.get(), ctx -> new com.dominionmod.dominion.client.render.siege.SiegeRenderer(ctx,
+                    com.dominionmod.dominion.client.render.siege.SiegeModels.RAM, "battering_ram", 1.0f));
+            e.registerEntityRenderer(ModContent.TREBUCHET.get(), ctx -> new com.dominionmod.dominion.client.render.siege.SiegeRenderer(ctx,
+                    com.dominionmod.dominion.client.render.siege.SiegeModels.TREBUCHET, "trebuchet", 1.5f));
+            e.registerEntityRenderer(ModContent.CANNON.get(), ctx -> new com.dominionmod.dominion.client.render.siege.SiegeRenderer(ctx,
+                    com.dominionmod.dominion.client.render.siege.SiegeModels.CANNON, "cannon", 1.3f));
+            e.registerEntityRenderer(ModContent.BOULDER.get(), ctx -> new net.minecraft.client.renderer.entity.ThrownItemRenderer<>(ctx, 1.4f, false));
+            e.registerEntityRenderer(ModContent.CANNONBALL_ENTITY.get(), ctx -> new net.minecraft.client.renderer.entity.ThrownItemRenderer<>(ctx, 0.9f, false));
             e.registerEntityRenderer(ModContent.CLYDESDALE.get(), ctx -> new com.dominionmod.dominion.client.render.wild.BreedHorseRenderer(ctx, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE));
             e.registerEntityRenderer(ModContent.MUSTANG.get(), ctx -> new com.dominionmod.dominion.client.render.wild.BreedHorseRenderer(ctx, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.MUSTANG));
             e.registerEntityRenderer(ModContent.SHETLAND_PONY.get(), ctx -> new com.dominionmod.dominion.client.render.wild.BreedHorseRenderer(ctx, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.SHETLAND));
         });
         modBus.addListener(CitizenModels::register);
         modBus.addListener(com.dominionmod.dominion.client.render.wild.WildModels::register);
+        modBus.addListener(com.dominionmod.dominion.client.render.siege.SiegeModels::register);
         modBus.addListener((RegisterKeyMappingsEvent e) -> {
             e.registerCategory(CATEGORY);
             e.register(OPEN_REALM);

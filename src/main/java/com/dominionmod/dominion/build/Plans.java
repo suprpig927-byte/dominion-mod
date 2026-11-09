@@ -133,7 +133,9 @@ public final class Plans {
         List<Step> clears = new ArrayList<>(), places = new ArrayList<>();
         if (s == null) return places;
         Rotation rot = rotation(site.rotation);
-        if (s.kind() == Structures.Kind.WALL) {
+        if (Structures.isRoad(s)) {
+            roadSteps(level, k, site, rot, clears, places);
+        } else if (s.kind() == Structures.Kind.WALL) {
             List<BlockPos> cols = line(site.origin, site.end);
             for (int i = 0; i < cols.size(); i++) {
                 int ground = i < site.columns.size() ? site.columns.get(i) : site.origin.getY() + 1;
@@ -161,6 +163,28 @@ public final class Plans {
         List<Step> out = new ArrayList<>(clears);
         out.addAll(places);
         return out;
+    }
+
+    /** A road: three blocks wide, laid into the ground along the line, with plants and snow cleared off it. */
+    private static void roadSteps(Level level, Kingdom k, Site site, Rotation rot, List<Step> clears, List<Step> places) {
+        int dx = site.end.getX() - site.origin.getX(), dz = site.end.getZ() - site.origin.getZ();
+        int px = Math.abs(dx) >= Math.abs(dz) ? 0 : 1, pz = Math.abs(dx) >= Math.abs(dz) ? 1 : 0;
+        java.util.Set<Long> seen = new java.util.HashSet<>();
+        for (BlockPos col : line(site.origin, site.end)) {
+            for (int off = -1; off <= 1; off++) {
+                int x = col.getX() + px * off, z = col.getZ() + pz * off;
+                if (!seen.add(BlockPos.asLong(x, 0, z))) continue;
+                int gy = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
+                BlockPos g = new BlockPos(x, gy, z);
+                if (!level.getFluidState(g).isEmpty()) continue;
+                for (int up = 1; up <= 2; up++) {
+                    BlockPos a = g.above(up);
+                    var st = level.getBlockState(a);
+                    if (!st.isAir() && st.canBeReplaced()) clears.add(new Step(a, null, null, null, null, false));
+                }
+                add(level, k, site.tier, off == 0 ? '$' : '^', g, rot, clears, places);
+            }
+        }
     }
 
     /** Fill air under a foundation with dirt (free) so buildings on slopes don't float. */
@@ -213,6 +237,8 @@ public final class Plans {
         }
         Item cost = null;
         if (!Palette.free(c)) cost = c == 'y' ? Items.WHEAT_SEEDS : state.getBlock().asItem();
+        // earth roads are dug, not carried
+        if (state.is(Blocks.DIRT_PATH) || state.is(Blocks.COARSE_DIRT)) cost = null;
         if (cost == Items.AIR) cost = null;
         places.add(new Step(p.immutable(), state, cost, compPos == null ? null : compPos.immutable(), comp, flag));
     }
@@ -228,6 +254,13 @@ public final class Plans {
                 }
             }
         }
+        if (Structures.isRoad(s)) {
+            out.clear();
+            Item mid = itemFor('$', tier), edge = itemFor('^', tier);
+            if (mid != null) out.merge(mid, 1, Integer::sum);
+            if (edge != null) out.merge(edge, 2, Integer::sum);
+            return out;
+        }
         if (s.kind() == Structures.Kind.WALL) out.replaceAll((item, n) -> Math.max(1, n / 2));
         return out;
     }
@@ -242,7 +275,7 @@ public final class Plans {
             case 'k': return tier >= Palette.BRICK ? Items.CARPET.pick(DyeColor.WHITE) : null;
             default:
                 BlockState st = Palette.state(c, tier, 0, 0);
-                if (st == null || st.isAir()) return null;
+                if (st == null || st.isAir() || st.is(Blocks.DIRT_PATH) || st.is(Blocks.COARSE_DIRT)) return null;
                 Item it = st.getBlock().asItem();
                 return it == Items.AIR ? null : it;
         }

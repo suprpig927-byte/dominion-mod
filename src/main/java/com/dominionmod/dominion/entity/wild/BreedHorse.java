@@ -114,6 +114,50 @@ public class BreedHorse extends Horse {
                 : breed.coatFor(this.random.nextBoolean() ? this.getVariant() : other.getVariant());
         foal.setLook(coat, Markings.NONE);
         this.setOffspringAttributes(partner, foal);
+        if (kingdomId != null) {
+            foal.setKingdomId(kingdomId);
+            foal.setTamed(true);
+        }
         return foal;
+    }
+
+    // ------------------------------------------------------------------ in a kingdom's service
+
+    /** The kingdom this horse was bred for (stables, armies), if any. */
+    private @org.jspecify.annotations.Nullable java.util.UUID kingdomId;
+    /** The supply cart this pony pulls, if any. */
+    private @org.jspecify.annotations.Nullable java.util.UUID cartId;
+
+    public @org.jspecify.annotations.Nullable java.util.UUID kingdomId() { return kingdomId; }
+    public void setKingdomId(@org.jspecify.annotations.Nullable java.util.UUID id) { this.kingdomId = id; }
+    public @org.jspecify.annotations.Nullable java.util.UUID cartId() { return cartId; }
+    public void setCartId(@org.jspecify.annotations.Nullable java.util.UUID id) { this.cartId = id; }
+
+    @Override
+    protected void registerGoals() {
+        super.registerGoals();
+        this.goalSelector.addGoal(1, new com.dominionmod.dominion.entity.goal.SupplyRunGoal(this));
+    }
+
+    @Override
+    protected void addAdditionalSaveData(net.minecraft.world.level.storage.ValueOutput out) {
+        super.addAdditionalSaveData(out);
+        if (kingdomId != null) out.putString("DominionKingdom", kingdomId.toString());
+        if (cartId != null) out.putString("DominionCart", cartId.toString());
+    }
+
+    @Override
+    protected void readAdditionalSaveData(net.minecraft.world.level.storage.ValueInput in) {
+        super.readAdditionalSaveData(in);
+        kingdomId = in.getString("DominionKingdom").map(BreedHorse::uuid).orElse(null);
+        cartId = in.getString("DominionCart").map(BreedHorse::uuid).orElse(null);
+    }
+
+    private static java.util.@org.jspecify.annotations.Nullable UUID uuid(String s) {
+        try {
+            return java.util.UUID.fromString(s);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
     }
 }
