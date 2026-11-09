@@ -78,7 +78,7 @@ public final class AutoShot {
         if (t == 530) shot(mc, "storehouse");
         if (t == 532) look(mc, bx + 26, by + 2, bz - 30, 180f, 5f);
         if (t == 580) shot(mc, "university");
-        if (t == 582) look(mc, bx - 52, by + 11, bz + 4, 180f, 28f);
+        if (t == 582) look(mc, bx - 50, by + 0.5, bz - 9, 180f, 6f);
         if (t == 620) shot(mc, "farm_tower");
         if (t == 622) look(mc, bx, by + 0.3, bz - 0.5, 0f, 8f);
         if (t == 660) shot(mc, "armory");
@@ -144,7 +144,7 @@ public final class AutoShot {
         if (t == 1182) look(mc, bx - 20.5, by + 1.2, bz - 4.5, 0f, 6f);
         if (t == 1220) shot(mc, "creatures");
         // the orc village to the east
-        if (t == 1222) look(mc, bx + 44, by + 30, bz - 3.5, -90f, 42f);
+        if (t == 1222) look(mc, bx + 52, by + 9, bz - 3.5, -90f, 20f);
         if (t == 1280) shot(mc, "orc_village");
         // the wild kingdom and its castle to the south
         if (t == 1282) look(mc, bx, by + 16, bz + 14, 0f, 20f);
