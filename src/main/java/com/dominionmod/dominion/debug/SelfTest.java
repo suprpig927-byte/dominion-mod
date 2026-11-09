@@ -218,12 +218,12 @@ public final class SelfTest {
         log("started at " + center + ", citizens: " + citizens.size() + ", kingdom citizens: " + k.citizens);
     }
 
-    private static void spawn(ServerLevel level, Kingdom k, BlockPos at, ItemStack hand, ItemStack chest) {
+    private static Citizen spawn(ServerLevel level, Kingdom k, BlockPos at, ItemStack hand, ItemStack chest) {
         Villager v = EntityTypes.VILLAGER.create(level, EntitySpawnReason.COMMAND);
         Citizen c = ModContent.CITIZEN.get().create(level, EntitySpawnReason.CONVERSION);
         if (c == null) {
             log("FAIL could not create citizen");
-            return;
+            return null;
         }
         c.snapTo(at.getX() + 0.5, at.getY(), at.getZ() + 0.5, 0, 0);
         c.joinKingdom(k, level);
@@ -232,6 +232,7 @@ public final class SelfTest {
         level.addFreshEntity(c);
         citizens.add(c.getUUID());
         if (v != null) v.discard();
+        return c;
     }
 
     public static void tick(ServerLevel level) {
@@ -358,15 +359,17 @@ public final class SelfTest {
         // arrows in the storehouse for the supply cart to load
         if (level.getBlockEntity(center.offset(2, 0, 0)) instanceof ChestBlockEntity be) be.setItem(5, new ItemStack(Items.ARROW, 64));
         // a knight on a Clydesdale
-        spawn(level, k, center.offset(6, 0, -14), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.IRON_CHESTPLATE));
-        Citizen kn = (Citizen) level.getEntity(citizens.removeLast());
+        Citizen kn = spawn(level, k, center.offset(6, 0, -14), new ItemStack(Items.IRON_SWORD), new ItemStack(Items.IRON_CHESTPLATE));
+        citizens.removeLast();
+        log("knight spawned=" + (kn != null) + " added=" + (kn != null && kn.isAddedToLevel()) + " alive=" + (kn != null && kn.isAlive()));
+        if (kn == null) return;
         var horse = com.dominionmod.dominion.entity.Cavalry.mountNew(level, kn, com.dominionmod.dominion.entity.wild.BreedHorse.Breed.CLYDESDALE);
         knight = kn.getUUID();
         log("cavalry: knight mounted=" + kn.isPassenger() + " on " + (kn.getVehicle() == null ? "nothing" : kn.getVehicle().getType().toShortString())
                 + " steed=" + (horse != null && horse.getUUID().equals(kn.steed())) + " saddled=" + (horse != null && horse.isSaddled()));
         // an archer with an empty quiver next to a pony and its supply cart, near the hall
-        spawn(level, k, center.offset(-4, 0, 4), new ItemStack(Items.BOW), null);
-        Citizen ar = (Citizen) level.getEntity(citizens.removeLast());
+        Citizen ar = spawn(level, k, center.offset(-4, 0, 4), new ItemStack(Items.BOW), null);
+        citizens.removeLast();
         ar.debugSetAmmo(0);
         archerInField = ar.getUUID();
         var pony = ModContent.SHETLAND_PONY.get().create(level, EntitySpawnReason.COMMAND);
@@ -469,10 +472,10 @@ public final class SelfTest {
 
     private static void warfareCheck(ServerLevel level, KingdomData d, Kingdom k, Kingdom wildK) {
         if (k == null) return;
-        if (level.getEntity(knight) instanceof Citizen kn)
+        if (knight != null && level.getEntity(knight) instanceof Citizen kn)
             log("cavalry later: knight riding=" + kn.isPassenger() + " " + com.dominionmod.dominion.entity.Cavalry.describe(kn));
         else log("cavalry later: knight gone");
-        if (level.getEntity(archerInField) instanceof Citizen ar) {
+        if (archerInField != null && level.getEntity(archerInField) instanceof Citizen ar) {
             var sc = cart == null ? null : level.getEntity(cart);
             int arrows = 0;
             if (sc instanceof com.dominionmod.dominion.entity.SupplyCart c)
@@ -480,11 +483,13 @@ public final class SelfTest {
             log("supply cart: archer ammo now=" + ar.ammo() + " cart alive=" + (sc != null && sc.isAlive()) + " arrows left in cart=" + arrows);
         }
         var cn = cannon == null ? null : level.getEntity(cannon);
+        if (pillar != null) {
         int left = 0;
         for (int i = 0; i < 3; i++) if (!level.getBlockState(pillar.above(i)).isAir()) left++;
         log("cannon: alive=" + (cn != null && cn.isAlive()) + " pillar blocks left=" + left + " of 3"
                 + (cn instanceof com.dominionmod.dominion.entity.siege.SiegeEngine e ? " fireAt=" + e.fireAt() : ""));
         log("ruin repair: wall now=" + level.getBlockState(ruinWall).getBlock() + " ruins pending=" + d.ruins.stream().filter(r -> r.kingdom().equals(k.id)).count());
+        }
 
         // diplomacy with the wild kingdom
         if (wildK != null) {
